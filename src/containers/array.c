@@ -17,7 +17,7 @@ Array* array_create(u32 length, size_t el_size) {
 void array_init(Array* array, u32 length, size_t el_size) {
     array->length = length;
     array->el_size = el_size;
-    array->data = array + 1;    // data is located after the array structure
+    array->data = (u8*)(array + 1);    // data is located after the array structure
     memset(array->data, 0, array_data_size(array));
 }
 
@@ -30,7 +30,7 @@ void array_destroy(Array* array, ResetFn reset_fn) {
 
 void array_reset(Array* array, ResetFn reset_fn) {
     for (u32 idx = 0; idx < array->length; ++idx) {
-        reset_fn(array_get(array, idx);
+        reset_fn(array_get(array, idx));
     }
     memset(array->data, 0, array_data_size(array));
     array->length = 0;
@@ -61,9 +61,9 @@ void array_show(Array* array, ShowFn show_fn) {
 }
 
 
-void array_swap(Array* array, u32 idx1, u32 idx2) 
+void array_swap(Array* array, u32 idx1, u32 idx2) {
     u8* el1_adr = array_el_adr(array, idx1);
-    u8* el2_ard = array_el_adr(array, idx2);
+    u8* el2_adr = array_el_adr(array, idx2);
     
     // NOTE: Go over each byte in both the elements and swap byte by byte
     for (size_t adr_idx = 0; adr_idx < array->el_size; ++adr_idx) {

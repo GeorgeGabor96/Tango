@@ -10,6 +10,11 @@ typedef struct Array {
     u8* data;           // NOTE: This should point directly after the Array
 } Array;
 
+
+typedef void (ResetFn) (void*);
+typedef void (ShowFn) (void*);
+
+
 #define array_data_size(a) ((a)->length * (a)->el_size)
 #define array_el_adr(a, i) ((a)->data + (i) * (a)->el_size)
 
