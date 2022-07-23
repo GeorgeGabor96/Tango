@@ -20,6 +20,58 @@ typedef int8_t i8;
 typedef float f32;
 typedef double f64;
 
+#define internal static
+
 typedef enum { SUCCESS = 0, FAIL = 1 } Status;
 
-#endif
+// logging
+#define errno_text() (errno == 0 ? "None" : strerror(errno))
+
+#define log_error(M, ...) fprintf(stderr,\
+"[ERROR] (%s:%d: errno: %s) " M "\n",\
+__FILE__,\
+__LINE__,\
+errno_text(),\
+##__VA_ARGS__)
+
+#define log_warning(M, ...) fprintf(stderr,\
+"[WARNING] (%s:%d: errno: %s) " M "\n",\
+__FILE__,\
+__LINE__,\
+errno_text(),\
+##__VA_ARGS__)
+
+#define log_info(M, ...) fprintf(stderr,\
+"[INFO] (%s:%d) " M "\n",\
+__FILE__,\
+__LINE__,\
+##__VA_ARGS__)
+
+#ifndef CHECKS
+
+#define debug(M, ...)
+#define check(A, M, ...)
+#define check_memory(A)
+#define if_check(C, A, M, ...)
+#define ERROR
+
+#else
+
+#define debug(M, ...) fprintf(stderr,\
+"[DEBUG] %s:%d: " M "\n",\
+__FILE__,\
+__LINE__,\
+##__VA_ARGS__)
+
+#define check(A, M, ...) if (!(A)) {\
+log_error(M, ##__VA_ARGS__);\
+errno=0;\
+goto error; }
+
+#define check_memory(A) check((A), "Out of Memory.")
+
+#define if_check(C, A, M, ...) if(C) { check(A, M, ##__VA_ARGS__) }
+
+#endif // CHECKS
+
+#endif // __COMMON__
