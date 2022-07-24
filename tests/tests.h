@@ -3,6 +3,8 @@
 #ifndef TESTS_H
 #define TESTS_H
 
+
+// TODO: Shouldn't this be a function call? do we need the errno print and set?
 #define assert(test, message, ...) if (!(test)) {\
 fprintf(stderr, "[ERROR] (%s:%d: errno: %s) " message "\n",\
 __FILE__,\

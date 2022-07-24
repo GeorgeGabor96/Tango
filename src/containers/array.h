@@ -31,4 +31,8 @@ internal void array_show(Array* array, ShowFn show);
 
 internal void array_swap(Array* array, u32 idx1, u32 idx2);
 
+// NOTE: this should be usefull when I need to move an array into some other memory
+internal size_t array_size(Array* array);
+internal size_t array_size_from_params(u32 length, size_t el_size);
+
 #endif

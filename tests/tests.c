@@ -1,15 +1,15 @@
 #include "common.h"
 #include "tests.h"
 
-
-internal TestStatus
-mock_test_fn() {
-    return TEST_UNIMPLEMENTED;
-}
+#include "containers_tests/array_tests.c"
 
 
 TestInfo tests[] = {
-    { mock_test_fn, "mock_test" },
+    { array_create_destroy_test, "array_create_destroy_test" },
+    { array_set_get_test, "array_set_get_test" },
+    { array_swap_test, "array_swap_test" },
+    { array_show_test, "array_show_test" },
+    { array_size_test, "array_size_test" },
 };
 
 
