@@ -55,7 +55,7 @@ queue_init(Queue* queue, u32 length, size_t el_size) {
 
 
 internal void
-queue_destroy(Queue* queue, ResetFn reset_fn) {
+queue_destroy(Queue* queue, ResetFn* reset_fn) {
     check(queue != NULL, "NULL queue");
     queue_reset(queue, reset_fn);
     free(queue);
@@ -65,7 +65,7 @@ queue_destroy(Queue* queue, ResetFn reset_fn) {
 
 
 internal void
-queue_reset(Queue* queue, ResetFn reset_fn) {
+queue_reset(Queue* queue, ResetFn* reset_fn) {
     check(queue != NULL, "NULL queue");
     if (reset_fn != NULL) {
         while(queue->length != 0) {
@@ -141,7 +141,7 @@ queue_dequeue_copy(Queue* queue, void* element) {
 
 
 internal void
-queue_show(Queue* queue, ShowFn show_fn) {
+queue_show(Queue* queue, ShowFn* show_fn) {
     check(queue != NULL, "NULL queue");
     check(show_fn != NULL, "NULL show_fn");
     
