@@ -5,13 +5,16 @@
 
 internal Array*
 array_create(u32 length, size_t el_size) {
+    check(length != 0, "length is 0");
+    check(el_size != 0, "el_size is 0");
     Array* array = NULL;
     
     size_t size = array_size_from_params(length, el_size);
     array = (Array*) malloc(size);
-    if (array == NULL) return NULL;
+    check_memory(array);
     
     array_init(array, length, el_size);
+    error:
     return array;
 }
 

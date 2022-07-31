@@ -2,14 +2,21 @@
 #include "tests.h"
 
 #include "containers_tests/array_tests.c"
+#include "containers_tests/queue_tests.c"
 
 
 TestInfo tests[] = {
+    // Array tests
     { array_create_destroy_test, "array_create_destroy_test" },
     { array_set_get_test, "array_set_get_test" },
     { array_swap_test, "array_swap_test" },
     { array_show_test, "array_show_test" },
     { array_size_test, "array_size_test" },
+    // Queue tests
+    { queue_create_destroy_test, "queue_create_destroy_test" },
+    { queue_enqueue_dequeue_test, "queue_enqueue_dequeue_test" },
+    { queue_show_test, "queue_show_test" },
+    { queue_size_test, "queue_size_test" },
 };
 
 

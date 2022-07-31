@@ -128,12 +128,6 @@ array_swap_test() {
 }
 
 
-internal void
-i32_show(void* data) {
-    i32 value = *((i32*)data);
-    printf("%d", value);
-}
-
 internal TestStatus
 array_show_test() {
     TestStatus status = TEST_FAILED;

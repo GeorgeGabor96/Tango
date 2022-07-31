@@ -22,6 +22,25 @@ typedef double f64;
 
 #define internal static
 
+
+// FUNCTION definitions
+typedef void (ResetFn) (void*);
+typedef void (ShowFn) (void*);
+
+// Plotting functions
+internal void
+i32_show(void* data) {
+    i32 value = *((i32*)data);
+    printf("%d", value);
+}
+
+internal void
+u32_show(void* data) {
+    u32 value = *((u32*)data);
+    printf("%u", value);
+}
+
+
 typedef enum { SUCCESS = 0, FAIL = 1 } Status;
 
 // logging
@@ -53,7 +72,6 @@ __LINE__,\
 #define check(A, M, ...)
 #define check_memory(A)
 #define if_check(C, A, M, ...)
-#define ERROR
 
 #else
 

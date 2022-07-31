@@ -1,18 +1,15 @@
-#ifndef __CONTAINERS_ARRAY__
-#define __CONTAINERS_ARRAY__
+#ifndef __CONTAINERS_ARRAY_H__
+#define __CONTAINERS_ARRAY_H__
 
 #include "common.h"
 
-
+// NOTE: this does not have any ordering properties, its just some slots that
+// NOTE: are filled or not
 typedef struct Array {
     u32 length;
     size_t el_size;
     u8* data;           // NOTE: This should point directly after the Array
 } Array;
-
-
-typedef void (ResetFn) (void*);
-typedef void (ShowFn) (void*);
 
 
 #define array_data_size(a) ((a)->length * (a)->el_size)
@@ -35,4 +32,4 @@ internal void array_swap(Array* array, u32 idx1, u32 idx2);
 internal size_t array_size(Array* array);
 internal size_t array_size_from_params(u32 length, size_t el_size);
 
-#endif
+#endif // __CONTAINERS_ARRAY_H__
