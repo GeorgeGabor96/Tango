@@ -33,7 +33,7 @@ array_init(Array* array, u32 length, size_t el_size) {
 
 
 internal void
-array_destroy(Array* array, ResetFn reset_fn) {
+array_destroy(Array* array, ResetFn* reset_fn) {
     check(array != NULL, "NULL array");
     array_reset(array, reset_fn);
     free(array);
@@ -43,7 +43,7 @@ array_destroy(Array* array, ResetFn reset_fn) {
 
 
 internal void
-array_reset(Array* array, ResetFn reset_fn) {
+array_reset(Array* array, ResetFn* reset_fn) {
     check(array != NULL, "NULL array");
     if (reset_fn != NULL) {
         for (u32 idx = 0; idx < array->length; ++idx) {
@@ -83,7 +83,7 @@ array_get(Array* array, u32 idx) {
 
 
 internal void
-array_show(Array* array, ShowFn show_fn) {
+array_show(Array* array, ShowFn* show_fn) {
     check(array != NULL, "NULL array");
     check(show_fn != NULL, "NULL show_fn");
     for (u32 idx = 0; idx < array->length; ++idx) {

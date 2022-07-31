@@ -3,6 +3,7 @@
 
 #include "containers_tests/array_tests.c"
 #include "containers_tests/queue_tests.c"
+#include "containers_tests/list_tests.c"
 
 
 TestInfo tests[] = {
@@ -17,6 +18,10 @@ TestInfo tests[] = {
     { queue_enqueue_dequeue_test, "queue_enqueue_dequeue_test" },
     { queue_show_test, "queue_show_test" },
     { queue_size_test, "queue_size_test" },
+    // List tests
+    { list_create_destroy_test, "list_create_destroy_test" },
+    { list_add_remove_test, "list_add_remove_test" },
+    { list_show_test, "list_show_test" },
 };
 
 

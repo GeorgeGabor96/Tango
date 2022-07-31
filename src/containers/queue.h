@@ -19,13 +19,13 @@ typedef struct Queue {
 internal Queue* queue_create(u32 length, size_t el_size);
 internal void queue_init(Queue* queue, u32 length, size_t el_size);
 
-internal void queue_destory(Queue* queue, ResetFn reset_fn);
-internal void queue_reset(Queue* queue, ResetFn reset_fn);
+internal void queue_destory(Queue* queue, ResetFn* reset_fn);
+internal void queue_reset(Queue* queue, ResetFn* reset_fn);
 
 internal void queue_enqueue(Queue* queue, void* element);
 internal void* queue_dequeue(Queue* queue);
 
-internal void queue_show(Queue* queue, ShowFn show_fn);
+internal void queue_show(Queue* queue, ShowFn* show_fn);
 internal u32 queue_is_empty(Queue* queue);
 internal u32 queue_is_full(Queue* queue);
 
