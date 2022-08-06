@@ -4,6 +4,7 @@
 #include "containers_tests/array_tests.c"
 #include "containers_tests/queue_tests.c"
 #include "containers_tests/list_tests.c"
+#include "containers_tests/hash_tests.c"
 
 
 TestInfo tests[] = {
@@ -22,6 +23,10 @@ TestInfo tests[] = {
     { list_create_destroy_test, "list_create_destroy_test" },
     { list_add_remove_test, "list_add_remove_test" },
     { list_show_test, "list_show_test" },
+    // Hash tests
+    { hash_create_destroy_test, "hash_create_destroy_test" },
+    { hash_add_get_remove_test, "hash_add_get_remove_test" },
+    { hash_resize_map_test, "hash_resize_map_test" },
 };
 
 

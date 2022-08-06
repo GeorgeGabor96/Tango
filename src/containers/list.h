@@ -39,6 +39,8 @@ internal u32 list_is_empty(List* list);
 
 internal void list_unlink_node(List* list, Node* node);
 
+internal void list_node_destroy(Node* node, size_t el_size);
+
 // NOTE: not sure about these yet, need some concrete use cases
 /*internal void list_remove_node(List* list, Node* node);
 

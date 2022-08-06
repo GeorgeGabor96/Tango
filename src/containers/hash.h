@@ -6,18 +6,22 @@
 #include "common.h"
 #include "list.h"
 
-typedef void* HashMap;
+typedef struct HashMap HashMap;
 
 typedef u32 (HashFn) (HashMap*, void*);
 
+// NOTE: Tight structures????? meanning that all the data is after the header
+// NOTE: like here, the buckets will point directly after the map, but it cannot be resized with the normal function
 
 // NOTE: this uses chaining
-typedef struct HashMap {
+// NOTE: The HashMap never takes ownership over the keys and the values
+struct HashMap {
     u32 n_buckets;
     u32 length;
     HashFn* hash_fn;
-    List* buckets; // the buckets are placed directly after the structure
-} HashMap;
+    CompareFn* compare_fn;
+    List* buckets; // the buckets are placed directly after the 
+};
 
 
 typedef struct HashPair {
@@ -26,12 +30,21 @@ typedef struct HashPair {
 } HashPair;
 
 
+internal inline u32 hash_u32(HashMap* map, void* p) {
+    u32 a = *((int*)p);
+    return a % map->n_buckets;
+}
 
-internal Map* map_create(u32 n_entries, HashFn* hash_fn);
-internal void map_destroy(Map* map, ResetFn* reset_fn);
-internal void map_add(Map* map, void* key, void* value);
-internal HashPair map_get(Map* map, void* key);
-internal HashPair map_remove(Map* map, void* key);
+
+internal HashMap* map_create(u32 n_entries,
+                             HashFn* hash_fn,
+                             CompareFn* compare_fn);
+
+internal void map_destroy(HashMap* map);
+
+internal void map_add(HashMap* map, void* key, void* value);
+internal void* map_get(HashMap* map, void* key);
+internal void* map_remove(HashMap* map, void* key);
 
 
 #endif // __CONTAINERS_HASH_H_
