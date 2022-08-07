@@ -21,6 +21,8 @@ array_create_destroy_test() {
     array_destroy(array, NULL);
     array_destroy(NULL, NULL);
     
+    assert(memory_leak() == 0, "Memory Leak");
+    
     status = TEST_SUCCESS;
     error:
     return status;
@@ -74,10 +76,11 @@ array_set_get_test() {
     val_p = array_get(NULL, 0);
     assert(val_p == NULL, "Should get NULL for NULL array");
     
+    array_destroy(array, NULL);
+    assert(memory_leak() == 0, "Memory Leak");
+    
     status = TEST_SUCCESS;
     error:
-    array_destroy(array, NULL);
-    
     return status;
 }
 
@@ -121,9 +124,11 @@ array_swap_test() {
     array_swap(array, 100, 200);
     array_swap(NULL, val1_i, val2_i);
     
-    status = TEST_SUCCESS;
-    error:
     array_destroy(array, NULL);
+    assert(memory_leak() == 0, "Memory Leak");
+    status = TEST_SUCCESS;
+    
+    error:
     return status;
 }
 
@@ -153,9 +158,11 @@ array_show_test() {
     array_show(NULL, i32_show);
     array_show(array, NULL);
     
-    status = TEST_SUCCESS;
-    error:
     array_destroy(array, NULL);
+    assert(memory_leak() == 0, "Memory Leak");
+    status = TEST_SUCCESS;
+    
+    error:
     return status;
 }
 
@@ -173,8 +180,10 @@ array_size_test() {
     size_of_array = array_size(NULL);
     assert(0 == size_of_array, "Size for NULL is 0 not: %zu", size_of_array);
     
+    array_destroy(array, NULL);
+    assert(memory_leak() == 0, "Memory Leak");
+    
     status = TEST_SUCCESS;
     error:
-    array_destroy(array, NULL);
     return status;
 }

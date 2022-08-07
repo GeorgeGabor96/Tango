@@ -25,6 +25,7 @@ list_create_destroy_test() {
     list = list_create(0);
     assert(list == NULL, "Should be NULL for el_size of 0");
     list_destroy(NULL, NULL);
+    assert(memory_leak() == 0, "Memory Leak");
     
     status = TEST_SUCCESS;
     error:
@@ -90,9 +91,11 @@ list_add_remove_test() {
     list_remove_last(list, NULL);
     assert(list_is_empty(list) != 0, "list should be empty");
     
+    list_destroy(list, NULL);
+    assert(memory_leak() == 0, "Memory Leak");
+    
     status = TEST_SUCCESS;
     error:
-    list_destroy(list, NULL);
     return status;
 }
 
@@ -120,8 +123,10 @@ list_show_test() {
     list_show(NULL, u32_show);
     list_show(list, NULL);
     
+    list_destroy(list, NULL);
+    assert(memory_leak() == 0, "Memory Leak");
+    
     status = TEST_SUCCESS;
     error:
-    list_destroy(list, NULL);
     return status;
 }

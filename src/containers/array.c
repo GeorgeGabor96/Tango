@@ -1,7 +1,5 @@
 #include "containers/array.h"
 
-// TODO: Add checks macros pre and post conditions
-
 
 internal Array*
 array_create(u32 length, size_t el_size) {
@@ -10,7 +8,7 @@ array_create(u32 length, size_t el_size) {
     Array* array = NULL;
     
     size_t size = array_size_from_params(length, el_size);
-    array = (Array*) malloc(size);
+    array = (Array*) memory_malloc(size, "array_create");
     check_memory(array);
     
     array_init(array, length, el_size);
@@ -36,7 +34,7 @@ internal void
 array_destroy(Array* array, ResetFn* reset_fn) {
     check(array != NULL, "NULL array");
     array_reset(array, reset_fn);
-    free(array);
+    memory_free(array);
     error:
     return;
 }

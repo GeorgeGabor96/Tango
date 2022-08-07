@@ -31,7 +31,7 @@ map_resize_check(HashMap* map) {
     List* old_buckets = map->buckets; 
     
     map->n_buckets = map->n_buckets * 2;
-    map->buckets = (List*)malloc(sizeof(List) * map->n_buckets);
+    map->buckets = (List*)memory_malloc(sizeof(List) * map->n_buckets, "map_resize_check");
     check_memory(map->buckets);
     
     map->length = 0;
@@ -52,7 +52,7 @@ map_resize_check(HashMap* map) {
         
         list_reset(list, NULL);
     }
-    free(old_buckets);
+    memory_free(old_buckets);
     
     error:
     return;
@@ -69,10 +69,10 @@ map_create(u32 n_buckets, HashFn* hash_fn, CompareFn* compare_fn) {
     check(hash_fn != NULL, "hash_fn cannot be NULL");
     check(compare_fn != NULL, "compare_fn cannot be NULL");
     
-    map = (HashMap*)malloc(sizeof(HashMap));
+    map = (HashMap*)memory_malloc(sizeof(HashMap), "map_create->map");
     check_memory(map);
     
-    map->buckets = (List*)malloc(sizeof(List) * n_buckets);
+    map->buckets = (List*)memory_malloc(sizeof(List) * n_buckets, "map_create->buckets");
     check_memory(map->buckets);
     map->n_buckets = n_buckets;
     map->length = 0;
@@ -85,7 +85,7 @@ map_create(u32 n_buckets, HashFn* hash_fn, CompareFn* compare_fn) {
     return map;
     
     error:
-    if (map != NULL) free(map);
+    if (map != NULL) memory_free(map);
     return NULL;
 }
 
@@ -105,8 +105,8 @@ map_destroy(HashMap* map) {
     map->length = 0;
     map->hash_fn = NULL;
     map->compare_fn = NULL;
-    free(map->buckets);
-    free(map);
+    memory_free(map->buckets);
+    memory_free(map);
     
     error:
     return;

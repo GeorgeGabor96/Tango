@@ -4,7 +4,7 @@
 internal inline Node*
 node_create(void* element, size_t el_size) {
     size_t node_size = sizeof(Node) + el_size;
-    Node* node = (Node*)malloc(node_size);
+    Node* node = (Node*)memory_malloc(node_size, "node_create");
     check_memory(node);
     node->prev = NULL;
     node->next = NULL;
@@ -21,7 +21,7 @@ list_node_destroy(Node* node, size_t el_size) {
     node->prev = NULL;
     node->next = NULL;
     memset(node + 1, 0, el_size);
-    free(node);
+    memory_free(node);
 }
 
 
@@ -41,6 +41,8 @@ list_unlink_node(List* list, Node* node) {
         node->prev->next = node->next;
         node->next->prev = node->prev;
     }
+    node->prev = NULL;
+    node->next = NULL;
 }
 
 
@@ -49,7 +51,7 @@ internal List*
 list_create(size_t el_size) {
     check(el_size != 0, "el_size is 0");
     
-    List* list = (List*)malloc(sizeof(List));
+    List* list = (List*)memory_malloc(sizeof(List), "list_create");
     check_memory(list);
     list_init(list, el_size);
     return list;
@@ -75,7 +77,7 @@ list_destroy(List* list, ResetFn* reset_fn) {
     check(list != NULL, "NULL list");
     
     list_reset(list, reset_fn);
-    free(list);
+    memory_free(list);
     
     error:
     return;
@@ -96,7 +98,7 @@ list_reset(List* list, ResetFn* reset_fn) {
         }
         aux = iter;
         iter = iter->next;
-        free(aux);
+        memory_free(aux);
     }
     error:
     return;

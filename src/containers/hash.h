@@ -5,6 +5,8 @@
 
 #include "common.h"
 #include "list.h"
+#include "utils/memory.h"
+
 
 typedef struct HashMap HashMap;
 

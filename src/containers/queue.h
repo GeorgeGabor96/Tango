@@ -4,6 +4,7 @@
 #define __CONTAINERS_QUEUE_H__
 
 #include "common.h"
+#include "utils/memory.h"
 
 
 typedef struct Queue {
