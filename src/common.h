@@ -26,6 +26,16 @@ typedef double f64;
 // FUNCTION definitions
 typedef void (ResetFn) (void*);
 typedef void (ShowFn) (void*);
+typedef u32 (CompareFn) (void*, void*);
+
+u32 compare_u32(void* ap, void* bp) {
+    u32 a = *((int*)ap);
+    u32 b = *((int*)bp);
+    if (a == b) return 1;
+    return 0;
+}
+
+
 
 // Plotting functions
 internal void

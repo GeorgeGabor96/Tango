@@ -25,6 +25,9 @@ typedef struct List {
 internal List* list_create(size_t el_size);
 internal void list_destroy(List* list, ResetFn* reset_fn);
 
+internal void list_init(List* list, size_t el_size);
+internal void list_reset(List* list, ResetFn* reset_fn);
+
 internal void list_add_last(List* list, void* element);
 internal void list_add_first(List* list, void* element);
 
@@ -33,6 +36,10 @@ internal void list_remove_last(List* list, void* element);
 
 internal void list_show(List* list, ShowFn* show_fn);
 internal u32 list_is_empty(List* list);
+
+internal void list_unlink_node(List* list, Node* node);
+
+internal void list_node_destroy(Node* node, size_t el_size);
 
 // NOTE: not sure about these yet, need some concrete use cases
 /*internal void list_remove_node(List* list, Node* node);

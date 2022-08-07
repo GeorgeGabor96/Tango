@@ -16,8 +16,8 @@ node_create(void* element, size_t el_size) {
 }
 
 
-internal inline void
-node_destroy(Node* node, size_t el_size) {
+internal void
+list_node_destroy(Node* node, size_t el_size) {
     node->prev = NULL;
     node->next = NULL;
     memset(node + 1, 0, el_size);
@@ -25,7 +25,7 @@ node_destroy(Node* node, size_t el_size) {
 }
 
 
-internal inline void
+internal void
 list_unlink_node(List* list, Node* node) {
     if (list->first == NULL) {
         return;
@@ -51,9 +51,7 @@ list_create(size_t el_size) {
     
     List* list = (List*)malloc(sizeof(List));
     check_memory(list);
-    list->first = NULL;
-    list->last = NULL;
-    list->el_size = el_size;
+    list_init(list, el_size);
     return list;
     
     error:
@@ -62,7 +60,30 @@ list_create(size_t el_size) {
 
 
 internal void
-list_destroy(List* list, ResetFn reset_fn) {
+list_init(List* list, size_t el_size) {
+    check(el_size != 0, "el_size is 0");
+    list->first = NULL;
+    list->last = NULL;
+    list->el_size = el_size;
+    error:
+    return;
+}
+
+
+internal void
+list_destroy(List* list, ResetFn* reset_fn) {
+    check(list != NULL, "NULL list");
+    
+    list_reset(list, reset_fn);
+    free(list);
+    
+    error:
+    return;
+}
+
+
+internal void
+list_reset(List* list, ResetFn* reset_fn) {
     check(list != NULL, "NULL list");
     
     Node* iter = list->first;
@@ -77,7 +98,6 @@ list_destroy(List* list, ResetFn reset_fn) {
         iter = iter->next;
         free(aux);
     }
-    
     error:
     return;
 }
@@ -138,9 +158,9 @@ list_remove_first(List* list, void* element) {
     Node* node = list->first;
     list_unlink_node(list, node);
     
-    memcpy(element, node + 1, list->el_size);
+    memcpy(element, (void*)(node + 1), list->el_size);
     
-    node_destroy(node, list->el_size);
+    list_node_destroy(node, list->el_size);
     
     error:
     return;
@@ -158,9 +178,9 @@ list_remove_last(List* list, void* element) {
     Node* node = list->last;
     list_unlink_node(list, node);
     
-    memcpy(element, node + 1, list->el_size);
+    memcpy(element, (void*)(node + 1), list->el_size);
     
-    node_destroy(node, list->el_size);
+    list_node_destroy(node, list->el_size);
     
     error:
     return;
@@ -190,7 +210,7 @@ list_show(List* list, ShowFn* show_fn) {
 internal u32
 list_is_empty(List* list) {
     check(list != NULL, "NULL list");
-    return list->first == NULL && list->last == 0;
+    if (list->first == NULL && list->last == NULL) return 1;
     error:
     return 0;
 }
