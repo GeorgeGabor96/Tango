@@ -1,6 +1,7 @@
 #include "common.h"
 #include "tests.h"
 
+#include "utils_tests/memory_tests.c"
 #include "containers_tests/array_tests.c"
 #include "containers_tests/queue_tests.c"
 #include "containers_tests/list_tests.c"
@@ -8,6 +9,9 @@
 
 
 TestInfo tests[] = {
+    // Memory tests
+    { memory_general_test, "memory_management_general_test" },
+    { memory_report_test, "memory_report_test" },
     // Array tests
     { array_create_destroy_test, "array_create_destroy_test" },
     { array_set_get_test, "array_set_get_test" },
