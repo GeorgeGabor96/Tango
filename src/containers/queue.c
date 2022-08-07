@@ -23,7 +23,7 @@ queue_create(u32 length, size_t el_size) {
     Queue* queue = NULL;
     size_t size = queue_size_from_params(length, el_size);
     
-    queue = (Queue*)malloc(size);
+    queue = (Queue*)memory_malloc(size, "queue_create");
     check_memory(queue);
     
     queue_init(queue, length, el_size);
@@ -58,7 +58,7 @@ internal void
 queue_destroy(Queue* queue, ResetFn* reset_fn) {
     check(queue != NULL, "NULL queue");
     queue_reset(queue, reset_fn);
-    free(queue);
+    memory_free(queue);
     error:
     return;
 }

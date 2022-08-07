@@ -2,6 +2,8 @@
 #define __CONTAINERS_ARRAY_H__
 
 #include "common.h"
+#include "utils/memory.h"
+
 
 // NOTE: this does not have any ordering properties, its just some slots that
 // NOTE: are filled or not

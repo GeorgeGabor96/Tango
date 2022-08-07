@@ -35,6 +35,7 @@ hash_create_destroy_test() {
     map = map_create(n_entries, hash_u32, NULL);
     assert(map == NULL, "should be NULL for compare_fn of NULL");
     map_destroy(NULL);
+    assert(memory_leak() == 0, "Memory_leak");
     
     status = TEST_SUCCESS;
     error:
@@ -134,6 +135,7 @@ hash_add_get_remove_test() {
     
     
     map_destroy(map);
+    assert(memory_leak() == 0, "Memory_leak");
     
     status = TEST_SUCCESS;
     error:
@@ -186,6 +188,7 @@ hash_resize_map_test() {
            map->n_buckets);
     
     map_destroy(map);
+    assert(memory_leak() == 0, "Memory_leak");
     
     status = TEST_SUCCESS;
     error:

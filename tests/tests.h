@@ -3,6 +3,8 @@
 #ifndef TESTS_H
 #define TESTS_H
 
+#include "utils/memory.h"
+
 
 // TODO: Shouldn't this be a function call? do we need the errno print and set?
 #define assert(test, message, ...) if (!(test)) {\
@@ -26,5 +28,12 @@ typedef struct TestInfo {
 	TestFunction function;
 	char* name;
 } TestInfo;
+
+
+internal inline u32 memory_leak() {
+    u32 leak = !memory_is_empty();
+	if (leak == 1) memory_report();
+	return leak;
+}
 
 #endif //TESTS_H

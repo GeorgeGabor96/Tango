@@ -4,6 +4,8 @@
 #define __CONTAINERS_LIST_H__
 
 #include "common.h"
+#include "utils/memory.h"
+
 
 // NOTE: Probably I will not use this in code that needs to be very fast,
 // NOTE: so no init/reset methods needed

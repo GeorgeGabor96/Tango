@@ -15,5 +15,5 @@ set compiler_flags=-DCHECKS -DMEMORY_MANAGE
 set compiler_params=%include_roots% %mode% %compiler_flags%
 
 pushd build
-call cl ..\src\containers\containers.c %compiler_params%
+call cl ..\src\test.c %compiler_params%
 popd

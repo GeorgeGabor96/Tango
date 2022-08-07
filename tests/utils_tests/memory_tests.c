@@ -1,8 +1,5 @@
 #include "tests.h"
-#include "utils/memory.h"
 #include "utils/memory.c"
-
-#include "utils/memory.h"
 
 
 internal TestStatus

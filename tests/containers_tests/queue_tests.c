@@ -28,7 +28,7 @@ queue_create_destroy_test() {
     assert(queue == NULL, "queue should be NULL for el_size of 0");
     
     queue_destroy(NULL, NULL);
-    
+    assert(memory_leak() == 0, "Memory_leak");
     
     status = TEST_SUCCESS;
     error:
@@ -118,9 +118,11 @@ queue_enqueue_dequeue_test() {
     queue_dequeue(queue);
     queue_dequeue(queue);
     
+    queue_destroy(queue, NULL);
+    assert(memory_leak() == 0, "Memory_leak");
+    
     status = TEST_SUCCESS;
     error:
-    queue_destroy(queue, NULL);
     return status;
 }
 
@@ -146,9 +148,11 @@ queue_show_test() {
     queue_show(queue, NULL);
     queue_show(NULL, u32_show);
     
+    queue_destroy(queue, NULL);
+    assert(memory_leak() == 0, "Memory_leak");
+    
     status = TEST_SUCCESS;
     error:
-    queue_destroy(queue, NULL);
     return status;
 }
 
@@ -168,8 +172,10 @@ queue_size_test() {
     assert(size_of_queue == 0, "size_of array should be 0 for NULL queue not %zu",
            size_of_queue);
     
+    queue_destroy(queue, NULL);
+    assert(memory_leak() == 0, "Memory_leak");
+    
     status = TEST_SUCCESS;
     error:
-    queue_destroy(queue, NULL);
     return status;
 }
