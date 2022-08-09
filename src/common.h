@@ -6,6 +6,7 @@
 #include <string.h>
 #include <stdlib.h>
 
+typedef size_t sz;
 
 typedef uint64_t u64;
 typedef uint32_t u32;

@@ -6,6 +6,7 @@
 #include "containers_tests/queue_tests.c"
 #include "containers_tests/list_tests.c"
 #include "containers_tests/hash_tests.c"
+#include "containers_tests/memory_arena_tests.c"
 
 
 TestInfo tests[] = {
@@ -31,6 +32,8 @@ TestInfo tests[] = {
     { hash_create_destroy_test, "hash_create_destroy_test" },
     { hash_add_get_remove_test, "hash_add_get_remove_test" },
     { hash_resize_map_test, "hash_resize_map_test" },
+    // Memory Arena tests
+    { memory_arena_create_destroy_test, "memory_arena_create_destroy_test" }, 
 };
 
 
