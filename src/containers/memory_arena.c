@@ -2,13 +2,13 @@
 
 
 internal MemoryArena*
-memory_arena_create(sz memory_size, u32 clear_to_zero) {
+memory_arena_create(sz memory_size, bool clear_to_zero) {
     MemoryArena* arena = NULL;
     
     check(memory_size != 0, "memory_size is 0");
     // NOTE: so we need memory_size bytes to be referred in the memory
     // NOTE: field so add the arena size to that
-    if (clear_to_zero == 1) {
+    if (clear_to_zero == TRUE) {
         arena = (MemoryArena*)memory_calloc(memory_size + sizeof(MemoryArena), 
                                             1,
                                             "memory_arena_create with calloc");
