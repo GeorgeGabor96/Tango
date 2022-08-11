@@ -34,6 +34,7 @@ TestInfo tests[] = {
     { hash_resize_map_test, "hash_resize_map_test" },
     // Memory Arena tests
     { memory_arena_create_destroy_test, "memory_arena_create_destroy_test" }, 
+    { memory_arena_push_test, "memory_arena_push" },
 };
 
 

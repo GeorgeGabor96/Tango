@@ -18,10 +18,14 @@ typedef int32_t i32;
 typedef int16_t i16;
 typedef int8_t i8;
 
+typedef u32 bool;
+
 typedef float f32;
 typedef double f64;
 
 #define internal static
+#define TRUE 1
+#define FALSE 0
 
 
 // FUNCTION definitions

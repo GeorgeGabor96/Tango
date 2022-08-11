@@ -6,6 +6,10 @@
 
 #include "common.h"
 
+#define KB(a) (a) * 1000
+#define MB(a) KB(a) * 1000
+
+
 typedef struct MemoryArena {
     sz size;
     sz current;

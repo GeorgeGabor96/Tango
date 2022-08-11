@@ -33,7 +33,7 @@ memory_arena_destroy(MemoryArena* arena) {
     arena->size = 0;
     arena->current = 0;
     arena->memory = NULL;
-    free(arena);
+    memory_free(arena);
     
     error:
     return;
