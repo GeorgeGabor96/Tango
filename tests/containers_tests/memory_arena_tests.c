@@ -100,3 +100,55 @@ memory_arena_push_test() {
     error:
     return status;
 }
+
+
+internal TestStatus
+memory_arena_alignment_test() {
+    TestStatus status = TEST_FAILED;
+    MemoryArena* arena = memory_arena_create(MB(1), TRUE);
+    
+    /*
+NOTE: What happends if I want 1 byte and them 4 bytes or 8 bytes, the memory will not
+be alligned anymore write? or at least it depends on the type but in general
+I store an u8 and after that a pointer, will it break because the pointer is not 
+alignmed to sizeof(void*)?
+*/
+    
+    u8* byte_p = memory_arena_push(arena, 1);
+    u32* numbers_p = memory_arena_push(arena, sizeof(u32) * 5);
+    
+    // NOTE: THe allocation should return a pointer alignmed to sizeof(void*)
+    assert((sz)arena % sizeof(void*) == 0, "arena should be alinged to sizeof(void*)");
+    assert((sz)byte_p % sizeof(void*) == 0, "byte_p should be aligned");
+    assert((sz)numbers_p % sizeof(void*) == 0, "numbers_p should be aligned");
+    
+    *byte_p = 1;
+    numbers_p[0] = 1;
+    numbers_p[1] = 2;
+    numbers_p[2] = 3;
+    numbers_p[3] = 4;
+    numbers_p[4] = 5;
+    
+    memory_arena_destroy(arena);
+    
+    arena = memory_arena_create(MB(1), TRUE);
+    byte_p = memory_arena_push(arena, 1);
+    
+    u32** adr = memory_arena_push(arena, sizeof(void*));
+    assert((sz)adr % sizeof(void*) == 0, "adr should be aligned");
+    
+    *adr = memory_arena_push(arena, sizeof(u32*) * 10);
+    assert((sz)(*adr) % sizeof(void*) == 0, "*adr should be aligned");
+    (*adr)[0] = 0;
+    (*adr)[1] = 10;
+    (*adr)[2] = 20;
+    (*adr)[3] = 30;
+    
+    memory_arena_destroy(arena);
+    
+    assert(memory_leak() == FALSE, "Memory Leak");
+    
+    status = TEST_SUCCESS;
+    error:
+    return status;
+}

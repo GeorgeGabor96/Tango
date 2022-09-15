@@ -13,6 +13,10 @@ TestInfo tests[] = {
     // Memory tests
     { memory_general_test, "memory_management_general_test" },
     { memory_report_test, "memory_report_test" },
+    // Memory Arena tests
+    { memory_arena_create_destroy_test, "memory_arena_create_destroy_test" }, 
+    { memory_arena_push_test, "memory_arena_push" },
+    { memory_arena_alignment_test, "memory_arena_alignment_test" },
     // Array tests
     { array_create_destroy_test, "array_create_destroy_test" },
     { array_set_get_test, "array_set_get_test" },
@@ -32,9 +36,6 @@ TestInfo tests[] = {
     { hash_create_destroy_test, "hash_create_destroy_test" },
     { hash_add_get_remove_test, "hash_add_get_remove_test" },
     { hash_resize_map_test, "hash_resize_map_test" },
-    // Memory Arena tests
-    { memory_arena_create_destroy_test, "memory_arena_create_destroy_test" }, 
-    { memory_arena_push_test, "memory_arena_push" },
 };
 
 
