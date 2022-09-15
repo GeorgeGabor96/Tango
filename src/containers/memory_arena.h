@@ -6,8 +6,8 @@
 
 #include "common.h"
 
-#define KB(a) (a) * 1000
-#define MB(a) KB(a) * 1000
+#define KB(a) (a) * 1024
+#define MB(a) KB(a) * 1024
 
 
 typedef struct MemoryArena {
