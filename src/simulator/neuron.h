@@ -3,6 +3,9 @@
 #ifndef NEURON_H
 #define NEURON_H
 
+#include "common.h"
+#incldue "containers/array.h"
+
 
 typedef enum { 
     NEURON_INVALID,
@@ -10,6 +13,7 @@ typedef enum {
     NEURON_LIF_REFRACT 
 } NeuronType; 
 
+internal char* neuron_type_get_c_str(NeuronType type);
 
 // NOTE: LIF constants
 // TODO: This change very rarely for now, only when we have a config file of some sort we
@@ -27,21 +31,40 @@ typedef enum {
 typedef struct NeuronCls {
     NeuronType type;
     union data {
-        u32 refract_time;
+        struct lif_refract {
+            u32 refract_time;
+        };
     };
 } NeuronClass;
+
+
+internal NeuronClass* neuron_class_create_lif();
+internal NeuronClass* neuron_class_create_lif_refract(u32 refract_time);
+internal void neuron_class_destroy(NeuronClass* cls);
+
+internal void neuron_class_move(NeuronClass* cls_src, NeuronClass* cls_dst);
 
 
 typedef struct Neuron {
     NeuronCls* cls;
     f32 u;
+    f32 epsc;
+    f32 ipsc;
+    Array* in_synapses_ref;
+    Array* out_synapses_ref;
+    bool spike;
+    
     union data {
-        u32 last_spike_time;
+        struct lif_refract {
+            u32 last_spike_time;
+        };
     };
 } Neuron;
 
 
-internal char* neuron_type_get_c_str(NeuronType type);
+internal Neuron* neuron_create(NeuronClass* neuron_class);
+internal void neuron_destroy(Neuron* neuron);
+internal void neuron_move(Neuron* neuron_src, Neuron* neuron_dst);
 
 
 #endif //NEURON_H
