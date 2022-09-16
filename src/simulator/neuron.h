@@ -35,23 +35,23 @@ typedef struct NeuronCls {
             u32 refract_time;
         };
     };
-} NeuronClass;
+} NeuronCls;
 
 
-internal NeuronClass* neuron_class_create_lif();
-internal NeuronClass* neuron_class_create_lif_refract(u32 refract_time);
-internal void neuron_class_destroy(NeuronClass* cls);
+internal NeuronClass* neuron_cls_create_lif();
+internal NeuronClass* neuron_cls_create_lif_refract(u32 refract_time);
+internal void neuron_cls_destroy(NeuronCls* cls);
 
-internal void neuron_class_move(NeuronClass* cls_src, NeuronClass* cls_dst);
+internal void neuron_cls_move(NeuronCls* cls_src, NeuronCls* cls_dst);
 
 
 typedef struct Neuron {
     NeuronCls* cls;
-    f32 u;
+    f32 voltage;
     f32 epsc;
     f32 ipsc;
-    Array* in_synapses_ref;
-    Array* out_synapses_ref;
+    Array* in_synapses_ref;   // NOTE: keep references 
+    Array* out_synapses_ref;  // NOTE: keep references
     bool spike;
     
     union data {
@@ -62,9 +62,25 @@ typedef struct Neuron {
 } Neuron;
 
 
-internal Neuron* neuron_create(NeuronClass* neuron_class);
+// TODO: Should we give the synapses directly or one by one as in the old aproach????
+// TODO: the answer will appear when writting the layers or network
+internal Neuron* neuron_create(NeuronCls* cls, 
+                               Array* in_synapses_ref, 
+                               Array* out_synapses_ref);
 internal void neuron_destroy(Neuron* neuron);
-internal void neuron_move(Neuron* neuron_src, Neuron* neuron_dst);
+
+// TODO: how to move a neuron
+// internal void neuron_move(Neuron* neuron_src, Neuron* neuron_dst);
+
+// TODO: do I need to add the synapses one by one?
+//internal void neuron_add_in_synapse(Neuron* neuron, Synapse* synapse);
+//internal void neuron_add_out_synapse(Neuron* neuron, Synapse* synapse);
+
+internal void neuron_step(Neuron* neuron, u32 time);
+internal void neuron_step_force_spike(Neuron* neuron, u32 time);
+internal void neuron_step_inject_current(Neuron* neuron, f32 psc, u32 time);
+
+
 
 
 #endif //NEURON_H
