@@ -24,11 +24,12 @@ internal void queue_destory(Queue* queue, ResetFn* reset_fn);
 internal void queue_reset(Queue* queue, ResetFn* reset_fn);
 
 internal void queue_enqueue(Queue* queue, void* element);
+internal void* queue_head(Queue* queue);
 internal void* queue_dequeue(Queue* queue);
 
 internal void queue_show(Queue* queue, ShowFn* show_fn);
-internal u32 queue_is_empty(Queue* queue);
-internal u32 queue_is_full(Queue* queue);
+internal bool queue_is_empty(Queue* queue);
+internal bool queue_is_full(Queue* queue);
 
 internal size_t queue_size(Queue* queue);
 internal size_t queue_size_from_params(u32 length, size_t el_size);

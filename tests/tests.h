@@ -16,6 +16,10 @@ errno_text(),\
 errno=0;\
 goto error; }
 
+#define FLOAT_PRECISION 0.001
+#define float_equal(a, b) ((a) < (b) + FLOAT_PRECISION && (a) > (b) - FLOAT_PRECISION)
+
+
 typedef enum { 
     TEST_SUCCESS = 0,
     TEST_FAILED = 1,
@@ -30,9 +34,9 @@ typedef struct TestInfo {
 } TestInfo;
 
 
-internal inline u32 memory_leak() {
-    u32 leak = !memory_is_empty();
-	if (leak == 1) memory_report();
+internal inline bool memory_leak() {
+    bool leak = !memory_is_empty();
+	if (leak == TRUE) memory_report();
 	return leak;
 }
 

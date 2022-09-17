@@ -14,8 +14,10 @@ array_create_destroy_test() {
     array = array_create(length, el_size);
     
     assert(array != NULL, "array is NULL");
-    assert(array->length == length, "array->length is %d, it should be %d", array->length, length);
-    assert(array->el_size == el_size, "array->el_size is %zu, it should be %zu", array->el_size, el_size);
+    assert(array->length == length, 
+           "array->length is %d, it should be %d", array->length, length);
+    assert(array->el_size == el_size,
+           "array->el_size is %zu, it should be %zu", array->el_size, el_size);
     assert((void*)(array->data) == (void*)(array + 1), "array->data is %p, it should be dirrectly after the structure, so array is at %p, array->data should point to %p", array->data, array, array + 1);
     
     array_destroy(array, NULL);

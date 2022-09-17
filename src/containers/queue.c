@@ -105,6 +105,20 @@ queue_enqueue(Queue* queue, void* element) {
 
 
 internal void*
+queue_head(Queue* queue) {
+    u8* head_adr = NULL;
+    check(queue != NULL, "NULL queue");
+    
+    // NOTE: this will be safer if I copy the head element to some memory but because this
+    // NOTE: needs to be fast just return it
+    head_adr = queue_el_adr(queue, queue->head);
+    
+    error:
+    return head_adr;
+}
+
+
+internal void*
 queue_dequeue(Queue* queue) {
     // TODO: This can cause problems in the case the queue is full
     // TODO: if I dequeue it and don't use the pointer and do an enqueue
@@ -168,21 +182,21 @@ queue_show(Queue* queue, ShowFn* show_fn) {
 }
 
 
-internal u32
+internal bool
 queue_is_empty(Queue* queue) {
     check(queue != NULL, "NULL queue");
     return queue->length == 0;
     error:
-    return 0;
+    return FALSE;
 }
 
 
-internal u32
+internal bool
 queue_is_full(Queue* queue) {
     check(queue != NULL, "NULL queue");
     return queue->length == queue->max_length;
     error:
-    return 0;
+    return FALSE;
 }
 
 
