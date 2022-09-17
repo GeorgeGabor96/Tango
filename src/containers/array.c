@@ -57,16 +57,6 @@ array_reset(Array* array, ResetFn* reset_fn) {
 }
 
 
-internal Array*
-array_resize(Array* array, u32 new_length) {
-    // TODO: need to check if it 
-    
-    // with an array create of new_length and a memcpy depending if we need more or less elements
-    
-}
-
-
-
 internal void
 array_set(Array* array, void* element, u32 idx) {
     check(array != NULL, "NULL array");

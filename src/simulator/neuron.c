@@ -131,14 +131,16 @@ neuron_compute_psc(Neuron* neuron, u32 time) {
     
     for (i = 0u; i < neuron->in_synapses_ref->length; ++i) {
         synapse = *((Synapse**)array_get(neuron->in_synapses_ref, i));
+        // NOTE: first update the synapse for the case where there is a spike with the 
+        // NOTE: current time
+        // NOTE: We could also step the synapse after the psc computation
+        // NOTE: but the effect will be applied only after at the next step
+        // NOTE: For now I think this is the more correct and easy to understand
         synapse_step(synapse, time);
         current = synapse_compute_psc(synapse, neuron->voltage);
         
         if (current >= 0) epsc += current;
         else ipsc += current;
-        
-        // TODO: why step after psc?
-        //synapse_step(synapse, time);
     }
     
     neuron->epsc = epsc;

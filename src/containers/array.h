@@ -23,8 +23,6 @@ internal void array_init(Array* array, u32 length, size_t el_size);
 internal void array_destroy(Array* array, ResetFn* reset_fn);
 internal void array_reset(Array* array, ResetFn* reset_fn);
 
-internal Array* array_resize(Array* array, u32 new_length);
-
 internal void array_set(Array* array, void* element, u32 idx);
 internal void* array_get(Array* array, u32 idx);
 

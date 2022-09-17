@@ -25,7 +25,7 @@ typedef struct SynapseCls {
     f32 tau_exp;
     u32 delay;
 } SynapseCls;
-// TODO: What was the difference between the conductance and voltage synapses??
+
 
 internal SynapseCls* synapse_cls_create(SynapseType type, f32 rev_potential, f32 amp, 
                                         f32 tau_ms, u32 delay);
@@ -39,7 +39,6 @@ typedef struct Synapse {
     f32 weight;
     f32 conductance;
     Queue* spike_times;
-    // TODO: The size of the queue should be known from the beggingin right?
 } Synapse;
 
 

@@ -88,11 +88,11 @@ synapse_create(SynapseCls* cls, f32 weight) {
     synapse = (Synapse*)memory_malloc(sizeof(*synapse), "synapse_create");
     check_memory(synapse);
     
-    // TODO: Depending on the order of update and add spike time
-    // TODO: you 
+    // NOTE: Depending on the order of update and add spike time
+    // NOTE: you 
     // need a number of delay slots in the queue (in case update then add)
-    // TODO: or delay + 1 (in case add then update)
-    // TODO: Recheck this, for now its okay
+    // NOTE: or delay + 1 (in case add then update)
+    // NOTE: Recheck this, for now its okay
     synapse->spike_times = queue_create(cls->delay + 1, sizeof(u32));
     check_memory(synapse->spike_times);
     synapse->cls = cls;
