@@ -360,12 +360,12 @@ memory_get_size() {
 }
 
 
-internal u32
+internal bool
 memory_is_empty() {
 	if (memory_table == NULL)
         memory_table = memory_hash_table_create(MEMORY_TABLE_INITIAL_LENGTH);
-	if (memory_table->length == 0) return 1;
-	return 0;
+	if (memory_table->length == 0) return TRUE;
+	return FALSE;
 }
 
 
@@ -393,7 +393,7 @@ memory_report() {
 	}
     
 	check(n_nodes == memory_table->length, "@n_nodes != @memory_table->length");
-	log_info("Summary %llu nodes, %llu BYTES not freed", n_nodes, mem_size);
+	log_info("Summary %llu nodes, %llu BYTES not freed\n", n_nodes, mem_size);
     error:
     return;
 }

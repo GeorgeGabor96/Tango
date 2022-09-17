@@ -6,27 +6,27 @@
 #include "common.h"
 
 // for debuging to see how the memory structure is filled
-void memory_show_inner_state(u32 show_entries, u32 show_empty);
+internal void memory_show_inner_state(u32 show_entries, u32 show_empty);
 
 // number of memory allocations that are currently not freed
-size_t memory_get_n_blocks();
+internal size_t memory_get_n_blocks();
 
 // number of bytes currently not freed
-size_t memory_get_size();
+internal size_t memory_get_size();
 
 // TRUE if allocations were freed
-u32 memory_is_empty();
+internal bool memory_is_empty();
 
 // Shows information about every memory allocations not freed
-void memory_report();
+internal void memory_report();
 
 
 #ifdef MEMORY_MANAGE
 // overide the normal memory management function to save aditional information
-void* memory_malloc(size_t size, char* desc);
-void* memory_calloc(size_t nitems, size_t size, char* desc);
-void* memory_realloc(void* ptr, size_t size, char* desc);
-void memory_free(void* ptr);
+internal void* memory_malloc(size_t size, char* desc);
+internal void* memory_calloc(size_t nitems, size_t size, char* desc);
+internal void* memory_realloc(void* ptr, size_t size, char* desc);
+internal void memory_free(void* ptr);
 
 #else
 

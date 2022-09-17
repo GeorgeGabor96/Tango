@@ -27,8 +27,8 @@ typedef struct SynapseCls {
 } SynapseCls;
 // TODO: What was the difference between the conductance and voltage synapses??
 
-internal SynapseCls* synapse_cls_create_conductance();
-internal SynapseCls* synapse_cls_create_voltage();
+internal SynapseCls* synapse_cls_create(SynapseType type, f32 rev_potential, f32 amp, 
+                                        f32 tau_ms, u32 delay);
 internal void synapse_cls_destroy(SynapseCls* cls);
 
 internal void synapse_cls_move(SynapseCls* cls_src, SynapseCls* cls_dst);
@@ -43,7 +43,7 @@ typedef struct Synapse {
 } Synapse;
 
 
-internal Synapse* synapse_create(SynapseCls* cls);
+internal Synapse* synapse_create(SynapseCls* cls, f32 weight);
 internal void synapse_destroy(Synapse* synapse);
 
 // TODO: how to move a synapse?

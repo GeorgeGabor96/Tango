@@ -5,7 +5,7 @@
 *******************/
 inline internal bool
 synapse_is_spike_arriving_at_this_time(Queue* spike_times, u32 time) {
-    bool result = (queue_is_empty(spike_times) == FALSE) && (queue_head(spike_times) == time);
+    bool result = (queue_is_empty(spike_times) == FALSE) && (*((u32*)queue_head(spike_times)) == time);
     return result;
 }
 
@@ -25,20 +25,54 @@ synapse_type_get_c_str(SynapseType type) {
 * Synapse Class
 *******************/
 internal SynapseCls*
-synapse_cls_create_conductance(f32 rev_pot, f32 amp, f32 tau_ms, u32 delay) {
-    check(rev_pot > 0.0f, "rev_pot needs to be > 0");
+synapse_cls_create(SynapseType type, f32 rev_potential, f32 amp, f32 tau_ms, u32 delay) {
+    SynapseCls* cls = NULL;
+    check(type == SYNAPSE_CONDUCTANCE || type == SYNAPSE_VOLTAGE,
+          "invalid synapse type %s",
+          synapse_type_get_c_str(type));
+    check(rev_potential > -200.0f && rev_potential < 100.0f, 
+          "rev_potential is %f but it shouldn't be outside (-200, 100)",
+          rev_potential);
     check(amp > 0.0f, "amp needs to be > 0");
     check(tau_ms > 0.0f, "tau_ms needs to be > 0");
-    // TODO: Should I check for the delay??
+    check(delay > 0, "delay needs to be > 0");
     
-    SynapseClass* cls = (SynapseCls*) memory_malloc(sizeof(SyanpseCls));
+    cls = (SynapseCls*)memory_malloc(sizeof(*cls), "synapse_cls_create");
     check_memory(cls);
     
-    cls->rev_pot = rev_pot;
+    cls->type = type;
+    cls->rev_potential = rev_potential;
     cls->amp = amp;
-    cls->tau = (f32)math_op_exp((f64)(-1)/tau_ms);
+    cls->tau_exp = math_op_exp((f64)(-1)/tau_ms);
     cls->delay = delay;
-    cls->type = SYNAPSE_CONDUCTANCE;
+    
+    error:
+    return cls;
+}
+
+
+internal void
+synapse_cls_destroy(SynapseCls* cls) {
+    check(cls != NULL, "cls is NULL");
+    
+    memset(cls, 0, sizeof(*cls));
+    memory_free(cls);
+    
+    error:
+    return;
+}
+
+
+internal void
+synapse_cls_move(SynapseCls* cls_src, SynapseCls* cls_dst) {
+    check(cls_src != NULL, "cls_src is NULL");
+    check(cls_dst != NULL, "cls_dst is NULL");
+    
+    memcpy(cls_dst, cls_src, sizeof(*cls_src));
+    memset(cls_src, 0, sizeof(*cls_src));
+    
+    error:
+    return;
 }
 
 
@@ -50,7 +84,7 @@ synapse_create(SynapseCls* cls, f32 weight) {
     Synapse* synapse = NULL;
     check(cls != NULL, "cls is NULL");
     
-    synapse = (Synapse*)memory_malloc(sizeof(Synapse));
+    synapse = (Synapse*)memory_malloc(sizeof(*synapse), "synapse_create");
     check_memory(synapse);
     
     // TODO: Depending on the order of update and add spike time
@@ -62,10 +96,14 @@ synapse_create(SynapseCls* cls, f32 weight) {
     synapse->cls = cls;
     synapse->weight = weight;
     synapse->conductance = 0.0f;
+    return synapse;
     
     error:
-    if (synapse != NULL) memory_free(synapse);
-    return synapse;
+    if (synapse != NULL) {
+        memset(synapse, 0, sizeof(*synapse));
+        memory_free(synapse);
+    }
+    return NULL;
 }
 
 
@@ -73,7 +111,7 @@ internal void
 synapse_destroy(Synapse* synapse) {
     check(synapse != NULL, "synapse is NULL");
     
-    queue_destroy(synapse->spike_times);
+    queue_destroy(synapse->spike_times, NULL);
     memset(synapse, 0, sizeof(Synapse));
     memory_free(synapse);
     
@@ -111,9 +149,9 @@ synapse_compute_psc(Synapse* synapse, f32 voltage) {
     // TODO: check the formulas on paper
     SynapseCls* cls = synapse->cls;
     if (cls->type == SYNAPSE_CONDUCTANCE) {
-        I = cls->amp * synapse->weight * synapse->conductance;
+        current = cls->amp * synapse->weight * synapse->conductance;
     } else if (cls->type == SYNAPSE_VOLTAGE) {
-        I = - cls->amp * synapse->weight * synapse->conductance 
+        current = - cls->amp * synapse->weight * synapse->conductance 
             * (voltage - cls->rev_potential);
     } else {
         log_error("INVALID synapse type %u", cls->type);
@@ -130,7 +168,7 @@ synapse_step(Synapse* synapse, u32 time) {
     
     if (synapse_is_spike_arriving_at_this_time(synapse->spike_times, time)) {
         synapse->conductance += 1.0f;
-        queue_dequeue(synapse->spike_times));
+        queue_dequeue(synapse->spike_times);
     } else {
         // NOTE: conductance should always be positive
         // NOTE: clip the conductance if its too low

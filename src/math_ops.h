@@ -5,7 +5,7 @@
 
 #include <math.h>
 
-inline internal
+inline internal f64
 math_op_exp(f64 value) {
     f64 result = exp(value);
     return result;
