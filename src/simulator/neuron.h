@@ -4,7 +4,8 @@
 #define NEURON_H
 
 #include "common.h"
-#incldue "containers/array.h"
+#include "containers/array.h"
+#include "simulator/synapse.h"
 
 
 typedef enum { 
@@ -18,28 +19,28 @@ internal char* neuron_type_get_c_str(NeuronType type);
 // NOTE: LIF constants
 // TODO: This change very rarely for now, only when we have a config file of some sort we
 // TODO: may think of using globals or per class values
-#define NEURON_LIF_U_TH -45.0f
-#define NEURON_LIF_U_REST -65.0f
+#define NEURON_LIF_VOLTAGE_TH -45.0f
+#define NEURON_LIF_VOLTAGE_REST -65.0f
 #define NEURON_LIF_R 10.0f
 #define NEURON_LIF_C 1.0f
 #define NEURON_LIF_TAU NEURON_LIF_R * NEURON_LIF_C
-#define NEURON_LIF_U_FACTOR (1 - 1 / (NEURON_LIF_TAU))
+#define NEURON_LIF_VOLTAGE_FACTOR (1 - 1 / (NEURON_LIF_TAU))
 #define NEURON_LIF_I_FACTOR (1 / NEURON_LIF_C)
-#define NEURON_LIF_FREE_FACTOR (NEURON_LIF_U_REST / (NEURON_LIF_TAU))
+#define NEURON_LIF_FREE_FACTOR (NEURON_LIF_VOLTAGE_REST / (NEURON_LIF_TAU))
 
 
 typedef struct NeuronCls {
     NeuronType type;
-    union data {
-        struct lif_refract {
+    union {
+        struct {
             u32 refract_time;
-        };
+        } lif_refract_cls;
     };
 } NeuronCls;
 
 
-internal NeuronClass* neuron_cls_create_lif();
-internal NeuronClass* neuron_cls_create_lif_refract(u32 refract_time);
+internal NeuronCls* neuron_cls_create_lif();
+internal NeuronCls* neuron_cls_create_lif_refract(u32 refract_time);
 internal void neuron_cls_destroy(NeuronCls* cls);
 
 internal void neuron_cls_move(NeuronCls* cls_src, NeuronCls* cls_dst);
@@ -54,10 +55,10 @@ typedef struct Neuron {
     Array* out_synapses_ref;  // NOTE: keep references
     bool spike;
     
-    union data {
-        struct lif_refract {
+    union {
+        struct {
             u32 last_spike_time;
-        };
+        } lif_refract;
     };
 } Neuron;
 
@@ -79,8 +80,6 @@ internal void neuron_destroy(Neuron* neuron);
 internal void neuron_step(Neuron* neuron, u32 time);
 internal void neuron_step_force_spike(Neuron* neuron, u32 time);
 internal void neuron_step_inject_current(Neuron* neuron, f32 psc, u32 time);
-
-
 
 
 #endif //NEURON_H

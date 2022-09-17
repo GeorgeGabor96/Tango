@@ -8,6 +8,7 @@
 #include "containers_tests/hash_tests.c"
 #include "containers_tests/memory_arena_tests.c"
 #include "simulator_tests/synapse_tests.c"
+#include "simulator_tests/neuron_tests.c"
 
 
 TestInfo tests[] = {
@@ -44,6 +45,9 @@ TestInfo tests[] = {
     // Synapse tests
     { synapse_create_destroy_test, "synapse_create_destroy_test" },
     { synapse_behaviour_test, "synapse_behaviour_test" },
+    // Neuron tests
+    { neuron_create_destroy_test, "neuron_create_destroy_test" },
+    { neuron_step_test, "neuron_step_test" },
 };
 
 
