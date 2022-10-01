@@ -2,6 +2,7 @@
 #include "tests.h"
 
 #include "utils_tests/memory_tests.c"
+#include "containers_tests/string_tests.c"
 #include "containers_tests/array_tests.c"
 #include "containers_tests/queue_tests.c"
 #include "containers_tests/list_tests.c"
@@ -12,13 +13,17 @@
 
 
 TestInfo tests[] = {
+    // String tests
+    { string_create_destroy_test, "string_create_destroy_test" },
+    { string_path_join_test, "string_path_join_test" },
+    { string_to_c_str_test, "string_to_c_str_test" },
     // Memory tests
     { memory_general_test, "memory_management_general_test" },
     { memory_report_test, "memory_report_test" },
     // Memory Arena tests
     { memory_arena_create_destroy_test, "memory_arena_create_destroy_test" }, 
     { memory_arena_push_test, "memory_arena_push" },
-    { memory_arena_alignment_test, "memory_arena_alignment_test" },
+    { memory_arena_alignment_test, "memory_arena_alignment_test" }, 
     // Array tests
     { array_create_destroy_test, "array_create_destroy_test" },
     { array_set_get_test, "array_set_get_test" },

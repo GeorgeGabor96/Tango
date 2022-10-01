@@ -11,18 +11,21 @@ get_c_str_length(const char* c_str) {
     return length;
 }
 
-#define str_size(length) (sizeof(String) + length + 1)
+#define str_size_from_length(length) (sizeof(String) + length + 1)
+#define str_size(str) str_size_from_length((str)->length)
+
 
 inline internal String*
 string_create_from_length(u32 length) {
-    String* str = (String*) memory_malloc(str_size(length),
+    String* str = (String*) memory_malloc(str_size_from_length(length),
                                           "string_create_from_length");
     check_memory(str);
     str->length = length;
-    str->data = str + 1;
+    str->data = (char*)(str + 1);
     error:
     return str;
 }
+
 
 internal String*
 string_create(const char* c_str) {
@@ -47,6 +50,18 @@ string_destroy(String* str) {
     
     error:
     return;
+}
+
+
+internal char
+string_char_at_idx(String* str, u32 idx) {
+    check(str != NULL, "str is NULL");
+    check(str->length > idx, "idx is too big");
+    
+    return str->data[idx];
+    
+    error:
+    return 255;  // NOTE: what value for invalid char??
 }
 
 
@@ -86,15 +101,17 @@ string_to_c_str(String* str) {
     return (const char*)str->data;
     
     error:
-    return str;
+    return NULL;
 }
 
 
 internal char*
 string_to_c_str_copy(String* str) {
+    char* c_str = NULL;
     check(str != NULL, "str is NULL");
     
-    char* c_str = (char*) memory_malloc((str->length + 1) * sizeof(char));
+    c_str = (char*) memory_malloc((str->length + 1) * sizeof(char),
+                                  "string_to_c_str_copy");
     check_memory(c_str);
     
     u32 i = 0;
