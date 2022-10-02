@@ -21,7 +21,9 @@ neuron_create_destroy_test() {
     
     Array* in_synapses_ref = array_create(2, sizeof(Synapse*));
     Array* out_synapses_ref = array_create(2, sizeof(Synapse*));
-    Neuron* neuron = neuron_create(cls, in_synapses_ref, out_synapses_ref);
+    Neuron* neuron = neuron_create(cls);
+    neuron_add_in_synapses_ref(neuron, in_synapses_ref);
+    neuron_add_out_synapses_ref(neuron, out_synapses_ref);
     assert(neuron != NULL, "neuron is null");
     assert(neuron->cls == cls, "neuron->cls is %p not %p", neuron->cls, cls);
     assert(neuron->voltage == NEURON_LIF_VOLTAGE_REST, "neuron->voltage is %f not %f",
@@ -42,17 +44,30 @@ neuron_create_destroy_test() {
            neuron->lif_refract.last_spike_time);
     
     neuron_cls_destroy(cls);
-    neuron_destroy(neuron);
     
     // EDGE cases
     NeuronCls* aux_cls = neuron_cls_create_lif_refract(NULL, 1);
     assert(aux_cls == NULL, "neuron class should be NULL for NULL name");
-    neuron = neuron_create(NULL, in_synapses_ref, out_synapses_ref);
+    
+    // NOTE: the order of the calls matters for the test to work,
+    // NOTE: its not nice but it works for now
+    neuron->in_synapses_ref = NULL;
+    neuron->out_synapses_ref = NULL;
+    neuron_add_in_synapses_ref(NULL, in_synapses_ref);
+    neuron_add_in_synapses_ref(neuron, NULL);
+    assert(neuron->in_synapses_ref == NULL,
+           "neuron should not have input synapses");
+    
+    neuron_add_out_synapses_ref(NULL, out_synapses_ref);
+    neuron_add_out_synapses_ref(neuron, NULL);
+    assert(neuron->out_synapses_ref == NULL,
+           "neuron should not have output synapses");
+    
+    neuron_destroy(neuron);
+    
+    neuron = neuron_create(NULL);
     assert(neuron == NULL, "neuron should be NULL for NULL cls");
-    neuron = neuron_create(cls, NULL, out_synapses_ref);
-    assert(neuron == NULL, "neuron should be NULL for NULL in_synapses_ref");
-    neuron = neuron_create(cls, in_synapses_ref, NULL);
-    assert(neuron == NULL, "neuron should be NULL for NULL out_synapses_ref");
+    
     neuron_cls_destroy(NULL);
     neuron_destroy(NULL);
     
@@ -87,7 +102,9 @@ neuron_step_test() {
     
     String* neuron_cls_name = string_create("test_neuron_cls");
     NeuronCls* neuron_cls = neuron_cls_create_lif_refract(neuron_cls_name, 1);
-    Neuron* neuron = neuron_create(neuron_cls, in_synapses_ref, out_synapses_ref);
+    Neuron* neuron = neuron_create(neuron_cls);
+    neuron_add_in_synapses_ref(neuron, in_synapses_ref);
+    neuron_add_out_synapses_ref(neuron, out_synapses_ref);
     
     /*****************
 * TEST neuron_step

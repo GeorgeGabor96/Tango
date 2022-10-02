@@ -76,19 +76,16 @@ neuron_cls_move(NeuronCls* cls_src, NeuronCls* cls_dst) {
 *   NEURON
 ********************/
 internal Neuron*
-neuron_create(NeuronCls* cls, Array* in_synapses_ref, Array* out_synapses_ref) {
+neuron_create(NeuronCls* cls) {
     Neuron* neuron = NULL;
     check(cls != NULL, "cls is NULL");
-    check(in_synapses_ref != NULL, "in_synapses_ref is NULL");
-    check(out_synapses_ref != NULL, "out_synapses_ref is NULL");
-    
     neuron = (Neuron*)memory_calloc(1, sizeof(Neuron),
                                     "neuron_create");
     neuron->cls = cls;
     neuron->epsc = 0.0f;
     neuron->ipsc = 0.0f;
-    neuron->in_synapses_ref = in_synapses_ref;
-    neuron->out_synapses_ref = out_synapses_ref;
+    neuron->in_synapses_ref = NULL;
+    neuron->out_synapses_ref = NULL;
     neuron->spike = FALSE;
     
     if (neuron->cls->type == NEURON_LIF) {
@@ -107,6 +104,7 @@ internal void
 neuron_destroy(Neuron* neuron) {
     check(neuron != NULL, "neuron is NULL");
     
+    // TODO: how deletes the synapses????
     memset(neuron, 0, sizeof(Neuron));
     memory_free(neuron);
     
@@ -115,18 +113,34 @@ neuron_destroy(Neuron* neuron) {
 }
 
 
-// TODO:
-/*
 internal void
-neuron_move(Neuron* neuron_src, Neuron* neuron_dst) {
-    check(neuron_src != NULL, "neuron_src is NULL");
-    check(neuron_dst != NULL, "neuron_dst is NULL");
+neuron_add_in_synapses_ref(Neuron* neuron, Array* synapses_ref) {
+    check(neuron != NULL, "neuron is NULL");
+    check(synapses_ref != NULL, "synapses_ref is NULL");
+    check(synapses_ref->el_size == sizeof(void*),
+          "the synapses_ref should contain pointers");
+    check(neuron->in_synapses_ref == NULL, "input synapses already added");
     
-    memcpy(neuron_dst, neuron_src, sizeof(Neuron));
+    neuron->in_synapses_ref = synapses_ref;
+    
     error:
     return;
 }
-*/
+
+
+internal void
+neuron_add_out_synapses_ref(Neuron* neuron, Array* synapses_ref) {
+    check(neuron != NULL, "neuron is NULL");
+    check(synapses_ref != NULL, "synapses_ref is NULL");
+    check(synapses_ref->el_size == sizeof(void*),
+          "the synapses_ref should contain pointers");
+    check(neuron->out_synapses_ref == NULL, "output synapses already added");
+    
+    neuron->out_synapses_ref = synapses_ref;
+    
+    error:
+    return;
+}
 
 
 inline internal f32
