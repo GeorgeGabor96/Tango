@@ -25,8 +25,10 @@ synapse_type_get_c_str(SynapseType type) {
 * Synapse Class
 *******************/
 internal SynapseCls*
-synapse_cls_create(SynapseType type, f32 rev_potential, f32 amp, f32 tau_ms, u32 delay) {
+synapse_cls_create(String* name, SynapseType type,
+                   f32 rev_potential, f32 amp, f32 tau_ms, u32 delay) {
     SynapseCls* cls = NULL;
+    check(name != NULL, "name is NULL");
     check(type == SYNAPSE_CONDUCTANCE || type == SYNAPSE_VOLTAGE,
           "invalid synapse type %s",
           synapse_type_get_c_str(type));
@@ -40,6 +42,7 @@ synapse_cls_create(SynapseType type, f32 rev_potential, f32 amp, f32 tau_ms, u32
     cls = (SynapseCls*)memory_malloc(sizeof(*cls), "synapse_cls_create");
     check_memory(cls);
     
+    cls->name = name;
     cls->type = type;
     cls->rev_potential = rev_potential;
     cls->amp = amp;
@@ -55,6 +58,7 @@ internal void
 synapse_cls_destroy(SynapseCls* cls) {
     check(cls != NULL, "cls is NULL");
     
+    string_destroy(cls->name);
     memset(cls, 0, sizeof(*cls));
     memory_free(cls);
     

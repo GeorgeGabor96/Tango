@@ -4,6 +4,7 @@
 #define NEURON_H
 
 #include "common.h"
+#include "containers/string.h"
 #include "containers/array.h"
 #include "simulator/synapse.h"
 
@@ -30,6 +31,7 @@ internal char* neuron_type_get_c_str(NeuronType type);
 
 
 typedef struct NeuronCls {
+    String* name;  // NOTE: take ownership of the name
     NeuronType type;
     union {
         struct {
@@ -39,8 +41,9 @@ typedef struct NeuronCls {
 } NeuronCls;
 
 
-internal NeuronCls* neuron_cls_create_lif();
-internal NeuronCls* neuron_cls_create_lif_refract(u32 refract_time);
+internal NeuronCls* neuron_cls_create_lif(String* name);
+internal NeuronCls* neuron_cls_create_lif_refract(String* name,
+                                                  u32 refract_time);
 internal void neuron_cls_destroy(NeuronCls* cls);
 
 internal void neuron_cls_move(NeuronCls* cls_src, NeuronCls* cls_dst);

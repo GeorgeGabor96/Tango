@@ -8,8 +8,11 @@ internal TestStatus
 neuron_create_destroy_test() {
     TestStatus status = TEST_FAILED;
     
-    NeuronCls* cls = neuron_cls_create_lif_refract(1);
+    String* name = string_create("test_neuron_cls");
+    NeuronCls* cls = neuron_cls_create_lif_refract(name, 1);
     assert(cls != NULL, "cls is NULL");
+    assert(cls->name == name, "cls->name should point to %p not %p",
+           name, cls->name);
     assert(cls->type == NEURON_LIF_REFRACT, "cls->type is %s, not NEURON_LIF_REFRACT",
            neuron_type_get_c_str(cls->type));
     assert(cls->lif_refract_cls.refract_time == 1,
@@ -42,6 +45,8 @@ neuron_create_destroy_test() {
     neuron_destroy(neuron);
     
     // EDGE cases
+    NeuronCls* aux_cls = neuron_cls_create_lif_refract(NULL, 1);
+    assert(aux_cls == NULL, "neuron class should be NULL for NULL name");
     neuron = neuron_create(NULL, in_synapses_ref, out_synapses_ref);
     assert(neuron == NULL, "neuron should be NULL for NULL cls");
     neuron = neuron_create(cls, NULL, out_synapses_ref);
@@ -65,7 +70,10 @@ internal TestStatus
 neuron_step_test() {
     TestStatus status = TEST_FAILED;
     
-    SynapseCls* synapse_cls = synapse_cls_create(SYNAPSE_VOLTAGE, 0.0f, 1.0f, 20, 2);
+    String* synapse_cls_name = string_create("test_synapse_cls");
+    SynapseCls* synapse_cls = synapse_cls_create(synapse_cls_name,
+                                                 SYNAPSE_VOLTAGE,
+                                                 0.0f, 1.0f, 20, 2);
     Synapse* in_synapse_1 = synapse_create(synapse_cls, 1.0f);
     Synapse* in_synapse_2 = synapse_create(synapse_cls, 1.0f);
     Synapse* out_synapse_1 = synapse_create(synapse_cls, 1.0f);
@@ -77,7 +85,8 @@ neuron_step_test() {
     array_set(out_synapses_ref, &out_synapse_1, 0);
     array_set(out_synapses_ref, &out_synapse_2, 1);
     
-    NeuronCls* neuron_cls = neuron_cls_create_lif_refract(1);
+    String* neuron_cls_name = string_create("test_neuron_cls");
+    NeuronCls* neuron_cls = neuron_cls_create_lif_refract(neuron_cls_name, 1);
     Neuron* neuron = neuron_create(neuron_cls, in_synapses_ref, out_synapses_ref);
     
     /*****************

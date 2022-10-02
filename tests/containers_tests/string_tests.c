@@ -158,3 +158,35 @@ string_to_c_str_test() {
     error:
     return status;
 }
+
+
+internal TestStatus
+string_equal_test() {
+    TestStatus status = TEST_FAILED;
+    String* str1 = string_create("Ana has big apples");
+    String* str2 = string_create("Ana has big apples");
+    bool is_equal = FALSE;
+    
+    is_equal = string_equal(str1, str2);
+    assert(is_equal == TRUE, "str1 and str2 should be equal");
+    is_equal = string_equal(str2, str1);
+    assert(is_equal == TRUE, "str2 and str1 should be equal");
+    
+    string_destroy(str2);
+    str2 = string_create("Ana");
+    is_equal = string_equal(str1, str2);
+    assert(is_equal == FALSE, "should be false for different lenghts");
+    
+    string_destroy(str2);
+    str2 = string_create("Ana has big appleS");
+    is_equal = string_equal(str1, str2);
+    assert(is_equal == FALSE, "str1 and str2 are not the same");
+    
+    string_destroy(str1);
+    string_destroy(str2);
+    
+    assert(memory_leak() == 0, "Memory Leak");
+    status = TEST_SUCCESS;
+    error:
+    return status;
+}

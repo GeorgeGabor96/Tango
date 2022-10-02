@@ -8,8 +8,12 @@ internal TestStatus
 synapse_create_destroy_test() {
     TestStatus status = TEST_FAILED;
     
-    SynapseCls* cls = synapse_cls_create(SYNAPSE_VOLTAGE, -90.0f, 1.0f, 20.0f, 3);
+    String* name = string_create("test_name");
+    SynapseCls* cls = synapse_cls_create(name, SYNAPSE_VOLTAGE,
+                                         -90.0f, 1.0f, 20.0f, 3);
     assert(cls != NULL, "cls is NULL");
+    assert(cls->name == name, "cls->name should be %p not %p",
+           name, cls->name);
     assert(cls->type == SYNAPSE_VOLTAGE, "cls->type should be %s not %s",
            synapse_type_get_c_str(SYNAPSE_VOLTAGE),
            synapse_type_get_c_str(cls->type));
@@ -33,19 +37,21 @@ synapse_create_destroy_test() {
     Synapse* valid_synapse = synapse;
     
     // EDGE cases
-    cls = synapse_cls_create(1000, -90.0f, 1.0f, 20.0f, 3);
+    cls = synapse_cls_create(NULL, SYNAPSE_VOLTAGE, -90.0f, 1.0f, 20.0f, 3);
+    assert(cls == NULL, "cls should be NULL for NULL name"); 
+    cls = synapse_cls_create(name, 1000, -90.0f, 1.0f, 20.0f, 3);
     assert(cls == NULL, "cls should be NULL for invalid synapse cls");
-    cls = synapse_cls_create(SYNAPSE_VOLTAGE, -500.0f, 1.0f, 20.0f, 3);
+    cls = synapse_cls_create(name, SYNAPSE_VOLTAGE, -500.0f, 1.0f, 20.0f, 3);
     assert(cls == NULL, "cls should be NULL for invalid reversal potential");
-    cls = synapse_cls_create(SYNAPSE_VOLTAGE, -90.0f, -1.0f, 20.0f, 3);
+    cls = synapse_cls_create(name, SYNAPSE_VOLTAGE, -90.0f, -1.0f, 20.0f, 3);
     assert(cls == NULL, "cls should be NULL for negative amplitude");
-    cls = synapse_cls_create(SYNAPSE_VOLTAGE, -90.0f, 0.0f, 20.0f, 3);
+    cls = synapse_cls_create(name, SYNAPSE_VOLTAGE, -90.0f, 0.0f, 20.0f, 3);
     assert(cls == NULL, "cls should be NULL for an amplitude of 0");
-    cls = synapse_cls_create(SYNAPSE_VOLTAGE, -90.0f, 1.0f, -20.f, 3);
+    cls = synapse_cls_create(name, SYNAPSE_VOLTAGE, -90.0f, 1.0f, -20.f, 3);
     assert(cls == NULL, "cls should be NULL for negative tau value");
-    cls = synapse_cls_create(SYNAPSE_VOLTAGE, -90.0f, 1.0f, 0.0f, 3);
+    cls = synapse_cls_create(name, SYNAPSE_VOLTAGE, -90.0f, 1.0f, 0.0f, 3);
     assert(cls == NULL, "cls should be NULL for a tau value of 0");
-    cls = synapse_cls_create(SYNAPSE_VOLTAGE, -90.0f, 1.0f, 20.0f, 0);
+    cls = synapse_cls_create(name, SYNAPSE_VOLTAGE, -90.0f, 1.0f, 20.0f, 0);
     assert(cls == NULL, "csl should be NULL for a delay of 0");
     
     synapse_cls_destroy(NULL);
@@ -72,7 +78,9 @@ internal TestStatus
 synapse_behaviour_test() {
     TestStatus status = TEST_FAILED;
     
-    SynapseCls* cls = synapse_cls_create(SYNAPSE_VOLTAGE, -90.0f, 1.0f, 20.0f, 3);
+    String* name = string_create("test_name");
+    SynapseCls* cls = synapse_cls_create(name, SYNAPSE_VOLTAGE,
+                                         -90.0f, 1.0f, 20.0f, 3);
     Synapse* synapse = synapse_create(cls, 1.0f);
     
     // NOTE: a synapse with no activity should produce 0 psc
