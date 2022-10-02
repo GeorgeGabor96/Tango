@@ -4,6 +4,7 @@
 #define SYNAPSE_H
 
 #include "common.h"
+#include "containers/string.h"
 #include "containers/queue.h"
 #include "math_ops.h"
 
@@ -18,7 +19,7 @@ internal char* synapse_type_get_c_str(SynapseType type);
 
 
 typedef struct SynapseCls {
-    // TODO: Add pointer to a string
+    String* name;  // NOTE: take ownership of the name
     SynapseType type;
     f32 rev_potential;
     f32 amp;
@@ -27,7 +28,8 @@ typedef struct SynapseCls {
 } SynapseCls;
 
 
-internal SynapseCls* synapse_cls_create(SynapseType type, f32 rev_potential, f32 amp, 
+internal SynapseCls* synapse_cls_create(String* name, SynapseType type,
+                                        f32 rev_potential, f32 amp, 
                                         f32 tau_ms, u32 delay);
 internal void synapse_cls_destroy(SynapseCls* cls);
 

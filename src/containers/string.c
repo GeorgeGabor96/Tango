@@ -65,6 +65,25 @@ string_char_at_idx(String* str, u32 idx) {
 }
 
 
+internal bool
+string_equal(String* str1, String* str2) {
+    u32 i = 0;
+    char c1 = 0;
+    char c2 = 0;
+    check(str1 != NULL, "str1 is NULL");
+    check(str2 != NULL, "str2 is NULL");
+    
+    if (str1->length != str2->length) return FALSE;
+    for (i = 0; i < str1->length; ++i) {
+        if (str1->data[i] != str2->data[i]) return FALSE;
+    }
+    return TRUE;
+    
+    error:
+    return FALSE;
+}
+
+
 internal String*
 string_path_join(String* str1, String* str2, bool keep_strs) {
     String* str = NULL;
