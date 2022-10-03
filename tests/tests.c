@@ -31,6 +31,10 @@ TestInfo tests[] = {
     { array_swap_test, "array_swap_test" },
     { array_show_test, "array_show_test" },
     { array_size_test, "array_size_test" },
+    { array_set_length_test, "array_set_length_test" },
+    { array_squeeze_test, "array_squeeze_test" },
+    { array_increase_capacity_test, "array_increase_capacity_test" },
+    { array_append_test, "array_append_test" },
     // Queue tests
     { queue_create_destroy_test, "queue_create_destroy_test" },
     { queue_enqueue_dequeue_test, "queue_enqueue_dequeue_test" },

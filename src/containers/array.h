@@ -8,21 +8,31 @@
 // NOTE: this does not have any ordering properties, its just some slots that
 // NOTE: are filled or not
 typedef struct Array {
+    u32 capacity;
     u32 length;
     size_t el_size;
     u8* data;           // NOTE: This should point directly after the Array
 } Array;
 
 
-#define array_data_size(a) ((a)->length * (a)->el_size)
+#define array_data_size(a) ((a)->capacity * (a)->el_size)
 #define array_el_adr(a, i) ((a)->data + (i) * (a)->el_size)
 
-internal Array* array_create(u32 length, size_t el_size);
-internal void array_init(Array* array, u32 length, size_t el_size);
+internal Array* array_create(u32 capacity, size_t el_size);
+internal void array_init(Array* array, u32 capacity, size_t el_size);
 
 internal void array_destroy(Array* array, ResetFn* reset_fn);
 internal void array_reset(Array* array, ResetFn* reset_fn);
 
+internal Array* array_increase_capacity(Array* array, u32 capacity);
+// NOTE: make the capacity equal to the length for saving memory waste
+internal Array* array_squeeze(Array* array);
+internal Array* array_append(Array* array, void* element);
+
+// NOTE: To use the array as a dummy container that doesn't care about order
+// NOTE: set the length to the capacity and thats it, you can set and get at
+// NOTE: any index
+internal void array_set_length(Array* array, u32 length);
 internal void array_set(Array* array, void* element, u32 idx);
 internal void* array_get(Array* array, u32 idx);
 

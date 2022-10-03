@@ -2,25 +2,26 @@
 
 
 internal Array*
-array_create(u32 length, size_t el_size) {
-    check(length != 0, "length is 0");
+array_create(u32 capacity, size_t el_size) {
+    check(capacity != 0, "capacity is 0");
     check(el_size != 0, "el_size is 0");
     Array* array = NULL;
     
-    size_t size = array_size_from_params(length, el_size);
+    size_t size = array_size_from_params(capacity, el_size);
     array = (Array*) memory_malloc(size, "array_create");
     check_memory(array);
     
-    array_init(array, length, el_size);
+    array_init(array, capacity, el_size);
     error:
     return array;
 }
 
 
 internal void
-array_init(Array* array, u32 length, size_t el_size) {
+array_init(Array* array, u32 capacity, size_t el_size) {
     check(array != NULL, "NULL array");
-    array->length = length;
+    array->capacity = capacity;
+    array->length = 0;
     array->el_size = el_size;
     array->data = (u8*)(array + 1);    // data is located after the array structure
     // TODO: shouldn't always set to 0
@@ -48,10 +49,82 @@ array_reset(Array* array, ResetFn* reset_fn) {
             reset_fn(array_get(array, idx));
         }
     }
-    memset(array->data, 0, array_data_size(array));
-    array->length = 0;
-    array->el_size = 0;
-    array->data = NULL;
+    memset(array, 0, array_size(array));
+    error:
+    return;
+}
+
+
+internal Array*
+array_increase_capacity(Array* array, u32 capacity) {
+    check(array != NULL, "array is NULL");
+    check(capacity > array->capacity, "capacity is too small");
+    
+    Array* new_array = array_create(capacity, array->el_size);
+    check_memory(new_array);
+    
+    memcpy(new_array->data, array->data, array_data_size(array));
+    new_array->length = array->length;
+    
+    array_destroy(array, NULL);
+    
+    return new_array;
+    
+    error:
+    return NULL;
+}
+
+
+internal Array*
+array_squeeze(Array* array) {
+    check(array != NULL, "array is NULL");
+    
+    Array* new_array = array_create(array->length, array->el_size);
+    check_memory(new_array);
+    
+    memcpy(new_array->data, array->data, array->length * array->el_size);
+    new_array->length = array->length;
+    
+    array_destroy(array, NULL);
+    
+    return new_array;
+    
+    error:
+    return NULL;
+}
+
+
+internal Array*
+array_append(Array* array, void* element) {
+    check(array != NULL, "array is NULL");
+    check(element != NULL, "element is NULL");
+    
+    Array* new_array = array;
+    if (new_array->length == new_array->capacity) {
+        new_array = array_increase_capacity(array, array->capacity * 2);
+        check_memory(new_array);
+    }
+    
+    ++(new_array->length);
+    array_set(new_array, element, new_array->length - 1);
+    return new_array;
+    
+    error:
+    return NULL;
+}
+
+
+internal void
+array_set_length(Array* array, u32 length) {
+    check(array != NULL, "array is NULL");
+    check(length <= array->capacity, "length is too big");
+    
+    if (length == 0) {
+        array->length = array->capacity;
+    } else if (length > array->length) {
+        array->length = length;
+    }
+    
     error:
     return;
 }
@@ -117,14 +190,14 @@ array_swap(Array* array, u32 idx1, u32 idx2) {
 internal size_t
 array_size(Array* array) {
     check(array != NULL, "NULL array");
-    size_t size = array_size_from_params(array->length, array->el_size);
+    size_t size = array_size_from_params(array->capacity, array->el_size);
     return size;
     error:
     return 0;
 }
 
 internal size_t
-array_size_from_params(u32 length, size_t el_size) {
-    size_t size = sizeof(Array) + length * el_size;
+array_size_from_params(u32 capacity, size_t el_size) {
+    size_t size = sizeof(Array) + capacity * el_size;
     return size;
 }
