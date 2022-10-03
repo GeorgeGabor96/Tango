@@ -81,6 +81,19 @@ neuron_create(NeuronCls* cls) {
     check(cls != NULL, "cls is NULL");
     neuron = (Neuron*)memory_calloc(1, sizeof(Neuron),
                                     "neuron_create");
+    check_memory(neuron);
+    neuron_init(neuron, cls);
+    
+    error:
+    return neuron;
+}
+
+
+internal void
+neuron_init(Neuron* neuron, NeuronCls* cls) {
+    check(neuron != NULL, "neuron is NULL");
+    check(cls != NULL, "cls is NULL");
+    
     neuron->cls = cls;
     neuron->epsc = 0.0f;
     neuron->ipsc = 0.0f;
@@ -96,7 +109,7 @@ neuron_create(NeuronCls* cls) {
     }
     
     error:
-    return neuron;
+    return;
 }
 
 
@@ -104,9 +117,31 @@ internal void
 neuron_destroy(Neuron* neuron) {
     check(neuron != NULL, "neuron is NULL");
     
+    neuron_reset(neuron);
+    memory_free(neuron);
+    
+    error:
+    return;
+}
+
+
+internal void
+neuron_reset(Neuron* neuron) {
+    check(neuron != NULL, "neuron is NULL");
+    
     // TODO: how deletes the synapses????
     memset(neuron, 0, sizeof(Neuron));
-    memory_free(neuron);
+    
+    error:
+    return;
+}
+
+
+internal void
+neuron_reset_double_p(Neuron** neuron) {
+    check(neuron != NULL, "neuron is NULL");
+    
+    neuron_reset(*neuron);
     
     error:
     return;

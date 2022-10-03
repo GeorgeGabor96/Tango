@@ -67,7 +67,10 @@ typedef struct Neuron {
 
 
 internal Neuron* neuron_create(NeuronCls* cls);
+internal void neuron_init(Neuron* neuron, NeuronCls* cls);
 internal void neuron_destroy(Neuron* neuron);
+internal void neuron_reset(Neuron* neuron);
+internal void neuron_reset_double_p(Neuron** neuron);
 
 // NOTE: may need to add synapses multiple times, this will required
 // NOTE: a merge function for the array
