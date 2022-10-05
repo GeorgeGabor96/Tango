@@ -46,6 +46,7 @@ typedef struct Synapse {
 
 internal Synapse* synapse_create(SynapseCls* cls, f32 weight);
 internal void synapse_destroy(Synapse* synapse);
+internal void synapse_destroy_double_p(Synapse** synapse);
 
 // TODO: how to move a synapse?
 // internal void synapse_move(Synapse* synapse_src, Synapse* synapse_dst);

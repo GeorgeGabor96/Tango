@@ -82,24 +82,32 @@ neuron_create(NeuronCls* cls) {
     neuron = (Neuron*)memory_calloc(1, sizeof(Neuron),
                                     "neuron_create");
     check_memory(neuron);
-    neuron_init(neuron, cls);
+    bool status = neuron_init(neuron, cls);
+    check(status == TRUE, "couldn't init the neuron");
+    
+    return neuron;
     
     error:
-    return neuron;
+    memory_free(neuron);
+    
+    return NULL;
 }
 
 
-internal void
+internal bool
 neuron_init(Neuron* neuron, NeuronCls* cls) {
     check(neuron != NULL, "neuron is NULL");
     check(cls != NULL, "cls is NULL");
     
+    
+    neuron->in_synapses_ref = array_create(10, sizeof(Synapse*));
+    check_memory(neuron->in_synapses_ref);
+    neuron->out_synapses_ref = array_create(10, sizeof(Synapse*));
+    check_memory(neuron->out_synapses_ref);
+    
     neuron->cls = cls;
     neuron->epsc = 0.0f;
-    neuron->ipsc = 0.0f;
-    neuron->in_synapses_ref = NULL;
-    neuron->out_synapses_ref = NULL;
-    neuron->spike = FALSE;
+    neuron->ipsc = 0.0f;neuron->spike = FALSE;
     
     if (neuron->cls->type == NEURON_LIF) {
         neuron->voltage = NEURON_LIF_VOLTAGE_REST;
@@ -108,8 +116,15 @@ neuron_init(Neuron* neuron, NeuronCls* cls) {
         neuron->lif_refract.last_spike_time = 0;
     }
     
+    return TRUE;
+    
     error:
-    return;
+    if (neuron->in_synapses_ref != NULL) 
+        array_destroy(neuron->in_synapses_ref, NULL);
+    if (neuron->out_synapses_ref != NULL)
+        array_destroy(neuron->out_synapses_ref, NULL);
+    
+    return FALSE;
 }
 
 
@@ -130,6 +145,8 @@ neuron_reset(Neuron* neuron) {
     check(neuron != NULL, "neuron is NULL");
     
     // TODO: how deletes the synapses????
+    array_destroy(neuron->in_synapses_ref, synapse_destroy_double_p);
+    array_destroy(neuron->out_synapses_ref, NULL);
     memset(neuron, 0, sizeof(Neuron));
     
     error:
@@ -149,14 +166,12 @@ neuron_reset_double_p(Neuron** neuron) {
 
 
 internal void
-neuron_add_in_synapses_ref(Neuron* neuron, Array* synapses_ref) {
+neuron_add_in_synapse(Neuron* neuron, Synapse* synapse) {
     check(neuron != NULL, "neuron is NULL");
-    check(synapses_ref != NULL, "synapses_ref is NULL");
-    check(synapses_ref->el_size == sizeof(void*),
-          "the synapses_ref should contain pointers");
-    check(neuron->in_synapses_ref == NULL, "input synapses already added");
+    check(synapse != NULL, "synapse is NULL");
     
-    neuron->in_synapses_ref = synapses_ref;
+    neuron->in_synapses_ref =
+        array_append(neuron->in_synapses_ref, &synapse);
     
     error:
     return;
@@ -164,14 +179,12 @@ neuron_add_in_synapses_ref(Neuron* neuron, Array* synapses_ref) {
 
 
 internal void
-neuron_add_out_synapses_ref(Neuron* neuron, Array* synapses_ref) {
+neuron_add_out_synapse(Neuron* neuron, Synapse* synapse) {
     check(neuron != NULL, "neuron is NULL");
-    check(synapses_ref != NULL, "synapses_ref is NULL");
-    check(synapses_ref->el_size == sizeof(void*),
-          "the synapses_ref should contain pointers");
-    check(neuron->out_synapses_ref == NULL, "output synapses already added");
+    check(synapse != NULL, "synapse is NULL");
     
-    neuron->out_synapses_ref = synapses_ref;
+    neuron->out_synapses_ref = 
+        array_append(neuron->out_synapses_ref, &synapse);
     
     error:
     return;

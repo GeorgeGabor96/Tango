@@ -19,11 +19,7 @@ neuron_create_destroy_test() {
            "cls->lif_refract_cls.refract_time should be 1 not %u",
            cls->lif_refract_cls.refract_time);
     
-    Array* in_synapses_ref = array_create(2, sizeof(Synapse*));
-    Array* out_synapses_ref = array_create(2, sizeof(Synapse*));
     Neuron* neuron = neuron_create(cls);
-    neuron_add_in_synapses_ref(neuron, in_synapses_ref);
-    neuron_add_out_synapses_ref(neuron, out_synapses_ref);
     assert(neuron != NULL, "neuron is null");
     assert(neuron->cls == cls, "neuron->cls is %p not %p", neuron->cls, cls);
     assert(neuron->voltage == NEURON_LIF_VOLTAGE_REST, "neuron->voltage is %f not %f",
@@ -32,47 +28,27 @@ neuron_create_destroy_test() {
            neuron->epsc);
     assert(float_equal(neuron->ipsc, 0.0f) == TRUE, "neuron->ipsc is %f not 0.0",
            neuron->ipsc);
-    assert(neuron->in_synapses_ref == in_synapses_ref,
-           "neuron->in_synapses_ref is %p not %p",
-           neuron->in_synapses_ref, in_synapses_ref);
-    assert(neuron->out_synapses_ref == out_synapses_ref,
-           "neuron->out_synapses_ref is %p not %p",
-           neuron->out_synapses_ref, out_synapses_ref);
+    assert(neuron->in_synapses_ref != NULL,
+           "neuron->in_synapses_ref is NULL");
+    assert(neuron->out_synapses_ref != NULL,
+           "neuron->out_synapses_ref is NULL");
     assert(neuron->spike == FALSE, "neuron->spike should be FALSE");
     assert(neuron->lif_refract.last_spike_time == 0,
            "neuron->lif_refract.last_spike_time is %u not 0",
            neuron->lif_refract.last_spike_time);
     
+    neuron_destroy(neuron);
     neuron_cls_destroy(cls);
     
     // EDGE cases
     NeuronCls* aux_cls = neuron_cls_create_lif_refract(NULL, 1);
     assert(aux_cls == NULL, "neuron class should be NULL for NULL name");
     
-    // NOTE: the order of the calls matters for the test to work,
-    // NOTE: its not nice but it works for now
-    neuron->in_synapses_ref = NULL;
-    neuron->out_synapses_ref = NULL;
-    neuron_add_in_synapses_ref(NULL, in_synapses_ref);
-    neuron_add_in_synapses_ref(neuron, NULL);
-    assert(neuron->in_synapses_ref == NULL,
-           "neuron should not have input synapses");
-    
-    neuron_add_out_synapses_ref(NULL, out_synapses_ref);
-    neuron_add_out_synapses_ref(neuron, NULL);
-    assert(neuron->out_synapses_ref == NULL,
-           "neuron should not have output synapses");
-    
-    neuron_destroy(neuron);
-    
     neuron = neuron_create(NULL);
     assert(neuron == NULL, "neuron should be NULL for NULL cls");
     
     neuron_cls_destroy(NULL);
     neuron_destroy(NULL);
-    
-    array_destroy(in_synapses_ref, NULL);
-    array_destroy(out_synapses_ref, NULL);
     
     assert(memory_leak() == FALSE, "Memory Leak");
     status = TEST_SUCCESS;
@@ -93,18 +69,15 @@ neuron_step_test() {
     Synapse* in_synapse_2 = synapse_create(synapse_cls, 1.0f);
     Synapse* out_synapse_1 = synapse_create(synapse_cls, 1.0f);
     Synapse* out_synapse_2 = synapse_create(synapse_cls, 1.0f);
-    Array* in_synapses_ref = array_create(2, sizeof(Synapse*));
-    Array* out_synapses_ref = array_create(2, sizeof(Synapse*));
-    array_set(in_synapses_ref, &in_synapse_1, 0);
-    array_set(in_synapses_ref, &in_synapse_2, 1);
-    array_set(out_synapses_ref, &out_synapse_1, 0);
-    array_set(out_synapses_ref, &out_synapse_2, 1);
     
     String* neuron_cls_name = string_create("test_neuron_cls");
     NeuronCls* neuron_cls = neuron_cls_create_lif_refract(neuron_cls_name, 1);
     Neuron* neuron = neuron_create(neuron_cls);
-    neuron_add_in_synapses_ref(neuron, in_synapses_ref);
-    neuron_add_out_synapses_ref(neuron, out_synapses_ref);
+    // NOTE: add synapses
+    neuron_add_in_synapse(neuron, in_synapse_1);
+    neuron_add_in_synapse(neuron, in_synapse_2);
+    neuron_add_out_synapse(neuron, out_synapse_1);
+    neuron_add_out_synapse(neuron, out_synapse_2);
     
     /*****************
 * TEST neuron_step
@@ -199,12 +172,9 @@ neuron_step_test() {
     
     neuron_destroy(neuron);
     neuron_cls_destroy(neuron_cls);
-    synapse_destroy(in_synapse_1);
-    synapse_destroy(in_synapse_2);
+    // NOTE: the output synapses are not deteled by the neuron
     synapse_destroy(out_synapse_1);
     synapse_destroy(out_synapse_2);
-    array_destroy(in_synapses_ref, NULL);
-    array_destroy(out_synapses_ref, NULL);
     synapse_cls_destroy(synapse_cls);
     
     // EDGE CASES

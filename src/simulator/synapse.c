@@ -127,6 +127,18 @@ synapse_destroy(Synapse* synapse) {
 
 
 internal void
+synapse_destroy_double_p(Synapse** synapse) {
+    check(synapse != NULL, "synapse is NULL");
+    
+    synapse_destroy(*synapse);
+    
+    error:
+    return;
+}
+
+
+
+internal void
 synapse_add_spike_time(Synapse* synapse, u32 spike_time) {
     check(synapse != NULL, "synapse is NULL");
     
