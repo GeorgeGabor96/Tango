@@ -20,7 +20,7 @@ internal char* layer_type_get_c_str(LayerType type);
 
 typedef struct Layer {
     String* name;
-    Array* neurons;
+    Array* neurons;  // NOTE: Keep directly neurons
     LayerType type;
     
 } Layer;

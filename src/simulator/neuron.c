@@ -100,7 +100,7 @@ neuron_init(Neuron* neuron, NeuronCls* cls) {
     check(cls != NULL, "cls is NULL");
     
     
-    neuron->in_synapses_ref = array_create(10, sizeof(Synapse*));
+    neuron->in_synapses_ref = array_create(10, sizeof(Synapse));
     check_memory(neuron->in_synapses_ref);
     neuron->out_synapses_ref = array_create(10, sizeof(Synapse*));
     check_memory(neuron->out_synapses_ref);
@@ -145,9 +145,9 @@ neuron_reset(Neuron* neuron) {
     check(neuron != NULL, "neuron is NULL");
     
     // TODO: how deletes the synapses????
-    array_destroy(neuron->in_synapses_ref, synapse_destroy_double_p);
+    array_destroy(neuron->in_synapses_ref, synapse_reset);
     array_destroy(neuron->out_synapses_ref, NULL);
-    memset(neuron, 0, sizeof(Neuron));
+    memset(neuron, 0, sizeof(*neuron));
     
     error:
     return;
@@ -165,16 +165,23 @@ neuron_reset_double_p(Neuron** neuron) {
 }
 
 
-internal void
-neuron_add_in_synapse(Neuron* neuron, Synapse* synapse) {
+internal Synapse*
+neuron_add_in_synapse(Neuron* neuron, Synapse* synapse, bool free_synapse) {
     check(neuron != NULL, "neuron is NULL");
     check(synapse != NULL, "synapse is NULL");
     
-    neuron->in_synapses_ref =
-        array_append(neuron->in_synapses_ref, &synapse);
+    // NOTE: move the synapse into the in_synapses_ref
+    neuron->in_synapses_ref = array_append(neuron->in_synapses_ref, synapse);
+    // TODO: do I need to check the append?
     
+    memset(synapse, 0, sizeof(*synapse));
+    if (free_synapse) memory_free(synapse);
+    
+    synapse = (Synapse*) array_get(neuron->in_synapses_ref,
+                                   neuron->in_synapses_ref->length - 1);
+    return synapse;
     error:
-    return;
+    return NULL;
 }
 
 
@@ -200,7 +207,7 @@ neuron_compute_psc(Neuron* neuron, u32 time) {
     Synapse* synapse = NULL;
     
     for (i = 0u; i < neuron->in_synapses_ref->length; ++i) {
-        synapse = *((Synapse**)array_get(neuron->in_synapses_ref, i));
+        synapse = (Synapse*)array_get(neuron->in_synapses_ref, i);
         // NOTE: first update the synapse for the case where there is a spike with the 
         // NOTE: current time
         // NOTE: We could also step the synapse after the psc computation
@@ -264,7 +271,7 @@ neuron_update_in_synapses(Neuron* neuron, u32 time) {
     u32 i = 0;
     Synapse* synapse = NULL;
     for (i = 0u; i < neuron->in_synapses_ref->length; ++i) {
-        synapse = *((Synapse**)array_get(neuron->in_synapses_ref, i));
+        synapse = (Synapse*)array_get(neuron->in_synapses_ref, i);
         synapse_step(synapse, time);
     }
 }

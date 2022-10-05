@@ -48,7 +48,7 @@ layer_init(Layer* layer, String* name, LayerType type,
     
     neurons = array_create(n_neurons, sizeof(Neuron));
     for (i = 0; i < neurons->lenght; ++i) {
-        neuron = *((Neuron**)array_get(neurons, i));
+        neuron = (Neuron*)array_get(neurons, i);
         neuron_init(neuron, cls);
     }
     
@@ -90,3 +90,54 @@ layer_destroy(Layer* layer) {
 }
 
 
+inline internal bool
+layer_link_dense(Layer* layer, Layer* in_layer,
+                 SynapseCls* cls, f32 weight) {
+    u32 neuron_i = 0;
+    u32 in_neuron_i = 0;
+    Neuron* neuron = NULL;
+    Neuron* in_neuron = NULL;
+    Synapse synapse = { 0 };
+    bool status = FALSE;
+    
+    for (neuron_i = 0;
+         neuron_i < layer->neurons->length;
+         ++neuron_i) {
+        
+        neuron = (Neuron*)array_get(layer->neurons, neuron_i);
+        
+        for (in_neuron_i = 0;
+             in_neuron_i < in_layer->neurons->length;
+             ++in_neuron_i) {
+            
+            in_neuron = (Neuron*)array_get(in_layers->neurons,
+                                           in_neuron_i);
+            
+            status = synapse_init(&synapse, cls, weight);
+            check(status == TRUE, "couldn't init synapse");
+            neuron_add_in_synapse(neuron, &synapse);
+            neuron_add_out_synapse(in_neuron, &synapse);
+        }
+    }
+    
+    error:
+    // NOTE: NO NEED TO DEALLOCATE THE SYNAPSES THAT WERE SUCCESFULL
+    // NOTE: BECAUSE IF THIS FAILS WE WOULD DELETE THE LAYER WHICH
+    // NOTE: DELETES THE NEURONS WHICH DELETE THE SYNAPSES
+    return status;
+}
+
+
+internal bool
+layer_link(Layer* layer, Layer* input_layer) {
+    bool status = FALSE;
+    check(layer != NULL, "layer is NULL");
+    check(input_layer != NULL, "input_layer is NULL");
+    
+    if (layer->type == LAYER_DENSE) {
+        status = layer_link_dense(layer, input_layer);
+    }
+    
+    error:
+    return status;
+}

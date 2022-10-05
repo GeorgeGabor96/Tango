@@ -56,7 +56,7 @@ typedef struct Neuron {
     f32 ipsc;
     // NOTE: the neuron has the ownership over the input synapses
     // NOTE: when the neuron is no more also the input synapses are gone
-    Array* in_synapses_ref;   // NOTE: keep references 
+    Array* in_synapses_ref;   // NOTE: keep synapses 
     Array* out_synapses_ref;  // NOTE: keep references
     bool spike;
     
@@ -74,9 +74,10 @@ internal void neuron_destroy(Neuron* neuron);
 internal void neuron_reset(Neuron* neuron);
 internal void neuron_reset_double_p(Neuron** neuron);
 
-// NOTE: may need to add synapses multiple times, this will required
-// NOTE: a merge function for the array
-internal void neuron_add_in_synapse(Neuron* neuron, Synapse* synapse);
+// NOTE: When adding an input synapse take ownership and return the new address
+internal Synapse* neuron_add_in_synapse(Neuron* neuron,
+                                        Synapse* synapse,
+                                        bool free_synapse);
 internal void neuron_add_out_synapse(Neuron* neuron, Synapse* synapse);
 
 // TODO: how to move a neuron

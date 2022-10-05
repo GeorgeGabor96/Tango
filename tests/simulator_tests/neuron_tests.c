@@ -74,8 +74,8 @@ neuron_step_test() {
     NeuronCls* neuron_cls = neuron_cls_create_lif_refract(neuron_cls_name, 1);
     Neuron* neuron = neuron_create(neuron_cls);
     // NOTE: add synapses
-    neuron_add_in_synapse(neuron, in_synapse_1);
-    neuron_add_in_synapse(neuron, in_synapse_2);
+    in_synapse_1 = neuron_add_in_synapse(neuron, in_synapse_1, TRUE);
+    in_synapse_2 = neuron_add_in_synapse(neuron, in_synapse_2, TRUE);
     neuron_add_out_synapse(neuron, out_synapse_1);
     neuron_add_out_synapse(neuron, out_synapse_2);
     
