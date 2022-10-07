@@ -20,9 +20,11 @@ internal char* layer_type_get_c_str(LayerType type);
 
 typedef struct Layer {
     String* name;
-    Array* neurons;  // NOTE: Keep directly neurons
-    LayerType type;
     
+    Neurons* neurons;
+    u32 n_neurons;
+    
+    LayerType type;
 } Layer;
 
 
@@ -34,6 +36,11 @@ internal bool layer_init(Layer* layer, String* name, LayerType type,
 internal void layer_destroy(Layer* layer);
 internal void layer_reset(Layer* layer);
 
+internal void layer_step(Layer* layer, u32 time);
+
+internal void layer_show(Layer* layer);
+
 internal bool layer_link(Layer* layer, Layer* input_layer); 
+
 
 #endif //LAYER_H
