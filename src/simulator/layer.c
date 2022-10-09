@@ -100,9 +100,46 @@ internal void
 layer_step(Layer* layer, u32 time) {
     assert(layer != NULL, "layer is NULL");
     
-    for (u32 i = 0; i < layer->n_neurons; ++i) {
+    for (u32 i = 0; i < layer->n_neurons; ++i)
         neuron_step(layer->neurons + i, time);
+    
+    error:
+    return;
+}
+
+
+internal void
+layer_step_inject_current(Layer* layer, u32 time, f32* currents, u32 n_currents) {
+    assert(layer != NULL, "layer is NULL");
+    assert(current != NULL, "currents is NULL");
+    
+    u32 n_inputs = math_min_u32(layer->n_neurons, n_currents);
+    u32 i;
+    for (i = 0; i < n_inputs; ++i) 
+        neuron_step_inject_current(layer->neurons[i], currents[i], time);
+    for (i = n_inputs; i < layer->n_neurons; ++i)
+        neuron_step(layer->neurons[i], time);
+    
+    error:
+    return;
+}
+
+
+internal void
+layer_step_force_spike(Layer* layer, u32 time, bool* spikes, u32 n_spikes) {
+    assert(layer != NULL, "layer is NULL");
+    assert(spikes != NULL, "spikes is NULL");
+    
+    u32 n_inputs = math_min_u32(layer->n_neurons, n_currents);
+    u32 i;
+    for (i = 0; i < n_inputs; ++i) {
+        if (spikes[i] == TRUE) 
+            neuron_step_force_spike(layer->neurons[i], time);
+        else
+            neuron_step(layer->neurons[i], time);
     }
+    for (i = n_inputs; i < layer->n_neurons; ++i)
+        neuron_step(layer->neurons[i], time);
     
     error:
     return;
@@ -174,4 +211,89 @@ layer_link(Layer* layer, Layer* input_layer) {
     
     error:
     return status;
+}
+
+
+internal f32*
+layer_get_voltages(Layer* layer) {
+    check(layer != NULL, "layer is NULL");
+    
+    f32* voltages = (f32*)memory_malloc(sizeof(f32) * layer->n_neurons);
+    check_memory(voltages);
+    
+    for (u32 i = 0; i < layer->n_neurons; ++i)
+        voltages[i] = layer->neurons[i].voltage;
+    
+    return voltages;
+    
+    error:
+    return NULL;
+}
+
+
+internal f32*
+layer_get_pscs(Layer* layer) {
+    check(layer != NULL, "layer is NULL");
+    
+    f32* pscs = (f32*)memory_malloc(sizeof(f32) * layer->n_neurons);
+    check_memory(voltages);
+    
+    for (u32 i = 0; i < layer->n_neurons; ++i)
+        pscs[i] = layer->neurons[i].epcs + layer->neurons[i].ipcs;
+    
+    return pscs;
+    
+    error:
+    return NULL;
+}
+
+
+internal f32*
+layer_get_epscs(Layer* layer) {
+    check(layer != NULL, "layer is NULL");
+    
+    f32* epscs = (f32*)memory_malloc(sizeof(f32) * layer->n_neurons);
+    check_memory(epcs);
+    
+    for (u32 i = 0; i < layer->n_neurons; ++i)
+        epscs[i] = layer->neurons[i].epscs;
+    
+    return epscs;
+    
+    error:
+    return NULL;
+}
+
+
+internal f32*
+layer_get_ipscs(Layer* layer) {
+    check(layer != NULL, "layer is NULL");
+    
+    f32* ipscs = (f32*)memory_malloc(sizeof(f32) * layer->n_neurons);
+    check_memory(ipscs);
+    
+    for (u32 i = 0; i < layer->n_neurons; ++i)
+        ipscs[i] = layer->neurons[i].ipsc;
+    
+    return ipsc;
+    
+    error:
+    return NULL;
+}
+
+
+internal bool*
+layer_get_spikes(Layer* layer) {
+    check(layer != NULL, "layer is NULL");
+    
+    bool* spikes = (bool*)memory_malloc(sizeof(bool) * layer->n_neurons);
+    check_memory(spikes);
+    
+    for (u32 i = 0; i < layer->n_neurons; ++i)
+        spikes[i] = layer->neurons[i].spike;
+    
+    return spikes;
+    
+    error:
+    return NULL;
 }
