@@ -42,7 +42,7 @@ layer_init(Layer* layer, String* name, LayerType type,
           layer_type_get_c_str(type));
     check(cls != NULL, "cls is NULL");
     
-    Array* neurons = NULL;
+    Neurons* neurons = NULL;
     Neuron* neuron = NULL;
     u32 i = 0;
     
@@ -115,7 +115,6 @@ layer_show(Layer* layer) {
     
     u32 n_in_synapses = 0;
     for (u32 i = 0; i < layer->n_neurons; ++i) {
-        // TODO: use directly an array of synapses
         n_in_synapses += layer->neurons[i].in_synapses_ref->length;
     }
     

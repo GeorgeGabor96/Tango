@@ -17,7 +17,7 @@ network_create(const char* name) {
     check_memory(network);
     
     network->layers = (Layers*)memory_calloc(NETWORK_INITIAL_N_LAYERES,
-                                             sizeof(*layer),
+                                             sizeof(Layer),
                                              "network_create layers");
     check_memory(network->layers);
     network->n_layers = 0;
@@ -47,6 +47,27 @@ network_destroy(Network* network) {
 }
 
 
+internal void*
+array_increase_capacity(void* array, sz el_size, u32 length, u32 new_length) {
+    check(array != NULL, "array is NULL");
+    check(length < new_length, "current length should be smaller than the new_length");
+    check(el_size != 0, "el_size is 0");
+    
+    void* new_array = (void*) memory_calloc(new_length, el_size);
+    check_memory(new_array);
+    sz array_size = el_size * length;
+    
+    memcpy(new_array, array, array_size);
+    memset(array, 0, array_size);
+    memory_free(array);
+    
+    return new_array;
+    
+    error:
+    return NULL;
+}
+
+
 internal bool
 network_add_layer(Network* network, Layer* layer,
                   bool is_input, bool is_output) {
@@ -59,13 +80,11 @@ network_add_layer(Network* network, Layer* layer,
         // TODO: like array_resize(void* array, el_size, current_len, new_len)
         // TODO: and be this the general part not the full array?
         u32 new_n_max_layers = network->n_layers + 10;
-        Layer* new_layers = (Layers*)memory_calloc(new_n_max_layers,
-                                                   sizeof(*layer));
-        check_memory(new_layers);
-        sz layers_sz = network->n_layers * sizeof(*layer);
-        memcpy(new_layers, network->layers, layers_sz);
-        memset(network->layers, 0, layers_sz);
-        memory_free(network->layers);
+        Lyaer* new_layers = (Layers*) array_increase_capacty(network->layers,
+                                                             sizeof(Layer),
+                                                             network->n_layers,
+                                                             new_n_max_layers);
+        check(new_layers != NULL, "new_layers is NULL");
         layer->layers = new_layers;
         layer->n_max_layers = new_n_max_layers;
     }

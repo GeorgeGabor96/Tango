@@ -11,17 +11,15 @@
 typedef struct Network {
     String* name;
     Layer* layers;
+    u32 n_layers;
+    u32 n_max_layers;
     
     // NOTE: much easier to implement
     // NOTE: assume a network has at most 10 inputs or outputs
     u32 in_layers_idxs[10];
     u32 out_layers_idxs[10];
-    
-    u32 n_layers;
-    u32 n_max_layers;
     u32 n_in_layers;
     u32 n_out_layers;
-    
 } Network;
 
 
