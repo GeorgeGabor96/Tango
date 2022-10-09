@@ -76,20 +76,38 @@ neuron_cls_move(NeuronCls* cls_src, NeuronCls* cls_dst) {
 *   NEURON
 ********************/
 internal Neuron*
-neuron_create(NeuronCls* cls, Array* in_synapses_ref, Array* out_synapses_ref) {
+neuron_create(NeuronCls* cls) {
     Neuron* neuron = NULL;
     check(cls != NULL, "cls is NULL");
-    check(in_synapses_ref != NULL, "in_synapses_ref is NULL");
-    check(out_synapses_ref != NULL, "out_synapses_ref is NULL");
-    
     neuron = (Neuron*)memory_calloc(1, sizeof(Neuron),
                                     "neuron_create");
+    check_memory(neuron);
+    bool status = neuron_init(neuron, cls);
+    check(status == TRUE, "couldn't init the neuron");
+    
+    return neuron;
+    
+    error:
+    memory_free(neuron);
+    
+    return NULL;
+}
+
+
+internal bool
+neuron_init(Neuron* neuron, NeuronCls* cls) {
+    check(neuron != NULL, "neuron is NULL");
+    check(cls != NULL, "cls is NULL");
+    
+    
+    neuron->in_synapses_ref = array_create(10, sizeof(Synapse));
+    check_memory(neuron->in_synapses_ref);
+    neuron->out_synapses_ref = array_create(10, sizeof(Synapse*));
+    check_memory(neuron->out_synapses_ref);
+    
     neuron->cls = cls;
     neuron->epsc = 0.0f;
-    neuron->ipsc = 0.0f;
-    neuron->in_synapses_ref = in_synapses_ref;
-    neuron->out_synapses_ref = out_synapses_ref;
-    neuron->spike = FALSE;
+    neuron->ipsc = 0.0f;neuron->spike = FALSE;
     
     if (neuron->cls->type == NEURON_LIF) {
         neuron->voltage = NEURON_LIF_VOLTAGE_REST;
@@ -98,8 +116,15 @@ neuron_create(NeuronCls* cls, Array* in_synapses_ref, Array* out_synapses_ref) {
         neuron->lif_refract.last_spike_time = 0;
     }
     
+    return TRUE;
+    
     error:
-    return neuron;
+    if (neuron->in_synapses_ref != NULL) 
+        array_destroy(neuron->in_synapses_ref, NULL);
+    if (neuron->out_synapses_ref != NULL)
+        array_destroy(neuron->out_synapses_ref, NULL);
+    
+    return FALSE;
 }
 
 
@@ -107,7 +132,7 @@ internal void
 neuron_destroy(Neuron* neuron) {
     check(neuron != NULL, "neuron is NULL");
     
-    memset(neuron, 0, sizeof(Neuron));
+    neuron_reset(neuron);
     memory_free(neuron);
     
     error:
@@ -115,18 +140,62 @@ neuron_destroy(Neuron* neuron) {
 }
 
 
-// TODO:
-/*
 internal void
-neuron_move(Neuron* neuron_src, Neuron* neuron_dst) {
-    check(neuron_src != NULL, "neuron_src is NULL");
-    check(neuron_dst != NULL, "neuron_dst is NULL");
+neuron_reset(Neuron* neuron) {
+    check(neuron != NULL, "neuron is NULL");
     
-    memcpy(neuron_dst, neuron_src, sizeof(Neuron));
+    // TODO: how deletes the synapses????
+    array_destroy(neuron->in_synapses_ref, synapse_reset);
+    array_destroy(neuron->out_synapses_ref, NULL);
+    memset(neuron, 0, sizeof(*neuron));
+    
     error:
     return;
 }
-*/
+
+
+internal void
+neuron_reset_double_p(Neuron** neuron) {
+    check(neuron != NULL, "neuron is NULL");
+    
+    neuron_reset(*neuron);
+    
+    error:
+    return;
+}
+
+
+internal Synapse*
+neuron_add_in_synapse(Neuron* neuron, Synapse* synapse, bool free_synapse) {
+    check(neuron != NULL, "neuron is NULL");
+    check(synapse != NULL, "synapse is NULL");
+    
+    // NOTE: move the synapse into the in_synapses_ref
+    neuron->in_synapses_ref = array_append(neuron->in_synapses_ref, synapse);
+    // TODO: do I need to check the append?
+    
+    memset(synapse, 0, sizeof(*synapse));
+    if (free_synapse) memory_free(synapse);
+    
+    synapse = (Synapse*) array_get(neuron->in_synapses_ref,
+                                   neuron->in_synapses_ref->length - 1);
+    return synapse;
+    error:
+    return NULL;
+}
+
+
+internal void
+neuron_add_out_synapse(Neuron* neuron, Synapse* synapse) {
+    check(neuron != NULL, "neuron is NULL");
+    check(synapse != NULL, "synapse is NULL");
+    
+    neuron->out_synapses_ref = 
+        array_append(neuron->out_synapses_ref, &synapse);
+    
+    error:
+    return;
+}
 
 
 inline internal f32
@@ -138,7 +207,7 @@ neuron_compute_psc(Neuron* neuron, u32 time) {
     Synapse* synapse = NULL;
     
     for (i = 0u; i < neuron->in_synapses_ref->length; ++i) {
-        synapse = *((Synapse**)array_get(neuron->in_synapses_ref, i));
+        synapse = (Synapse*)array_get(neuron->in_synapses_ref, i);
         // NOTE: first update the synapse for the case where there is a spike with the 
         // NOTE: current time
         // NOTE: We could also step the synapse after the psc computation
@@ -202,7 +271,7 @@ neuron_update_in_synapses(Neuron* neuron, u32 time) {
     u32 i = 0;
     Synapse* synapse = NULL;
     for (i = 0u; i < neuron->in_synapses_ref->length; ++i) {
-        synapse = *((Synapse**)array_get(neuron->in_synapses_ref, i));
+        synapse = (Synapse*)array_get(neuron->in_synapses_ref, i);
         synapse_step(synapse, time);
     }
 }

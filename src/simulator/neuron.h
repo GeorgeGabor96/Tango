@@ -54,7 +54,9 @@ typedef struct Neuron {
     f32 voltage;
     f32 epsc;
     f32 ipsc;
-    Array* in_synapses_ref;   // NOTE: keep references 
+    // NOTE: the neuron has the ownership over the input synapses
+    // NOTE: when the neuron is no more also the input synapses are gone
+    Array* in_synapses_ref;   // NOTE: keep synapses 
     Array* out_synapses_ref;  // NOTE: keep references
     bool spike;
     
@@ -66,19 +68,20 @@ typedef struct Neuron {
 } Neuron;
 
 
-// TODO: Should we give the synapses directly or one by one as in the old aproach????
-// TODO: the answer will appear when writting the layers or network
-internal Neuron* neuron_create(NeuronCls* cls, 
-                               Array* in_synapses_ref, 
-                               Array* out_synapses_ref);
+internal Neuron* neuron_create(NeuronCls* cls);
+internal bool neuron_init(Neuron* neuron, NeuronCls* cls);
 internal void neuron_destroy(Neuron* neuron);
+internal void neuron_reset(Neuron* neuron);
+internal void neuron_reset_double_p(Neuron** neuron);
+
+// NOTE: When adding an input synapse take ownership and return the new address
+internal Synapse* neuron_add_in_synapse(Neuron* neuron,
+                                        Synapse* synapse,
+                                        bool free_synapse);
+internal void neuron_add_out_synapse(Neuron* neuron, Synapse* synapse);
 
 // TODO: how to move a neuron
 // internal void neuron_move(Neuron* neuron_src, Neuron* neuron_dst);
-
-// TODO: do I need to add the synapses one by one?
-//internal void neuron_add_in_synapse(Neuron* neuron, Synapse* synapse);
-//internal void neuron_add_out_synapse(Neuron* neuron, Synapse* synapse);
 
 internal void neuron_step(Neuron* neuron, u32 time);
 internal void neuron_step_force_spike(Neuron* neuron, u32 time);

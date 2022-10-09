@@ -86,22 +86,13 @@ synapse_cls_move(SynapseCls* cls_src, SynapseCls* cls_dst) {
 internal Synapse*
 synapse_create(SynapseCls* cls, f32 weight) {
     Synapse* synapse = NULL;
-    check(cls != NULL, "cls is NULL");
-    check(weight >= 0.0f, "weight is negative");
     
     synapse = (Synapse*)memory_malloc(sizeof(*synapse), "synapse_create");
     check_memory(synapse);
     
-    // NOTE: Depending on the order of update and add spike time
-    // NOTE: you 
-    // need a number of delay slots in the queue (in case update then add)
-    // NOTE: or delay + 1 (in case add then update)
-    // NOTE: Recheck this, for now its okay
-    synapse->spike_times = queue_create(cls->delay + 1, sizeof(u32));
-    check_memory(synapse->spike_times);
-    synapse->cls = cls;
-    synapse->weight = weight;
-    synapse->conductance = 0.0f;
+    bool status = synapse_init(synapse, cls, weight);
+    check(status == TRUE, "couldn't init synapse");
+    
     return synapse;
     
     error:
@@ -113,17 +104,64 @@ synapse_create(SynapseCls* cls, f32 weight) {
 }
 
 
+internal bool
+synapse_init(Synapse* synapse, SynapseCls* cls, f32 weight) {
+    check(synapse != NULL, "synapse is NULL");
+    check(cls != NULL, "cls is NULL");
+    check(weight >= 0.0f, "weight is negative");
+    
+    // NOTE: Depending on the order of update and add spike time
+    // NOTE: you 
+    // need a number of delay slots in the queue (in case update then add)
+    // NOTE: or delay + 1 (in case add then update)
+    // NOTE: Recheck this, for now its okay
+    synapse->spike_times = queue_create(cls->delay + 1, sizeof(u32));
+    check_memory(synapse->spike_times);
+    synapse->cls = cls;
+    synapse->weight = weight;
+    synapse->conductance = 0.0f;
+    return TRUE;
+    
+    error:
+    return FALSE;
+    
+}
+
+
 internal void
 synapse_destroy(Synapse* synapse) {
     check(synapse != NULL, "synapse is NULL");
-    
-    queue_destroy(synapse->spike_times, NULL);
-    memset(synapse, 0, sizeof(Synapse));
     memory_free(synapse);
+    
+    synapse_reset(synapse);
     
     error:
     return;
 }
+
+
+internal void
+synapse_reset(Synapse* synapse) {
+    check(synapse != NULL, "synapse is NULL");
+    
+    queue_destroy(synapse->spike_times, NULL);
+    memset(synapse, 0, sizeof(Synapse));
+    
+    error:
+    return;
+}
+
+
+internal void
+synapse_destroy_double_p(Synapse** synapse) {
+    check(synapse != NULL, "synapse is NULL");
+    
+    synapse_destroy(*synapse);
+    
+    error:
+    return;
+}
+
 
 
 internal void
