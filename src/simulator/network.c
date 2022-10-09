@@ -75,3 +75,41 @@ network_add_layer(Network* network, Layer* layer,
     error:
     return FALSE;
 }
+
+
+internal void
+network_step(Network* network, u32 time) {
+    check(network != NULL, "network is NULL");
+    
+    for (u32 i = 0; i < network->n_layers; ++i)
+        layer_step(network->layers + i, time);
+    
+    error:
+    return;
+}
+
+
+internal f32*
+network_get_layer_voltages(Network* network, u32 i) {
+    check(network != NULL, "network is NULL");
+    check(i < network->n_layers, "i >= network->n_layers");
+    
+    f32* voltages = layer_get_voltages(network->layers + i);
+    return voltages;
+    
+    error;
+    return NULL;
+}
+
+
+internal bool*
+network_get_layer_spikes(Network* network, u32 i) {
+    check(network != NULL, "network is NULL");
+    check(i < network->n_layers, "i >= network->n_layers");
+    
+    bool* spikes = layer_get_spikes(network->layers + i);
+    return spikes;
+    
+    error:
+    return NULL;
+}

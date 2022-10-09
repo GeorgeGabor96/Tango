@@ -28,34 +28,6 @@ typedef double f64;
 #define FALSE 0
 
 
-// FUNCTION definitions
-typedef void (ResetFn) (void*);
-typedef void (ShowFn) (void*);
-typedef u32 (CompareFn) (void*, void*);
-
-u32 compare_u32(void* ap, void* bp) {
-    u32 a = *((int*)ap);
-    u32 b = *((int*)bp);
-    if (a == b) return 1;
-    return 0;
-}
-
-
-
-// Plotting functions
-internal void
-i32_show(void* data) {
-    i32 value = *((i32*)data);
-    printf("%d", value);
-}
-
-internal void
-u32_show(void* data) {
-    u32 value = *((u32*)data);
-    printf("%u", value);
-}
-
-
 typedef enum { SUCCESS = 0, FAIL = 1 } Status;
 
 // logging
