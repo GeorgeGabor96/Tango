@@ -6,7 +6,6 @@
 
 #include "utils_tests/memory_tests.c"
 #include "containers_tests/string_tests.c"
-#include "containers_tests/queue_tests.c"
 #include "containers_tests/memory_arena_tests.c"
 #include "simulator_tests/synapse_tests.c"
 #include "simulator_tests/neuron_tests.c"
@@ -25,11 +24,6 @@ TestInfo tests[] = {
     { string_path_join_test, "string_path_join_test" },
     { string_to_c_str_test, "string_to_c_str_test" },
     { string_equal_test, "string_equal_test" },
-    // Queue tests
-    { queue_create_destroy_test, "queue_create_destroy_test" },
-    { queue_enqueue_dequeue_test, "queue_enqueue_dequeue_test" },
-    { queue_show_test, "queue_show_test" },
-    { queue_size_test, "queue_size_test" },
     /*******************
 * SIMULATOR TESTS
 *******************/

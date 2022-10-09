@@ -4,8 +4,9 @@
 * Helpfull functions
 *******************/
 inline internal bool
-synapse_is_spike_arriving_at_this_time(Queue* spike_times, u32 time) {
-    bool result = (queue_is_empty(spike_times) == FALSE) && (*((u32*)queue_head(spike_times)) == time);
+synapse_is_spike_arriving_at_this_time(Synapse* synapse, u32 time) {
+    bool result = synapse->n_spike_times != 0 &&
+        synapse->spike_times[synapse->spike_times_head] == time;
     return result;
 }
 
@@ -115,8 +116,14 @@ synapse_init(Synapse* synapse, SynapseCls* cls, f32 weight) {
     // need a number of delay slots in the queue (in case update then add)
     // NOTE: or delay + 1 (in case add then update)
     // NOTE: Recheck this, for now its okay
-    synapse->spike_times = queue_create(cls->delay + 1, sizeof(u32));
+    synapse->spike_times = (u32*)memory_malloc((cls->delay + 1) * sizeof(u32),
+                                               "synapse_init");
     check_memory(synapse->spike_times);
+    synapse->spike_times_head = 0;
+    synapse->spike_times_tail = 0;
+    synapse->n_spike_times = 0;
+    synapse->n_max_spike_times = cls->delay + 1;
+    
     synapse->cls = cls;
     synapse->weight = weight;
     synapse->conductance = 0.0f;
@@ -144,7 +151,7 @@ internal void
 synapse_reset(Synapse* synapse) {
     check(synapse != NULL, "synapse is NULL");
     
-    queue_destroy(synapse->spike_times, NULL);
+    memory_free(synapse->spike_times);
     memset(synapse, 0, sizeof(Synapse));
     
     error:
@@ -152,16 +159,16 @@ synapse_reset(Synapse* synapse) {
 }
 
 
-internal void
-synapse_destroy_double_p(Synapse** synapse) {
+internal u32
+synapse_next_spike_time(Synapse* synapse) {
     check(synapse != NULL, "synapse is NULL");
     
-    synapse_destroy(*synapse);
+    u32 result = synapse->spike_times[synapse->spike_times_head];
+    return result;
     
     error:
-    return;
+    return 0;
 }
-
 
 
 internal void
@@ -172,13 +179,17 @@ synapse_add_spike_time(Synapse* synapse, u32 spike_time) {
     spike_time += synapse->cls->delay;
     
     // NOTE: current spike time should be larger than the one aldeady in the queue
-    if_check(queue_is_empty(synapse->spike_times) == FALSE,
-             *((u32*)queue_head(synapse->spike_times)) < spike_time,
+    if_check(synapse->n_spike_times != 0,
+             synapse_next_spike_time(synapse) < spike_time,
              "Spike %u should not be older than the head %u",
              spike_time,
-             *((u32*)queue_head(synapse->spike_times)) < spike_time);
+             synapse_next_spike_time(synapse) < spike_time);
     
-    queue_enqueue(synapse->spike_times, &spike_time);
+    synapse->spike_times[synapse->spike_times_tail] = spike_time;
+    ++(synapse->n_spike_times);
+    ++(synapse->spike_times_tail);
+    if (synapse->spike_times_tail == synapse->n_max_spike_times)
+        synapse->spike_times_tail = 0;
     
     error:
     return;
@@ -210,9 +221,12 @@ internal void
 synapse_step(Synapse* synapse, u32 time) {
     check(synapse != NULL, "synapse is NULL");
     
-    if (synapse_is_spike_arriving_at_this_time(synapse->spike_times, time)) {
+    if (synapse_is_spike_arriving_at_this_time(synapse, time)) {
         synapse->conductance += 1.0f;
-        queue_dequeue(synapse->spike_times);
+        --(synapse->n_spike_times);
+        ++(synapse->spike_times_head);
+        if (synapse->spike_times_head == synapse->n_max_spike_times)
+            synapse->spike_times_head = 0;
     } else {
         // NOTE: conductance should always be positive
         // NOTE: clip the conductance if its too low
