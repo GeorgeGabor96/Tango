@@ -28,10 +28,25 @@ neuron_create_destroy_test() {
            neuron->epsc);
     assert(float_equal(neuron->ipsc, 0.0f) == TRUE, "neuron->ipsc is %f not 0.0",
            neuron->ipsc);
-    assert(neuron->in_synapses_ref != NULL,
-           "neuron->in_synapses_ref is NULL");
-    assert(neuron->out_synapses_ref != NULL,
-           "neuron->out_synapses_ref is NULL");
+    
+    assert(neuron->n_in_synapses == 0,
+           "neuron->n_in_synapses is %u not 0",
+           neuron->n_in_synapses);
+    assert(neuron->n_max_in_synapses == 10,
+           "neuron->n_max_in_synapses is %u not 10",
+           neuron->n_max_in_synapses);
+    assert(neuron->in_synapses != NULL,
+           "neuron->in_synapses is NULL");
+    
+    assert(neuron->n_out_synapses == 0,
+           "neuron->n_out_synapses is %u not 0",
+           neuron->n_out_synapses);
+    assert(neuron->n_max_out_synapses == 10,
+           "neuron->n_max_out_synapses is %u not 10",
+           neuron->n_max_out_synapses);
+    assert(neuron->out_p_synapses != NULL,
+           "neuron->out_p_synapses is NULL");
+    
     assert(neuron->spike == FALSE, "neuron->spike should be FALSE");
     assert(neuron->lif_refract.last_spike_time == 0,
            "neuron->lif_refract.last_spike_time is %u not 0",

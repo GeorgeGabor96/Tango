@@ -54,10 +54,16 @@ typedef struct Neuron {
     f32 voltage;
     f32 epsc;
     f32 ipsc;
-    // NOTE: the neuron has the ownership over the input synapses
-    // NOTE: when the neuron is no more also the input synapses are gone
-    Array* in_synapses_ref;   // NOTE: keep synapses 
-    Array* out_synapses_ref;  // NOTE: keep references
+    
+    // NOTE: the neuron owns its input synapses
+    u32 n_in_synapses;
+    u32 n_max_in_synapses;
+    Synapse* in_synapses;
+    
+    u32 n_out_synapses;
+    u32 n_max_out_synapses;
+    SynapseP* out_p_synapses;
+    
     bool spike;
     
     union {

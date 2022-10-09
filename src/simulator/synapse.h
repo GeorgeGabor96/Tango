@@ -41,7 +41,7 @@ typedef struct Synapse {
     f32 weight;
     f32 conductance;
     Queue* spike_times;
-} Synapse;
+} Synapse, *SynapseP;
 
 
 internal Synapse* synapse_create(SynapseCls* cls, f32 weight);
