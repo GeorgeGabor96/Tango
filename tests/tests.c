@@ -7,8 +7,6 @@
 #include "utils_tests/memory_tests.c"
 #include "containers_tests/string_tests.c"
 #include "containers_tests/queue_tests.c"
-#include "containers_tests/list_tests.c"
-#include "containers_tests/hash_tests.c"
 #include "containers_tests/memory_arena_tests.c"
 #include "simulator_tests/synapse_tests.c"
 #include "simulator_tests/neuron_tests.c"
@@ -32,15 +30,6 @@ TestInfo tests[] = {
     { queue_enqueue_dequeue_test, "queue_enqueue_dequeue_test" },
     { queue_show_test, "queue_show_test" },
     { queue_size_test, "queue_size_test" },
-    // List tests
-    { list_create_destroy_test, "list_create_destroy_test" },
-    { list_add_remove_test, "list_add_remove_test" },
-    { list_show_test, "list_show_test" },
-    // Hash tests
-    { hash_create_destroy_test, "hash_create_destroy_test" },
-    { hash_add_get_remove_test, "hash_add_get_remove_test" },
-    { hash_resize_map_test, "hash_resize_map_test" },
-    
     /*******************
 * SIMULATOR TESTS
 *******************/
