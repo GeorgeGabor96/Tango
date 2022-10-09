@@ -53,8 +53,9 @@ layer_init(Layer* layer, String* name, LayerType type,
     
     layer->name = name;
     layer->neurons = neurons;
-    layer->n_neurons = n_neurons
-        layer->type = type;
+    layer->n_neurons = n_neurons;
+    layer->type = type;
+    layer->inputs = NULL;
     
     // TODO:
     if (layer->type == LAYER_DENSE) {
@@ -78,10 +79,22 @@ layer_reset(Layer* layer) {
     }
     memory_free(layer->neurons);
     
-    memset(layer, 0, sizeof(*layer));
-    
-    error:
-    return;
+    // NOTE: remove inputs
+    LayerInNode* input = layer->inputs:
+    LayerInNode* aux = NULL;
+    while(input) {
+        aux = input;
+        input = input->next;
+        memory_free(aux);
+    }
+}
+
+memory_free(layer->neurons);
+
+memset(layer, 0, sizeof(*layer));
+
+error:
+return;
 }
 
 
@@ -161,6 +174,13 @@ layer_show(Layer* layer) {
            layer->n_neurons,
            string_get_c_str(layer->neurons[0].cls->name));
     printf("Number of input synapses %u\n", n_in_synapses);
+    printf("Input layers: ");
+    LayerInNode* input = layer->inputs;
+    while (input) {
+        printf("%s ", string_get_c_str(input->layer->name));
+        input = input->next;
+    }
+    printf("\n");
     
     error:
     return;
@@ -207,6 +227,20 @@ layer_link(Layer* layer, Layer* input_layer) {
     
     if (layer->type == LAYER_DENSE) {
         status = layer_link_dense(layer, input_layer);
+    }
+    
+    // NOTE: Save information about the layer that we linked with
+    // NOTE: also we can save meta information for linking here maybe before we
+    // NOTE: do the linking
+    LayerInNode* input = (LayerInNode*)memory_malloc(sizeof(*input));
+    check_memory(input);
+    input->layer = input_layer;
+    input->next = NULL;
+    if (layer->inputs == NULL)
+        layer->inputs = input;
+    else {
+        input->next = layer->inputs;
+        layer->inputs = input;
     }
     
     error:

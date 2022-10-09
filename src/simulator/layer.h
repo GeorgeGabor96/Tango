@@ -18,11 +18,19 @@ typedef enum {
 internal char* layer_type_get_c_str(LayerType type);
 
 
+typedef struct LayerInNode {
+    String* layer;
+    struct LayerInNode* next;
+} LayerInNode;
+
+
 typedef struct Layer {
     String* name;
     
     Neurons* neurons;
     u32 n_neurons;
+    
+    LayerInNode* inputs;
     
     LayerType type;
 } Layer;
