@@ -1,12 +1,11 @@
 #include "common.h"
 #include "tests.h"
 
+#include "containers/array.h"
+#include "containers/array.c"
+
 #include "utils_tests/memory_tests.c"
 #include "containers_tests/string_tests.c"
-#include "containers_tests/array_tests.c"
-#include "containers_tests/queue_tests.c"
-#include "containers_tests/list_tests.c"
-#include "containers_tests/hash_tests.c"
 #include "containers_tests/memory_arena_tests.c"
 #include "simulator_tests/synapse_tests.c"
 #include "simulator_tests/neuron_tests.c"
@@ -25,30 +24,6 @@ TestInfo tests[] = {
     { string_path_join_test, "string_path_join_test" },
     { string_to_c_str_test, "string_to_c_str_test" },
     { string_equal_test, "string_equal_test" },
-    // Array tests
-    { array_create_destroy_test, "array_create_destroy_test" },
-    { array_set_get_test, "array_set_get_test" },
-    { array_swap_test, "array_swap_test" },
-    { array_show_test, "array_show_test" },
-    { array_size_test, "array_size_test" },
-    { array_set_length_test, "array_set_length_test" },
-    { array_squeeze_test, "array_squeeze_test" },
-    { array_increase_capacity_test, "array_increase_capacity_test" },
-    { array_append_test, "array_append_test" },
-    // Queue tests
-    { queue_create_destroy_test, "queue_create_destroy_test" },
-    { queue_enqueue_dequeue_test, "queue_enqueue_dequeue_test" },
-    { queue_show_test, "queue_show_test" },
-    { queue_size_test, "queue_size_test" },
-    // List tests
-    { list_create_destroy_test, "list_create_destroy_test" },
-    { list_add_remove_test, "list_add_remove_test" },
-    { list_show_test, "list_show_test" },
-    // Hash tests
-    { hash_create_destroy_test, "hash_create_destroy_test" },
-    { hash_add_get_remove_test, "hash_add_get_remove_test" },
-    { hash_resize_map_test, "hash_resize_map_test" },
-    
     /*******************
 * SIMULATOR TESTS
 *******************/

@@ -28,10 +28,25 @@ neuron_create_destroy_test() {
            neuron->epsc);
     assert(float_equal(neuron->ipsc, 0.0f) == TRUE, "neuron->ipsc is %f not 0.0",
            neuron->ipsc);
-    assert(neuron->in_synapses_ref != NULL,
-           "neuron->in_synapses_ref is NULL");
-    assert(neuron->out_synapses_ref != NULL,
-           "neuron->out_synapses_ref is NULL");
+    
+    assert(neuron->n_in_synapses == 0,
+           "neuron->n_in_synapses is %u not 0",
+           neuron->n_in_synapses);
+    assert(neuron->n_max_in_synapses == 10,
+           "neuron->n_max_in_synapses is %u not 10",
+           neuron->n_max_in_synapses);
+    assert(neuron->in_synapses != NULL,
+           "neuron->in_synapses is NULL");
+    
+    assert(neuron->n_out_synapses == 0,
+           "neuron->n_out_synapses is %u not 0",
+           neuron->n_out_synapses);
+    assert(neuron->n_max_out_synapses == 10,
+           "neuron->n_max_out_synapses is %u not 10",
+           neuron->n_max_out_synapses);
+    assert(neuron->out_p_synapses != NULL,
+           "neuron->out_p_synapses is NULL");
+    
     assert(neuron->spike == FALSE, "neuron->spike should be FALSE");
     assert(neuron->lif_refract.last_spike_time == 0,
            "neuron->lif_refract.last_spike_time is %u not 0",
@@ -85,41 +100,35 @@ neuron_step_test() {
     // NOTE: if the input synapses don't produce current the neuron should not spike
     neuron_step(neuron, 100);
     assert(neuron->spike == FALSE, "neuron should not produce a spike");
-    assert(queue_is_empty(out_synapse_1->spike_times) == TRUE,
-           "out synapse 1 should not have spikes in it");
-    assert(queue_is_empty(out_synapse_2->spike_times) == TRUE,
-           "out synapse 2 should not ahve spikes in it");
+    assert(out_synapse_1->n_spike_times == 0, "out synapse 1 should not have spikes in it");
+    assert(out_synapse_2->n_spike_times == 0, "out synapse 2 should not ahve spikes in it");
     
     // NOTE: if both the synapse have current because they are excitatory they should make
     // NOTE: the neuron spike
     synapse_add_spike_time(in_synapse_1, 99);
     synapse_add_spike_time(in_synapse_2, 99);
     neuron_step(neuron, 101);
-    assert(queue_is_empty(in_synapse_1->spike_times) == TRUE,
-           "in synapse 1 should not have any more spikes");
-    assert(queue_is_empty(in_synapse_2->spike_times) == TRUE,
-           "in synapse 2 should not have any more spikes");
+    assert(in_synapse_1->n_spike_times == 0, "in synapse 1 should not have any more spikes");
+    assert(in_synapse_2->n_spike_times == 0, "in synapse 2 should not have any more spikes");
     
     assert(neuron->spike == TRUE, "neuron should produce a spike");
     
-    assert(queue_is_empty(out_synapse_1->spike_times) == FALSE,
-           "out synapse 1 should have spikes");
-    u32 spike_time = *((u32*)queue_head(out_synapse_1->spike_times)); 
-    assert(spike_time == 103, "out synapse 1 should have 103 as the spike time");
+    assert(out_synapse_1->n_spike_times != 0, "out synapse 1 should have spikes");
+    u32 spike_time = synapse_next_spike_time(out_synapse_1); 
+    assert(spike_time == 103, "out synapse 1 should have 103 as the spike time, not %u",
+           spike_time);
     
-    assert(queue_is_empty(out_synapse_2->spike_times) == FALSE,
-           "out synapse 2 should have spikes");
-    spike_time = *((u32*)queue_head(out_synapse_2->spike_times)); 
+    assert(out_synapse_2->n_spike_times != 0, "out synapse 2 should have spikes");
+    spike_time = synapse_next_spike_time(out_synapse_2); 
     assert(spike_time == 103, "out synapse 2 should have 103 as the spike time");
     
     // NOTE: clear the output synapses
     synapse_step(out_synapse_1, 103);
     synapse_step(out_synapse_2, 103);
-    assert(queue_is_empty(out_synapse_1->spike_times) == TRUE,
+    assert(out_synapse_1->n_spike_times == 0,
            "out synapse 1 should not have any more spikes");
-    assert(queue_is_empty(out_synapse_2->spike_times) == TRUE,
+    assert(out_synapse_2->n_spike_times == 0,
            "out synapse 2 should not have any more spikes");
-    
     
     /*****************************
 * TEST neuron_step_force_spike
@@ -128,23 +137,19 @@ neuron_step_test() {
     neuron_step_force_spike(neuron, 200);
     assert(neuron->spike == TRUE, "neuron should produce a spike");
     
-    assert(queue_is_empty(out_synapse_1->spike_times) == FALSE,
-           "out synapse 1 should have spikes");
-    spike_time = *((u32*)queue_head(out_synapse_1->spike_times)); 
+    assert(out_synapse_1->n_spike_times != 0, "out synapse 1 should have spikes");
+    spike_time = synapse_next_spike_time(out_synapse_1); 
     assert(spike_time == 202, "out synapse 1 should have 202 as the spike time");
     
-    assert(queue_is_empty(out_synapse_2->spike_times) == FALSE,
-           "out synapse 2 should have spikes");
-    spike_time = *((u32*)queue_head(out_synapse_2->spike_times)); 
+    assert(out_synapse_2->n_spike_times != 0, "out synapse 2 should have spikes");
+    spike_time = synapse_next_spike_time(out_synapse_2); 
     assert(spike_time == 202, "out synapse 2 should have 202 as the spike time");
     
     // NOTE: clear the output synapses
     synapse_step(out_synapse_1, 202);
     synapse_step(out_synapse_2, 202);
-    assert(queue_is_empty(out_synapse_1->spike_times) == TRUE,
-           "out synapse 1 should not have any more spikes");
-    assert(queue_is_empty(out_synapse_2->spike_times) == TRUE,
-           "out synapse 2 should not have any more spikes");
+    assert(out_synapse_1->n_spike_times == 0, "out synapse 1 should not have any more spikes");
+    assert(out_synapse_2->n_spike_times == 0, "out synapse 2 should not have any more spikes");
     
     /********************************
     * TEST neuron_step_inject_current
@@ -152,23 +157,19 @@ neuron_step_test() {
     neuron_step_inject_current(neuron, 100.0f, 300);
     assert(neuron->spike == TRUE, "neuron should produce a spike");
     
-    assert(queue_is_empty(out_synapse_1->spike_times) == FALSE,
-           "out synapse 1 should have spikes");
-    spike_time = *((u32*)queue_head(out_synapse_1->spike_times)); 
+    assert(out_synapse_1->n_spike_times != 0, "out synapse 1 should have spikes");
+    spike_time = synapse_next_spike_time(out_synapse_1); 
     assert(spike_time == 302, "out synapse 1 should have 302 as the spike time");
     
-    assert(queue_is_empty(out_synapse_2->spike_times) == FALSE,
-           "out synapse 2 should have spikes");
-    spike_time = *((u32*)queue_head(out_synapse_2->spike_times)); 
+    assert(out_synapse_2->n_spike_times != 0, "out synapse 2 should have spikes");
+    spike_time = synapse_next_spike_time(out_synapse_2); 
     assert(spike_time == 302, "out synapse 2 should have 302 as the spike time");
     
     // NOTE: clear the output synapses
     synapse_step(out_synapse_1, 302);
     synapse_step(out_synapse_2, 302);
-    assert(queue_is_empty(out_synapse_1->spike_times) == TRUE,
-           "out synapse 1 should not have any more spikes");
-    assert(queue_is_empty(out_synapse_2->spike_times) == TRUE,
-           "out synapse 2 should not have any more spikes");
+    assert(out_synapse_1->n_spike_times == 0, "out synapse 1 should not have any more spikes");
+    assert(out_synapse_2->n_spike_times == 0, "out synapse 2 should not have any more spikes");
     
     neuron_destroy(neuron);
     neuron_cls_destroy(neuron_cls);

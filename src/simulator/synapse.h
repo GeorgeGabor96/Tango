@@ -5,7 +5,6 @@
 
 #include "common.h"
 #include "containers/string.h"
-#include "containers/queue.h"
 #include "math_ops.h"
 
 
@@ -40,19 +39,24 @@ typedef struct Synapse {
     SynapseCls* cls;
     f32 weight;
     f32 conductance;
-    Queue* spike_times;
-} Synapse;
+    
+    u32 n_max_spike_times;
+    u32 n_spike_times;
+    u32 spike_times_head;  // remove
+    u32 spike_times_tail;  // add
+    u32* spike_times;
+} Synapse, *SynapseP;
 
 
 internal Synapse* synapse_create(SynapseCls* cls, f32 weight);
 internal bool synapse_init(Synapse* synapse, SynapseCls* cls, f32 weight);
 internal void synapse_destroy(Synapse* synapse);
 internal void synapse_reset(Synapse* synapse);
-internal void synapse_destroy_double_p(Synapse** synapse);
 
 // TODO: how to move a synapse?
 // internal void synapse_move(Synapse* synapse_src, Synapse* synapse_dst);
 
+internal u32 synapse_next_spike_time(Synapse* synapse);
 internal void synapse_add_spike_time(Synapse* synapse, u32 spike_time);
 internal f32 synapse_compute_psc(Synapse* synapse, f32 voltage);
 internal void synapse_step(Synapse* synapse, u32 time);
