@@ -87,14 +87,11 @@ layer_reset(Layer* layer) {
         input = input->next;
         memory_free(aux);
     }
-}
-
-memory_free(layer->neurons);
-
-memset(layer, 0, sizeof(*layer));
-
-error:
-return;
+    
+    memset(layer, 0, sizeof(*layer));
+    
+    error:
+    return;
 }
 
 
