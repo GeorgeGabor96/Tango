@@ -240,3 +240,16 @@ synapse_step(Synapse* synapse, u32 time) {
     error:
     return;
 }
+
+
+internal void
+synapse_clear(Synapse* synapse) {
+    check(synapse != NULL, "synapse is NULL");
+    
+    synapse->conductance = 0;
+    synapse->spike_time_head = 0;
+    synapse->spike_time_tail = 0;
+    
+    error:
+    return;
+}

@@ -157,6 +157,18 @@ layer_step_force_spike(Layer* layer, u32 time, bool* spikes, u32 n_spikes) {
 
 
 internal void
+layer_clear(Layer* layer) {
+    check(layer != NULL, "layer is NULL");
+    
+    for (u32 i = 0; i < layer->n_neurons; ++i)
+        neuron_clear(layer->neurons + i);
+    
+    error:
+    return;
+}
+
+
+internal void
 layer_show(Layer* layer) {
     check(layer != NULL, "layer is NULL");
     

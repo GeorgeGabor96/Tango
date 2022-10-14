@@ -61,5 +61,6 @@ internal void synapse_add_spike_time(Synapse* synapse, u32 spike_time);
 internal f32 synapse_compute_psc(Synapse* synapse, f32 voltage);
 internal void synapse_step(Synapse* synapse, u32 time);
 
+internal void synapse_clear(Synapse* synapse);.
 
 #endif //SYNAPSE_H

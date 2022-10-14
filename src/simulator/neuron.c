@@ -361,3 +361,24 @@ neuron_step_inject_current(Neuron* neuron, f32 psc, u32 time) {
     error:
     return;
 }
+
+
+internal void
+neuron_clear(Neuron* neuron) {
+    check(neuron != NULL, "neuron is NULL");
+    
+    neuron->spike = FALSE;
+    if (neuron->cls->type == NEURON_LIF)
+        neuron->voltage = NEURON_LIF_VOLTAGE_REST;
+    else if (neuron->cls->type == NEURON_LIF_REFRACT)
+        neuron->voltage = NEURON_LIF_VOLTAGE_REST;
+    else 
+        log_error("Unknown neuron type %u", neuron->cls->type);
+    
+    Synapse* synapse = NULL;
+    for (u32 i = 0; i < neuron->n_in_synapses; ++i)
+        synapse_clear(neuron->in_synapses + i);
+    
+    error:
+    return;
+}

@@ -24,7 +24,7 @@ typedef struct Layer {
     Neurons* neurons;
     u32 n_neurons;
     
-    LayerInNode* inputs;
+    LayerInNode* inputs; // Whats this??
     
     LayerType type;
 } Layer;
@@ -46,6 +46,8 @@ internal bool layer_link(Layer* layer, Layer* input_layer);
 internal void layer_step(Layer* layer, u32 time);
 internal void layer_step_inject_current(Layer* layer, u32 time, f32* currents, u32 n_currents);
 internal void layer_step_force_spike(Layer* layer, u32 time, bool* spikes, u32 n_spikes);
+
+internal void layer_clear(Layer* layer);
 
 // NOTE: to get outputs, they should be free by the user
 internal f32* layer_get_voltages(Layer* layer);

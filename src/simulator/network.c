@@ -82,9 +82,9 @@ network_step(Network* network, NetworkIn* inputs, u32 time) {
         input = inputs[in_idx];
         layer_node = network->in_layers[in_idx];
         
-        if (input->type == NETWORK_INPUT_SPIKES)
+        if (input->type == NETWORK_IN_SPIKES)
             layer_step_force_spike(&(layer_node->layer), time, input->data, input->n_data);
-        else if (input->type == NETWORK_INPUT_CURRENT)
+        else if (input->type == NETWORK_IN_CURRENT)
             layer_step_inject_current(&(layer_node->layer), time, input->data, input->n_data);
         else
             log_error("Unknown network input type %d", input->type);
@@ -97,6 +97,20 @@ network_step(Network* network, NetworkIn* inputs, u32 time) {
         if (layer_node->it_ran == FALSE)
             layer_step(&(layer_node->layer), time);
     }
+    
+    error:
+    return;
+}
+
+
+internal void
+network_clear(Network* network) {
+    check(network != NULL, "network is NULL");
+    
+    for (LayerNode* layer_node = network->layers.first;
+         layer_node != NULL;
+         layer_node = layer_node->next)
+        layer_clear(&(layer_node->layer));
     
     error:
     return;
