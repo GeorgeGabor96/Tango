@@ -4,6 +4,11 @@
 #define CALLBACK_H
 
 
+#include "common.h"
+#include "containers/string.h"
+#include "simulator/network.h"
+
+
 typedef enum {
     CALLBACK_INVALID,
     CALLBACK_NETWORK_DUMPER,

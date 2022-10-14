@@ -18,12 +18,6 @@ typedef enum {
 internal char* layer_type_get_c_str(LayerType type);
 
 
-typedef struct LayerInNode {
-    String* layer;
-    struct LayerInNode* next;
-} LayerInNode;
-
-
 typedef struct Layer {
     String* name;
     
@@ -44,13 +38,12 @@ internal bool layer_init(Layer* layer, String* name, LayerType type,
 internal void layer_destroy(Layer* layer);
 internal void layer_reset(Layer* layer);
 
-internal void layer_step(Layer* layer, u32 time);
-
 internal void layer_show(Layer* layer);
 
 internal bool layer_link(Layer* layer, Layer* input_layer); 
 
 // NOTE: to set inputs
+internal void layer_step(Layer* layer, u32 time);
 internal void layer_step_inject_current(Layer* layer, u32 time, f32* currents, u32 n_currents);
 internal void layer_step_force_spike(Layer* layer, u32 time, bool* spikes, u32 n_spikes);
 

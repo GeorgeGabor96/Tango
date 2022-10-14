@@ -8,17 +8,29 @@
 #include "simulator/layer.h"
 
 
+typedef struct LayerNode {
+    Layer layer;
+    bool it_ran;
+    struct LayerNode* next;
+} LayerNode;
+
+
+typedef struct LayerList {
+    LayerNode* first;
+    LayerNode* last;
+} LayerList;
+
+
 typedef struct Network {
     String* name;
     
-    u32 n_layers;
-    u32 n_max_layers;
-    Layer* layers;
+    // NOTE: for now its simpler to just keep a list of layers
+    LayerList layers;
     
     // NOTE: much easier to implement
     // NOTE: assume a network has at most 10 inputs or outputs
-    u32 in_layers_idxs[10];
-    u32 out_layers_idxs[10];
+    LayerNode* in_layers[10];
+    LayerNode* out_layers[10];
     u32 n_in_layers;
     u32 n_out_layers;
     
