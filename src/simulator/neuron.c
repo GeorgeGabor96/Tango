@@ -181,12 +181,12 @@ neuron_add_in_synapse(Neuron* neuron, Synapse* synapse, bool free_synapse) {
     
     // NOTE: move the synapse into the in_synapses_ref
     if (neuron->n_in_synapses == neuron->n_max_in_synapses) {
-        u32 length = neuron->n_in_synapses * NEURON_SYNAPSE_INCREASE_FACTOR; 
-        neuron->in_synapses = array_increase_length(neuron->in_synapses,
-                                                    sizeof(Synapse),
-                                                    neuron->n_in_synapses,
-                                                    length);
-        neuron->n_max_in_synapses = length;
+        u32 new_length = neuron->n_in_synapses * NEURON_SYNAPSE_INCREASE_FACTOR; 
+        neuron->in_synapses = array_resize(neuron->in_synapses,
+                                           sizeof(Synapse),
+                                           neuron->n_in_synapses,
+                                           new_length);
+        neuron->n_max_in_synapses = new_length;
     }
     
     memcpy(neuron->in_synapses + neuron->n_in_synapses, synapse, sizeof(*synapse));
@@ -208,12 +208,12 @@ neuron_add_out_synapse(Neuron* neuron, Synapse* synapse) {
     check(synapse != NULL, "synapse is NULL");
     
     if (neuron->n_out_synapses == neuron->n_max_out_synapses) {
-        u32 length = neuron->n_out_synapses * NEURON_SYNAPSE_INCREASE_FACTOR;
-        neuron->out_p_synapses = array_increase_length(neuron->out_p_synapses,
-                                                       sizeof(SynapseP),
-                                                       neuron->n_out_synapses,
-                                                       length);
-        neuron->n_max_out_synapses = length;
+        u32 new_length = neuron->n_out_synapses * NEURON_SYNAPSE_INCREASE_FACTOR;
+        neuron->out_p_synapses = array_resize(neuron->out_p_synapses,
+                                              sizeof(SynapseP),
+                                              neuron->n_out_synapses,
+                                              new_length);
+        neuron->n_max_out_synapses = new_length;
     }
     
     neuron->out_p_synapses[neuron->n_out_synapses] = synapse;
@@ -357,6 +357,27 @@ neuron_step_inject_current(Neuron* neuron, f32 psc, u32 time) {
     psc = neuron_compute_psc(neuron, time) + psc;
     neuron_update(neuron, time, psc);
     neuron_update_out_synapses(neuron, time);
+    
+    error:
+    return;
+}
+
+
+internal void
+neuron_clear(Neuron* neuron) {
+    check(neuron != NULL, "neuron is NULL");
+    
+    neuron->spike = FALSE;
+    if (neuron->cls->type == NEURON_LIF)
+        neuron->voltage = NEURON_LIF_VOLTAGE_REST;
+    else if (neuron->cls->type == NEURON_LIF_REFRACT)
+        neuron->voltage = NEURON_LIF_VOLTAGE_REST;
+    else 
+        log_error("Unknown neuron type %u", neuron->cls->type);
+    
+    Synapse* synapse = NULL;
+    for (u32 i = 0; i < neuron->n_in_synapses; ++i)
+        synapse_clear(neuron->in_synapses + i);
     
     error:
     return;

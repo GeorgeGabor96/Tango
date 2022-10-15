@@ -4,6 +4,7 @@
 #define NEURON_H
 
 #include "common.h"
+#include "utils/memory.h"
 #include "containers/string.h"
 #include "containers/array.h"
 #include "simulator/synapse.h"
@@ -78,7 +79,6 @@ internal Neuron* neuron_create(NeuronCls* cls);
 internal bool neuron_init(Neuron* neuron, NeuronCls* cls);
 internal void neuron_destroy(Neuron* neuron);
 internal void neuron_reset(Neuron* neuron);
-internal void neuron_reset_double_p(Neuron** neuron);
 
 // NOTE: When adding an input synapse take ownership and return the new address
 internal Synapse* neuron_add_in_synapse(Neuron* neuron,
@@ -90,8 +90,11 @@ internal void neuron_add_out_synapse(Neuron* neuron, Synapse* synapse);
 // internal void neuron_move(Neuron* neuron_src, Neuron* neuron_dst);
 
 internal void neuron_step(Neuron* neuron, u32 time);
+
+// NOTE: use to set inputs
 internal void neuron_step_force_spike(Neuron* neuron, u32 time);
 internal void neuron_step_inject_current(Neuron* neuron, f32 psc, u32 time);
 
+internal void neuron_clear(Neuron* neuron);
 
 #endif //NEURON_H
