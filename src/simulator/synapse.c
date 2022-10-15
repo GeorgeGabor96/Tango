@@ -247,8 +247,8 @@ synapse_clear(Synapse* synapse) {
     check(synapse != NULL, "synapse is NULL");
     
     synapse->conductance = 0;
-    synapse->spike_time_head = 0;
-    synapse->spike_time_tail = 0;
+    synapse->spike_times_head = 0;
+    synapse->spike_times_tail = 0;
     
     error:
     return;

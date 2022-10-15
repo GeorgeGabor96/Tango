@@ -79,7 +79,7 @@ callback_update(Callback* callback, Network* network) {
 internal void
 callback_run(Callback* callback, Network* network) {
     check(callback != NULL, "callback is NULL");
-    check(network != NUL, "network is NULL");
+    check(network != NULL, "network is NULL");
     
     if (callback->type == CALLBACK_NETWORK_DUMPER) {
         log_info("Calling RUN on callback CALLBACK_NETWORK_DUMPER");

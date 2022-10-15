@@ -4,6 +4,7 @@
 #define LAYER_H
 
 #include "common.h"
+#include "utils/memory.h"
 #include "containers/string.h"
 #include "containers/array.h"
 #include "simulator/neuron.h"
@@ -19,14 +20,11 @@ internal char* layer_type_get_c_str(LayerType type);
 
 
 typedef struct Layer {
+    LayerType type;
     String* name;
     
-    Neurons* neurons;
+    Neuron* neurons;
     u32 n_neurons;
-    
-    LayerInNode* inputs; // Whats this??
-    
-    LayerType type;
 } Layer;
 
 
@@ -40,7 +38,7 @@ internal void layer_reset(Layer* layer);
 
 internal void layer_show(Layer* layer);
 
-internal bool layer_link(Layer* layer, Layer* input_layer); 
+internal bool layer_link(Layer* layer, Layer* input_layer, SynapseCls* cls, f32 weight); 
 
 // NOTE: to set inputs
 internal void layer_step(Layer* layer, u32 time);

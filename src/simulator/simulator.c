@@ -3,9 +3,37 @@
 
 internal Simulator*
 simulator_create(Network* network, DataGenerator* data, Callback* callbacks) {
+    check(network != NULL, "network is NULL");
+    check(data != NULL, "data is NULL");
+    check(callbacks != NULL, "callbacks != NULL");
     
+    Simulator* simulator = (Simulator*) memory_malloc(sizeof(*simulator));
+    check_memory(simulator);
     
+    simulator->newtork = network;
+    simulator->data = data;
+    simulator->callbacks = callbacks;
+    return simulator;
+    
+    error:
+    return NULL;
 }
+
+
+internal void
+simulator_destroy(Simulator* simulator) {
+    check(simulator != NULL, "simulator is NULL");
+    
+    network_destroy(simulator->network);
+    data_gen_destroy(simulator->data);
+    callback_list_destroy(simulator->callbacks);
+    memset(simulator, 0, sizeof(*simulator));
+    memory_free(simulator);
+    
+    error;
+    return;
+}
+
 
 internal void
 simulator_run(Simulator* sim)

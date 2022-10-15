@@ -4,6 +4,8 @@
 #define MATH_OPS_H
 
 #include <math.h>
+#include "common.h"
+
 
 inline internal f64
 math_op_exp(f64 value) {

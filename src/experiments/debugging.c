@@ -1,0 +1,6 @@
+#include "utils/memory.c"
+#include "containers/string.c"
+#include "containers/array.c"
+#include "simulator/synapse.c"
+#include "simulator/neuron.c"
+#include "simulator/layer.c"

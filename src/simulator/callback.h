@@ -29,7 +29,7 @@ typedef struct Callback {
             // NOTE: when its full just dump it and start over
             // NOTE: when finished dump what we have currently
         } dumper;
-    }
+    };
 } Callback;
 
 

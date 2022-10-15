@@ -4,8 +4,9 @@
 #define SYNAPSE_H
 
 #include "common.h"
-#include "containers/string.h"
 #include "math_ops.h"
+#include "utils/memory.h"
+#include "containers/string.h"
 
 
 typedef enum {
@@ -61,6 +62,6 @@ internal void synapse_add_spike_time(Synapse* synapse, u32 spike_time);
 internal f32 synapse_compute_psc(Synapse* synapse, f32 voltage);
 internal void synapse_step(Synapse* synapse, u32 time);
 
-internal void synapse_clear(Synapse* synapse);.
+internal void synapse_clear(Synapse* synapse);
 
 #endif //SYNAPSE_H

@@ -4,6 +4,7 @@
 #define NEURON_H
 
 #include "common.h"
+#include "utils/memory.h"
 #include "containers/string.h"
 #include "containers/array.h"
 #include "simulator/synapse.h"
