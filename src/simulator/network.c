@@ -71,20 +71,23 @@ network_add_layer(Network* network, Layer* layer,
 
 
 internal void
-network_step(Network* network, NetworkIn* inputs, u32 time) {
+network_step(Network* network, DataInputs* inputs, u32 time) {
     check(network != NULL, "network is NULL");
+    check(network->n_in_layers == inputs->n_inputs,
+          "network->n_in_layers is %u, inputs->n_inputs is %u, should be equal",
+          network->n_in_layers, inputs->n_inputs);
     LayerNode* layer_node = NULL;
-    NetworkIn* input = NULL;
+    DataInput* input = NULL;
     
     // NOTE: Assume that the order of inputs are the same as the order of input layers in
     // NOTE: the network
-    for (u32 in_idx = 0; in_idx < network->n_in_layers; ++in_idx) {
-        input = inputs[in_idx];
+    for (u32 in_idx = 0; in_idx < inputs->n_inputs; ++in_idx) {
+        input = inputs->inputs[in_idx];
         layer_node = network->in_layers[in_idx];
         
-        if (input->type == NETWORK_IN_SPIKES)
+        if (input->type == DATA_INPUT_SPIKES)
             layer_step_force_spike(&(layer_node->layer), time, input->data, input->n_data);
-        else if (input->type == NETWORK_IN_CURRENT)
+        else if (input->type == DATA_INPUT_CURRENT)
             layer_step_inject_current(&(layer_node->layer), time, input->data, input->n_data);
         else
             log_error("Unknown network input type %d", input->type);
