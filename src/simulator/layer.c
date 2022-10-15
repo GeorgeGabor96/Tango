@@ -55,6 +55,7 @@ layer_init(Layer* layer, String* name, LayerType type,
     layer->neurons = neurons;
     layer->n_neurons = n_neurons;
     layer->type = type;
+    layer->it_ran = FALSE;
     
     // TODO:
     if (layer->type == LAYER_DENSE) {

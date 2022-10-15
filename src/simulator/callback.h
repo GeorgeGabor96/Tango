@@ -19,9 +19,6 @@ typedef enum {
 typedef struct Callback {
     CallbackType type;
     
-    // NOTE: use this to link callbacks between them so that we have a list
-    struct Callback* next;
-    
     union {
         struct {
             String* output_folder;
@@ -30,12 +27,11 @@ typedef struct Callback {
             // NOTE: when finished dump what we have currently
         } dumper;
     };
-} Callback;
+} Callback, *CallbackP;
 
 
 internal Callback* callback_network_dumper_create(const char* output_folder);
 internal void callback_destroy(Callback* callback);
-internal void callback_list_destroy(Callback* callback);
 
 internal void callback_update(Callback* callback, Network* network);
 internal void callback_run(Callback* callback, Network* network);

@@ -25,6 +25,7 @@ typedef struct Layer {
     
     Neuron* neurons;
     u32 n_neurons;
+    bool it_ran;
 } Layer;
 
 

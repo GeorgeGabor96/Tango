@@ -5,6 +5,7 @@
 
 
 #include "common.h"
+#include "utils/memory.h"
 #include "simulator/network.h"
 
 
@@ -32,12 +33,11 @@ typedef struct DataGen {
 } DataGen;
 
 
-internal void data_gen_create_constant_current(f32 value, u32 length);
-internal void data_gen_create_random_spikes(f32 chance, u32 length);
+internal DataGen* data_gen_create_constant_current(f32 value, u32 length, u32 sample_duration);
+internal DataGen* data_gen_create_random_spikes(f32 chance, u32 length, u32 sample_duration);
 internal void data_gen_destroy(DataGen* data);
 
 
-// TODO: Do i need this enum????
 typedef enum {
     DATA_SAMPLE_INVALID,
     DATA_SAMPLE_RANDOM_SPIKES,
@@ -62,5 +62,11 @@ typedef struct DataSample {
 
 internal DataSample* data_gen_sample_create(DataGen* data, u32 idx);
 internal void data_gen_sample_destroy(DataSample* sample);
+
+
+// NOTE: Currently the easiest thing to do is to give the network when creating inputs
+// NOTE: Probably in the future this is not enough but we will see
+internal NetworkInputs* data_network_inputs_create(DataSample* sample, Network* network, u32 time);
+
 
 #endif //DATA_GEN_H

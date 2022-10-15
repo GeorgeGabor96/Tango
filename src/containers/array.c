@@ -19,6 +19,8 @@ array_resize(void* array, sz el_size, u32 current_len, u32 new_len) {
     memset(array, 0, current_len * el_size);
     memory_free(array);
     
+    return new_array;
+    
     error:
     return NULL;
 }

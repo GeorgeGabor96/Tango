@@ -4,3 +4,7 @@
 #include "simulator/synapse.c"
 #include "simulator/neuron.c"
 #include "simulator/layer.c"
+#include "simulator/network.c"
+#include "simulator/data_gen.c"
+#include "simulator/callback.c"
+#include "simulator/simulator.c"

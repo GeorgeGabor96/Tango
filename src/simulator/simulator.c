@@ -1,21 +1,36 @@
-#include "simulator/network.h"
+#include "simulator/simulator.h"
+
+
+#define SIMULATOR_INITIAL_NUMBER_OF_CALLBACKS 3
 
 
 internal Simulator*
-simulator_create(Network* network, DataGenerator* data, Callback* callbacks) {
+simulator_create(Network* network, DataGen* data) {
+    Simulator* simulator = NULL;
     check(network != NULL, "network is NULL");
     check(data != NULL, "data is NULL");
-    check(callbacks != NULL, "callbacks != NULL");
     
-    Simulator* simulator = (Simulator*) memory_malloc(sizeof(*simulator));
+    simulator = (Simulator*) memory_calloc(1, sizeof(*simulator), "simulator_create");
     check_memory(simulator);
     
-    simulator->newtork = network;
+    simulator->network = network;
     simulator->data = data;
-    simulator->callbacks = callbacks;
+    
+    simulator->n_callbacks = 0;
+    simulator->n_max_callbacks = SIMULATOR_INITIAL_NUMBER_OF_CALLBACKS;
+    simulator->callbacks = (CallbackP*) memory_malloc(sizeof(CallbackP) *
+                                                      simulator->n_max_callbacks,
+                                                      "simulator_create callbacks");
+    check_memory(simulator->callbacks);
     return simulator;
     
     error:
+    if (simulator != NULL) {
+        if (simulator->network != NULL) network_destroy(simulator->network);
+        if (simulator->data != NULL) data_gen__destroy(simulator->data);
+        if (simulator->callbacks != NULL) memory_free(simulator->callbacks);
+    }
+    
     return NULL;
 }
 
@@ -26,52 +41,73 @@ simulator_destroy(Simulator* simulator) {
     
     network_destroy(simulator->network);
     data_gen_destroy(simulator->data);
-    callback_list_destroy(simulator->callbacks);
+    
+    for (u32 i = 0; i < simulator->n_callbacks; ++i)
+        callback_destroy(simulator->callbacks[i]);
+    memory_free(simulator->callbacks);
+    
     memset(simulator, 0, sizeof(*simulator));
     memory_free(simulator);
     
-    error;
+    error:
     return;
 }
 
 
 internal void
-simulator_run(Simulator* sim)
+simulator_run(Simulator* simulator)
 {
     check(simulator != NULL, "simulator is NULL");
     DataSample* sample = NULL;
-    DataInputs* inputs = NULL;
+    NetworkInputs* inputs = NULL;
     Callback* callback = NULL;
     u32 data_idx = 0;
     u32 time = 0;
+    u32 i = 0;
     
-    for (data_idx = 0; data_idx < simulator->data; ++data_idx) {
+    for (data_idx = 0; data_idx < simulator->data->length; ++data_idx) {
         sample = data_gen_sample_create(simulator->data, data_idx);
         
         network_clear(simulator->network);
         
         for (time = 0; time < sample->duration; ++time) {
-            inputs = data_gen_inputs_create(sample, network, time);
+            inputs = data_network_inputs_create(sample, simulator->network, time);
             
-            network_step(sim->network, inputs, time);
+            network_step(simulator->network, inputs, time);
             
-            callback = sim->callbacks;
-            while (callback) {
-                callback_update(callback, sim->network);
-                callback = callback->next;
-            }
+            for (i = 0; i < simulator->n_callbacks; ++i)
+                callback_update(simulator->callbacks[i], simulator->network);
             
-            data_inputs_destroy(inputs);
+            network_inputs_destroy(inputs);
         }
         
         data_gen_sample_destroy(sample);
         
-        callback = sim->callbacks;
-        while (callback) {
-            callback_run(callback, sim->network);
-            callback = callback->next;
-        }
+        for (i = 0; i < simulator->n_callbacks; ++i)
+            callback_run(simulator->callbacks[i], simulator->network);
     }
+    
+    error:
+    return;
+}
+
+
+internal void
+simulator_add_callback(Simulator* simulator, Callback* callback) {
+    check(simulator != NULL, "simulator is NULL");
+    check(callback != NULL, "callback is NULL");
+    
+    if (simulator->n_callbacks == simulator->n_max_callbacks) {
+        u32 new_n_max_callbacks = simulator->n_max_callbacks * 2;
+        simulator->callbacks = array_resize(simulator->callbacks,
+                                            sizeof(CallbackP),
+                                            simulator->n_max_callbacks,
+                                            new_n_max_callbacks);
+        check(simulator->callbacks, "simulator->callbacks is NULL");
+        simulator->n_max_callbacks = new_n_max_callbacks;
+    }
+    simulator->callbacks[simulator->n_callbacks] = callback;
+    ++(simulator->n_callbacks);
     
     error:
     return;
