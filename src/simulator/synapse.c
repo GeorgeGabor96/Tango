@@ -26,7 +26,7 @@ synapse_type_get_c_str(SynapseType type) {
 * Synapse Class
 *******************/
 internal SynapseCls*
-synapse_cls_create(String* name, SynapseType type,
+synapse_cls_create(const char* name, SynapseType type,
                    f32 rev_potential, f32 amp, f32 tau_ms, u32 delay) {
     SynapseCls* cls = NULL;
     check(name != NULL, "name is NULL");
@@ -43,15 +43,21 @@ synapse_cls_create(String* name, SynapseType type,
     cls = (SynapseCls*)memory_malloc(sizeof(*cls), "synapse_cls_create");
     check_memory(cls);
     
-    cls->name = name;
+    cls->name = string_create(name);
+    check_memory(cls->name);
     cls->type = type;
     cls->rev_potential = rev_potential;
     cls->amp = amp;
     cls->tau_exp = math_op_exp((f64)(-1)/tau_ms);
     cls->delay = delay;
+    return cls;
     
     error:
-    return cls;
+    if (cls != NULL) {
+        if (cls->name != NULL) string_destroy(cls->name);
+        memory_free(cls);
+    }
+    return NULL;
 }
 
 

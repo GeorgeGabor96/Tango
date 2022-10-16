@@ -24,9 +24,10 @@ TestInfo tests[] = {
     { string_path_join_test, "string_path_join_test" },
     { string_to_c_str_test, "string_to_c_str_test" },
     { string_equal_test, "string_equal_test" },
+    { string_equal_c_str_test, "string_equal_c_str_test" },
     /*******************
-* SIMULATOR TESTS
-*******************/
+    * SIMULATOR TESTS
+    *******************/
     // Synapse tests
     { synapse_create_destroy_test, "synapse_create_destroy_test" },
     { synapse_behaviour_test, "synapse_behaviour_test" },

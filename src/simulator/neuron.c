@@ -16,33 +16,47 @@ neuron_type_get_c_str(NeuronType type) {
 *   NEURON CLASS
 ********************/
 internal NeuronCls*
-neuron_cls_create_lif(String* name) {
+neuron_cls_create_lif(const char* name) {
     NeuronCls* neuron_cls = NULL;
     check(name != NULL, "name is NULL");
     neuron_cls = (NeuronCls*)memory_calloc(1, sizeof(*neuron_cls), 
                                            "neuron_class_create_lif");
     check_memory(neuron_cls);
-    neuron_cls->name = name;
+    neuron_cls->name = string_create(name);
+    check_memory(neuron_cls->name);
     neuron_cls->type = NEURON_LIF_REFRACT;
     
-    error:
     return neuron_cls;
+    
+    error:
+    if (neuron_cls != NULL) {
+        if (neuron_cls->name != NULL) string_destroy(neuron_cls->name);
+        memory_free(neuron_cls);
+    }
+    return NULL;
 }
 
 
 internal NeuronCls*
-neuron_cls_create_lif_refract(String* name, u32 refract_time) {
+neuron_cls_create_lif_refract(const char* name, u32 refract_time) {
     NeuronCls* neuron_cls = NULL;
     check(name != NULL, "name is NULL");
     neuron_cls = (NeuronCls*)memory_calloc(1, sizeof(NeuronCls), 
                                            "neuron_class_create_lif_refract");
     check_memory(neuron_cls);
-    neuron_cls->name = name;
+    neuron_cls->name = string_create(name);
+    check_memory(neuron_cls->name);
     neuron_cls->type = NEURON_LIF_REFRACT;
     neuron_cls->lif_refract_cls.refract_time = refract_time;
     
-    error:
     return neuron_cls;
+    
+    error:
+    if (neuron_cls != NULL) {
+        if (neuron_cls->name != NULL) string_destroy(neuron_cls->name);
+        memory_free(neuron_cls);
+    }
+    return NULL;
 }
 
 

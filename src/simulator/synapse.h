@@ -28,7 +28,7 @@ typedef struct SynapseCls {
 } SynapseCls;
 
 
-internal SynapseCls* synapse_cls_create(String* name, SynapseType type,
+internal SynapseCls* synapse_cls_create(const char* name, SynapseType type,
                                         f32 rev_potential, f32 amp, 
                                         f32 tau_ms, u32 delay);
 internal void synapse_cls_destroy(SynapseCls* cls);

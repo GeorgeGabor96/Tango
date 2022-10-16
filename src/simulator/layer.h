@@ -30,9 +30,9 @@ typedef struct Layer {
 
 
 // NOTE: The layer takes ownership of the name
-internal Layer* layer_create(String* name, LayerType type,
+internal Layer* layer_create(const char* name, LayerType type,
                              u32 n_neurons, NeuronCls* cls);
-internal bool layer_init(Layer* layer, String* name, LayerType type,
+internal bool layer_init(Layer* layer, const char* name, LayerType type,
                          u32 n_neurons, NeuronCls* cls);
 internal void layer_destroy(Layer* layer);
 internal void layer_reset(Layer* layer);

@@ -19,16 +19,20 @@ network_create(const char* name) {
     network->n_max_layers = NETWORK_INITIAL_N_LAYERS; 
     network->layers = (Layer*)memory_malloc(sizeof(Layer) * network->n_layers,
                                             "network_create network->layers");
+    check_memory(network->layers);
     
     network->n_in_layers = 0;
     network->n_max_in_layers = 1; 
     network->in_layers_idxs = (u32*)memory_malloc(sizeof(u32) * network->n_max_in_layers,
                                                   "network_create network->in_layers_idxs");
+    check_memory(network->in_layers_idxs);
     
     network->n_out_layers = 0;
     network->n_max_out_layers = 1; 
     network->out_layers_idxs = (u32*)memory_malloc(sizeof(u32) * network->n_max_out_layers,
                                                    "network_create network->out_layers_idxs");
+    check_memory(network->out_layers_idxs);
+    return network;
     
     error:
     if (network != NULL) {
@@ -39,8 +43,7 @@ network_create(const char* name) {
         memory_free(network);
     }
     
-    return network;
-    
+    return NULL;
 }
 
 
@@ -61,12 +64,49 @@ network_destroy(Network* network) {
 }
 
 
+internal void
+network_show(Network* network) {
+    check(network != NULL, "network is NULL");
+    u32 i = 0;
+    Layer* layer = NULL;
+    
+    printf("-----------------------NETWORK---------------------\n");
+    printf("Name: %s\n\n", string_to_c_str(network->name));
+    
+    printf("Layers:\n");
+    for (i = 0; i < network->n_layers; ++i) 
+        layer_show(network->layers + i);
+    printf("Number of layers: %u\n\n", network->n_layers);
+    
+    printf("Input Layers: ");
+    for (i = 0; i < network->n_in_layers; ++i) {
+        layer = network->layers + network->in_layers_idxs[i];
+        printf("%s ", string_to_c_str(layer->name));
+    }
+    printf("\nNumber of input layers: %u\n\n", network->n_in_layers);
+    
+    printf("Output Layers: ");
+    for (i = 0; i < network->n_out_layers; ++i) {
+        layer = network->layers + network->out_layers_idxs[i];
+        printf("%s ", string_to_c_str(layer->name));
+    }
+    printf("\nNumber of output layers: %u\n\n", network->n_out_layers);
+    // TODO: add number fo parameters
+    printf("-----------------------NETWORK---------------------\n");
+    
+    
+    error:
+    return;
+}
+
+
 internal bool
 network_add_layer(Network* network, Layer* layer,
                   bool is_input, bool is_output) {
     check(network != NULL, "network is NULL");
     check(layer != NULL, "layer is NULL");
     
+    printf("%u %u\n", network->n_layers, network->n_max_layers);
     if (network->n_layers == network->n_max_layers) {
         u32 new_n_max_layers = network->n_max_layers * 2;
         network->layers = array_resize(network->layers, sizeof(Layer),

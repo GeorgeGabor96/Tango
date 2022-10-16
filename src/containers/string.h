@@ -25,6 +25,7 @@ internal void string_destroy(String* str);
 internal char string_char_at_idx(String* str, u32 idx);
 
 internal bool string_equal(String* str1, String* str2);
+internal bool string_eqaul_c_str(String* str, const char* c_str);
 internal String* string_path_join(String* str1, String* str2, bool keep_strs);
 
 internal const char* string_to_c_str(String* str);

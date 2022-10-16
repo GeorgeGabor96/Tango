@@ -15,7 +15,7 @@ layer_type_get_c_str(LayerType type) {
 *   LAYER
 ****************/
 internal Layer*
-layer_create(String* name, LayerType type, u32 n_neurons, NeuronCls* cls) {
+layer_create(const char* name, LayerType type, u32 n_neurons, NeuronCls* cls) {
     Layer* layer = NULL;
     bool flag = FALSE;
     
@@ -34,26 +34,28 @@ layer_create(String* name, LayerType type, u32 n_neurons, NeuronCls* cls) {
 
 
 internal bool
-layer_init(Layer* layer, String* name, LayerType type, 
+layer_init(Layer* layer, const char* name, LayerType type, 
            u32 n_neurons, NeuronCls* cls) {
+    u32 i = 0;
+    bool status = FALSE;
+    
     check(layer != NULL, "layer is NULL");
     check(name != NULL, "name is NULL");
     check(type == LAYER_DENSE, "invalid layer type %s", 
           layer_type_get_c_str(type));
     check(cls != NULL, "cls is NULL");
     
-    Neuron* neurons = NULL;
-    Neuron* neuron = NULL;
-    u32 i = 0;
     
-    neurons = (Neuron*)memory_malloc(n_neurons * sizeof(Neuron), "layer_init");
-    for (i = 0; i < n_neurons; ++i) {
-        neuron_init(neurons + i, cls);
+    layer->n_neurons = n_neurons;
+    layer->neurons = (Neuron*)memory_malloc(layer->n_neurons * sizeof(Neuron), "layer_init");
+    check_memory(layer->neurons);
+    for (i = 0; i < layer->n_neurons; ++i) {
+        status = neuron_init(layer->neurons + i, cls);
+        check(status == TRUE, "couldn't init neuron %u", i);
     }
     
-    layer->name = name;
-    layer->neurons = neurons;
-    layer->n_neurons = n_neurons;
+    layer->name = string_create(name);
+    check_memory(layer->name);
     layer->type = type;
     layer->it_ran = FALSE;
     
@@ -64,6 +66,14 @@ layer_init(Layer* layer, String* name, LayerType type,
     
     return TRUE;
     error:
+    if (layer->neurons != NULL) {
+        for (u32 j = 0; j < i; ++j)
+            neuron_reset(layer->neurons + j);
+        memory_free(layer->neurons);
+    }
+    if (layer->name != NULL)
+        string_destroy(layer->name);
+    
     return FALSE;
 }
 

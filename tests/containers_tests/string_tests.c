@@ -190,3 +190,31 @@ string_equal_test() {
     error:
     return status;
 }
+
+
+internal TestStatus
+string_equal_c_str_test() {
+    TestStatus status = TEST_FAILED;
+    
+    String* str = string_create("Ana has big lemmons");
+    const char* c_str = "Ana has big lemmons";
+    bool is_equal = FALSE;
+    
+    is_equal = string_equal_c_str(str, c_str);
+    assert(is_equal == TRUE, "str and c_str should be equal");
+    
+    c_str = "Ana";
+    is_equal = string_equal_c_str(str, c_str);
+    assert(is_equal == FALSE, "should be false for different lengths");
+    
+    c_str = "Ana has big lemmonS";
+    is_equal = string_equal_c_str(str, c_str);
+    assert(is_equal == FALSE, "should be false for different strings");
+    
+    string_destroy(str);
+    
+    assert(memory_leak() == 0, "Memory Leak");
+    status = TEST_SUCCESS;
+    error:
+    return status;
+}
