@@ -25,11 +25,11 @@ Network* get_network() {
     Layer* layer_out_1 = layer_create("output 1", LAYER_DENSE, 100, neuron_cls);
     Layer* layer_out_2 = layer_create("output 2", LAYER_DENSE, 10, neuron_cls);
     
-    /*layer_link(layer_hidden, layer_in_1, synapse_cls, 1);
-        layer_link(layer_hidden, layer_in_2, synapse_cls, 1);
-        layer_link(layer_out_1, layer_hidden, synapse_cls, 1);
-        layer_link(layer_out_2, layer_hidden, synapse_cls, 1);
-        */
+    layer_link(layer_hidden, layer_in_1, synapse_cls, 1);
+    layer_link(layer_hidden, layer_in_2, synapse_cls, 1);
+    layer_link(layer_out_1, layer_hidden, synapse_cls, 1);
+    layer_link(layer_out_2, layer_hidden, synapse_cls, 1);
+    
     network_add_layer(network, layer_in_1, TRUE, FALSE);
     network_add_layer(network, layer_in_2, TRUE, FALSE);
     network_add_layer(network, layer_hidden, FALSE, FALSE);

@@ -176,15 +176,15 @@ layer_show(Layer* layer) {
     for (u32 i = 0; i < layer->n_neurons; ++i) {
         n_in_synapses += layer->neurons[i].n_in_synapses;
     }
-    
+    printf("-------------------\n");
     printf("Name: %s\n", string_to_c_str(layer->name));
     printf("Type: %s\n", layer_type_get_c_str(layer->type));
     printf("Number of neurons %u of type %s\n",
            layer->n_neurons,
            string_to_c_str(layer->neurons[0].cls->name));
     printf("Number of input synapses %u\n", n_in_synapses);
-    printf("Input layers: ");
-    
+    printf("Input layers: \n");
+    printf("-------------------\n\n");
     error:
     return;
 }

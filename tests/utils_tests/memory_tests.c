@@ -13,10 +13,10 @@ memory_general_test() {
 	assert(memory_size == 0, "@memory_size is %llu, not 0", memory_size);
 	
 	// do 1000 mallocs 
-	uint32_t malloc_allocations = 50;
+	uint32_t malloc_allocations = 10000;
 	size_t memory_block_size = 1000;
 	uint32_t i = 0;
-	void* ptrs[1000] = { 0 };
+	void* ptrs[10000] = { 0 };
 	for (i = 0; i < malloc_allocations; ++i) {
 		ptrs[i] = memory_malloc(memory_block_size, "malloc_allocation");
 	}

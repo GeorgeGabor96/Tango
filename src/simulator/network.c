@@ -17,8 +17,9 @@ network_create(const char* name) {
     
     network->n_layers = 0;
     network->n_max_layers = NETWORK_INITIAL_N_LAYERS; 
-    network->layers = (Layer*)memory_malloc(sizeof(Layer) * network->n_layers,
-                                            "network_create network->layers");
+    network->layers =
+    (Layer*)memory_malloc(sizeof(Layer) * network->n_max_layers,
+                          "network_create network->layers");
     check_memory(network->layers);
     
     network->n_in_layers = 0;
@@ -74,12 +75,13 @@ network_show(Network* network) {
     printf("Name: %s\n\n", string_to_c_str(network->name));
     
     printf("Layers:\n");
-    for (i = 0; i < network->n_layers; ++i) 
+    for (i = 0; i < network->n_layers; ++i)  
         layer_show(network->layers + i);
     printf("Number of layers: %u\n\n", network->n_layers);
     
     printf("Input Layers: ");
     for (i = 0; i < network->n_in_layers; ++i) {
+        printf("%d ", network->in_layers_idxs[i]);
         layer = network->layers + network->in_layers_idxs[i];
         printf("%s ", string_to_c_str(layer->name));
     }

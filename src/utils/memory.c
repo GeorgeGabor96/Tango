@@ -240,6 +240,7 @@ MemoryHashTable* memory_table = NULL;
 #ifdef MEMORY_MANAGE
 internal void*
 memory_malloc(size_t size, char* desc) {
+    // TODO: check the size and desc to be valid and add tests for that
     if (memory_table == NULL)
         memory_table = memory_hash_table_create(MEMORY_TABLE_INITIAL_LENGTH);
     
