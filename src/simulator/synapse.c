@@ -65,7 +65,7 @@ internal void
 synapse_cls_destroy(SynapseCls* cls) {
     check(cls != NULL, "cls is NULL");
     
-    neuron_cls_reset(cls);
+    synapse_cls_reset(cls);
     memory_free(cls);
     
     error:

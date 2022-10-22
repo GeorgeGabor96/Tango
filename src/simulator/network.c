@@ -36,13 +36,13 @@ network_create(const char* name) {
     
     network->n_synapse_clss = 0;
     network->n_max_synapse_clss = 5;
-    network->synapse_clss = (SynapseCls*) memory_malloc(sizeof(SynapseCls) * network->n_synapse_clss,
+    network->synapse_clss = (SynapseCls*) memory_malloc(sizeof(SynapseCls) * network->n_max_synapse_clss,
                                                         "network_create network->synapse_clss");
     check_memory(network->synapse_clss);
     
     network->n_neuron_clss = 0;
     network->n_max_neuron_clss = 5;
-    network->neuron_clss = (NeuronCls*) memory_malloc(sizeof(NeuronCls) * network->n_neuron_clss,
+    network->neuron_clss = (NeuronCls*) memory_malloc(sizeof(NeuronCls) * network->n_max_neuron_clss,
                                                       "network_create network->neuron_clss");
     check_memory(network->neuron_clss);
     
@@ -83,8 +83,8 @@ network_destroy(Network* network) {
     memory_free(network->synapse_clss);
     
     for (i = 0; i < network->n_neuron_clss; ++i)
-        //neuron_cls_reset(network->neuron_clss + i);
-        memory_free(network->neuron_clss);
+        neuron_cls_reset(network->neuron_clss + i);
+    memory_free(network->neuron_clss);
     
     memset(network, 0, sizeof(*network));
     memory_free(network);
@@ -173,7 +173,7 @@ network_add_neuron_cls(Network* network, NeuronCls* cls) {
     memcpy(new_cls, cls, sizeof(*cls));
     memset(cls, 0, sizeof(*cls));
     memory_free(cls);
-    ++(network->n_max_neuron_clss);
+    ++(network->n_neuron_clss);
     return new_cls;
     
     error:
