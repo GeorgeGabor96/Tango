@@ -10,7 +10,6 @@
 #include "simulator/simulator.c"
 
 
-
 Network* get_network() {
     Network* network = network_create("Dummy network");
     
@@ -45,7 +44,19 @@ Network* get_network() {
 
 int main() {
     Network* network = get_network();
+    DataGen* data = data_gen_create_constant_current(1.0, 100, 1000);
+    Callback* callback = callback_network_dumper_create("C:\\repos\\Tango_outputs");
+    Simulator* sim = simulator_create(network, data);
+    simulator_add_callback(sim, callback);
     
-    network_destroy(network);
+    simulator_run(sim);
+    
+    simulator_destroy(sim);
+    
+    memory_report();
+    check(memory_is_empty() == TRUE, "We have memory leaks");
+    error:
+    
+    
     return 0;
 }

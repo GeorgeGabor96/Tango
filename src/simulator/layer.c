@@ -108,7 +108,7 @@ layer_destroy(Layer* layer) {
 
 internal void
 layer_step(Layer* layer, u32 time) {
-    assert(layer != NULL, "layer is NULL");
+    check(layer != NULL, "layer is NULL");
     
     for (u32 i = 0; i < layer->n_neurons; ++i)
         neuron_step(layer->neurons + i, time);
@@ -120,8 +120,8 @@ layer_step(Layer* layer, u32 time) {
 
 internal void
 layer_step_inject_current(Layer* layer, u32 time, f32* currents, u32 n_currents) {
-    assert(layer != NULL, "layer is NULL");
-    assert(currents != NULL, "currents is NULL");
+    check(layer != NULL, "layer is NULL");
+    check(currents != NULL, "currents is NULL");
     
     u32 n_inputs = math_min_u32(layer->n_neurons, n_currents);
     u32 i;
@@ -137,8 +137,8 @@ layer_step_inject_current(Layer* layer, u32 time, f32* currents, u32 n_currents)
 
 internal void
 layer_step_force_spike(Layer* layer, u32 time, bool* spikes, u32 n_spikes) {
-    assert(layer != NULL, "layer is NULL");
-    assert(spikes != NULL, "spikes is NULL");
+    check(layer != NULL, "layer is NULL");
+    check(spikes != NULL, "spikes is NULL");
     
     u32 n_inputs = math_min_u32(layer->n_neurons, n_spikes);
     u32 i = 0;
@@ -230,25 +230,9 @@ layer_link(Layer* layer, Layer* input_layer, SynapseCls* cls, f32 weight) {
     
     if (layer->type == LAYER_DENSE) {
         status = layer_link_dense(layer, input_layer, cls, weight);
+    } else {
+        log_error("Unknown layer type %u", layer->type);
     }
-    
-    // NOTE: Save information about the layer that we linked with
-    // NOTE: also we can save meta information for linking here maybe before we
-    // NOTE: do the linking
-    
-    // TODO: make this code work again
-    /*
-            LayerInNode* input = (LayerInNode*)memory_malloc(sizeof(*input));
-            check_memory(input);
-            input->layer = input_layer;
-            input->next = NULL;
-            if (layer->inputs == NULL)
-                layer->inputs = input;
-            else {
-                input->next = layer->inputs;
-                layer->inputs = input;
-            }
-            */
     
     error:
     return status;
