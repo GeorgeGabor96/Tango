@@ -68,8 +68,6 @@ string_char_at_idx(String* str, u32 idx) {
 internal bool
 string_equal(String* str1, String* str2) {
     u32 i = 0;
-    char c1 = 0;
-    char c2 = 0;
     check(str1 != NULL, "str1 is NULL");
     check(str2 != NULL, "str2 is NULL");
     
@@ -82,6 +80,27 @@ string_equal(String* str1, String* str2) {
     error:
     return FALSE;
 }
+
+
+internal bool
+string_equal_c_str(String* str, const char* c_str) {
+    check(str != NULL, "str is NULL");
+    check(c_str != NULL, "c_str is NULL");
+    
+    u32 i = 0;
+    for (i = 0; i < str->length && c_str != NULL && *c_str != '\0'; ++i, ++c_str)
+        if (str->data[i] != *c_str) return FALSE;
+    
+    // NOTE: should have compare the whole string
+    if (i != str->length) return FALSE;
+    // NOTE: should have compare the whole c string
+    if (*c_str != '\0') return FALSE;
+    
+    return TRUE;
+    error:
+    return FALSE;
+}
+
 
 
 internal String*

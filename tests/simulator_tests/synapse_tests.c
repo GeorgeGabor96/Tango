@@ -8,12 +8,12 @@ internal TestStatus
 synapse_create_destroy_test() {
     TestStatus status = TEST_FAILED;
     
-    String* name = string_create("test_name");
+    const char* name = "test_name";
     SynapseCls* cls = synapse_cls_create(name, SYNAPSE_VOLTAGE,
                                          -90.0f, 1.0f, 20.0f, 3);
     assert(cls != NULL, "cls is NULL");
-    assert(cls->name == name, "cls->name should be %p not %p",
-           name, cls->name);
+    assert(string_equal_c_str(cls->name, name) == TRUE, "cls->name is %s, it whoudl be %s",
+           string_to_c_str(cls->name), name);
     assert(cls->type == SYNAPSE_VOLTAGE, "cls->type should be %s not %s",
            synapse_type_get_c_str(SYNAPSE_VOLTAGE),
            synapse_type_get_c_str(cls->type));
@@ -78,8 +78,7 @@ internal TestStatus
 synapse_behaviour_test() {
     TestStatus status = TEST_FAILED;
     
-    String* name = string_create("test_name");
-    SynapseCls* cls = synapse_cls_create(name, SYNAPSE_VOLTAGE,
+    SynapseCls* cls = synapse_cls_create("test_name", SYNAPSE_VOLTAGE,
                                          -90.0f, 1.0f, 20.0f, 3);
     Synapse* synapse = synapse_create(cls, 1.0f);
     

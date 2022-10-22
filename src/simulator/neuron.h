@@ -42,10 +42,11 @@ typedef struct NeuronCls {
 } NeuronCls;
 
 
-internal NeuronCls* neuron_cls_create_lif(String* name);
-internal NeuronCls* neuron_cls_create_lif_refract(String* name,
+internal NeuronCls* neuron_cls_create_lif(const char* name);
+internal NeuronCls* neuron_cls_create_lif_refract(const char* name,
                                                   u32 refract_time);
 internal void neuron_cls_destroy(NeuronCls* cls);
+internal void neuron_cls_reset(NeuronCls* cls);
 
 internal void neuron_cls_move(NeuronCls* cls_src, NeuronCls* cls_dst);
 

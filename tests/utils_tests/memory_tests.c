@@ -13,10 +13,10 @@ memory_general_test() {
 	assert(memory_size == 0, "@memory_size is %llu, not 0", memory_size);
 	
 	// do 1000 mallocs 
-	uint32_t malloc_allocations = 50;
+	uint32_t malloc_allocations = 10000;
 	size_t memory_block_size = 1000;
 	uint32_t i = 0;
-	void* ptrs[1000] = { 0 };
+	void* ptrs[10000] = { 0 };
 	for (i = 0; i < malloc_allocations; ++i) {
 		ptrs[i] = memory_malloc(memory_block_size, "malloc_allocation");
 	}
@@ -83,6 +83,32 @@ memory_general_test() {
 	assert(memory_blocks == 0, "@memory_blocks is %llu, not 0", memory_blocks);
 	memory_size = memory_get_size();
 	assert(memory_size == 0, "@memory_size is %llu, not 0", memory_size);
+    
+    // EDGE CASES
+    void* ptr = memory_malloc(0, "should not allocate");
+    assert(ptr == NULL, "should return NULL pointer for block of size 0");
+    ptr = memory_malloc(1, NULL);
+    assert(ptr == NULL, "should return NULL for NULL string");
+    assert(memory_leak() == FALSE, "Memory leak");
+    
+    ptr = memory_calloc(0, 1, "should not allocate");
+    assert(ptr == NULL, "should return NULL for nitems == 0");
+    ptr = memory_calloc(1, 0, "should not allocate");
+    assert(ptr == NULL, "should return NULL for size == 0");
+    ptr = memory_calloc(1, 1, NULL);
+    assert(ptr == NULL, "should return NULL for desc == NULL");
+    assert(memory_leak() == FALSE, "Memory leak");
+    
+    ptr = memory_realloc(NULL, 1, "should not allocate");
+    assert(ptr == NULL, "should return NULL for ptr == NULL");
+    ptr = memory_realloc((void*)0x123, 0, "should not allcoate");
+    assert(ptr == NULL, "should return NULL for size == 0");
+    ptr = memory_realloc((void*)0x123, 1, NULL);
+    assert(ptr == NULL, "should return NULL for desc == NULL");
+    assert(memory_leak() == FALSE, "Memory leak");
+    
+    memory_free(NULL);
+    assert(memory_leak() == FALSE, "Memory leak");
     
 	status = TEST_SUCCESS;
     

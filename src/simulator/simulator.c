@@ -27,7 +27,7 @@ simulator_create(Network* network, DataGen* data) {
     error:
     if (simulator != NULL) {
         if (simulator->network != NULL) network_destroy(simulator->network);
-        if (simulator->data != NULL) data_gen__destroy(simulator->data);
+        if (simulator->data != NULL) data_gen_destroy(simulator->data);
         if (simulator->callbacks != NULL) memory_free(simulator->callbacks);
     }
     

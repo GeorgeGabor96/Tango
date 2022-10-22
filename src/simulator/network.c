@@ -17,18 +17,36 @@ network_create(const char* name) {
     
     network->n_layers = 0;
     network->n_max_layers = NETWORK_INITIAL_N_LAYERS; 
-    network->layers = (Layer*)memory_malloc(sizeof(Layer) * network->n_layers,
-                                            "network_create network->layers");
+    network->layers =
+    (Layer*)memory_malloc(sizeof(Layer) * network->n_max_layers,
+                          "network_create network->layers");
+    check_memory(network->layers);
     
     network->n_in_layers = 0;
     network->n_max_in_layers = 1; 
     network->in_layers_idxs = (u32*)memory_malloc(sizeof(u32) * network->n_max_in_layers,
                                                   "network_create network->in_layers_idxs");
+    check_memory(network->in_layers_idxs);
     
     network->n_out_layers = 0;
     network->n_max_out_layers = 1; 
     network->out_layers_idxs = (u32*)memory_malloc(sizeof(u32) * network->n_max_out_layers,
                                                    "network_create network->out_layers_idxs");
+    check_memory(network->out_layers_idxs);
+    
+    network->n_synapse_clss = 0;
+    network->n_max_synapse_clss = 5;
+    network->synapse_clss = (SynapseCls*) memory_malloc(sizeof(SynapseCls) * network->n_max_synapse_clss,
+                                                        "network_create network->synapse_clss");
+    check_memory(network->synapse_clss);
+    
+    network->n_neuron_clss = 0;
+    network->n_max_neuron_clss = 5;
+    network->neuron_clss = (NeuronCls*) memory_malloc(sizeof(NeuronCls) * network->n_max_neuron_clss,
+                                                      "network_create network->neuron_clss");
+    check_memory(network->neuron_clss);
+    
+    return network;
     
     error:
     if (network != NULL) {
@@ -36,22 +54,37 @@ network_create(const char* name) {
         if (network->layers) memory_free(network->layers);
         if (network->in_layers_idxs) memory_free(network->in_layers_idxs);
         if (network->out_layers_idxs) memory_free(network->out_layers_idxs);
+        if (network->synapse_clss) memory_free(network->synapse_clss);
+        if (network->neuron_clss) memory_free(network->neuron_clss);
         memory_free(network);
     }
     
-    return network;
-    
+    return NULL;
 }
 
 
 internal void
 network_destroy(Network* network) {
     check(network != NULL, "network is NULL");
+    u32 i = 0;
     
     string_destroy(network->name);
+    
+    for (i = 0; i < network->n_layers; ++i)
+        layer_reset(network->layers + i);
     memory_free(network->layers);
+    
     memory_free(network->in_layers_idxs);
     memory_free(network->out_layers_idxs);
+    
+    // NOTE: Network own the synapse and neuron classes
+    for (i = 0; i < network->n_synapse_clss; ++i)
+        synapse_cls_reset(network->synapse_clss + i);
+    memory_free(network->synapse_clss);
+    
+    for (i = 0; i < network->n_neuron_clss; ++i)
+        neuron_cls_reset(network->neuron_clss + i);
+    memory_free(network->neuron_clss);
     
     memset(network, 0, sizeof(*network));
     memory_free(network);
@@ -61,12 +94,99 @@ network_destroy(Network* network) {
 }
 
 
+internal void
+network_show(Network* network) {
+    check(network != NULL, "network is NULL");
+    u32 i = 0;
+    Layer* layer = NULL;
+    
+    printf("-----------------------NETWORK---------------------\n");
+    printf("Name: %s\n\n", string_to_c_str(network->name));
+    
+    printf("Layers:\n");
+    for (i = 0; i < network->n_layers; ++i)  
+        layer_show(network->layers + i);
+    printf("Number of layers: %u\n\n", network->n_layers);
+    
+    printf("Input Layers: ");
+    for (i = 0; i < network->n_in_layers; ++i) {
+        layer = network->layers + network->in_layers_idxs[i];
+        printf("%s, ", string_to_c_str(layer->name));
+    }
+    printf("\nNumber of input layers: %u\n\n", network->n_in_layers);
+    
+    printf("Output Layers: ");
+    for (i = 0; i < network->n_out_layers; ++i) {
+        layer = network->layers + network->out_layers_idxs[i];
+        printf("%s, ", string_to_c_str(layer->name));
+    }
+    printf("\nNumber of output layers: %u\n\n", network->n_out_layers);
+    // TODO: add number fo parameters
+    printf("-----------------------NETWORK---------------------\n");
+    
+    
+    error:
+    return;
+}
+
+
+internal SynapseCls*
+network_add_synapse_cls(Network* network, SynapseCls* cls) {
+    check(network != NULL, "network is NULL");
+    check(cls != NULL, "cls is NULL");
+    
+    if (network->n_synapse_clss == network->n_max_synapse_clss) {
+        u32 new_n_max_synapse_clss = network->n_max_synapse_clss * 2;
+        network->synapse_clss = array_resize(network->synapse_clss, sizeof(*cls),
+                                             network->n_max_synapse_clss,
+                                             new_n_max_synapse_clss);
+        check(network->synapse_clss != NULL, "network->synapse_clss is NULL");
+        network->n_max_synapse_clss = new_n_max_synapse_clss;
+    }
+    SynapseCls* new_cls = network->synapse_clss + network->n_synapse_clss;
+    memcpy(new_cls, cls, sizeof(*cls));
+    memset(cls, 0, sizeof(*cls));
+    memory_free(cls);
+    ++(network->n_synapse_clss);
+    return new_cls;
+    
+    error:
+    return NULL;
+}
+
+
+internal NeuronCls*
+network_add_neuron_cls(Network* network, NeuronCls* cls) {
+    check(network != NULL, "network is NULL");
+    check(cls != NULL, "cls is NULL");
+    
+    if (network->n_neuron_clss == network->n_max_neuron_clss) {
+        u32 new_n_max_neuron_clss = network->n_max_neuron_clss * 2;
+        network->neuron_clss = array_resize(network->neuron_clss, sizeof(*cls),
+                                            network->n_max_neuron_clss,
+                                            new_n_max_neuron_clss);
+        check(network->neuron_clss != NULL, "network->neuron_clss is NULL");
+        network->n_max_neuron_clss = new_n_max_neuron_clss;
+    }
+    NeuronCls* new_cls = network->neuron_clss + network->n_neuron_clss;
+    memcpy(new_cls, cls, sizeof(*cls));
+    memset(cls, 0, sizeof(*cls));
+    memory_free(cls);
+    ++(network->n_neuron_clss);
+    return new_cls;
+    
+    error:
+    return NULL;
+}
+
+
 internal bool
 network_add_layer(Network* network, Layer* layer,
                   bool is_input, bool is_output) {
     check(network != NULL, "network is NULL");
     check(layer != NULL, "layer is NULL");
     
+    printf("%u %u\n", network->n_layers, network->n_max_layers);
     if (network->n_layers == network->n_max_layers) {
         u32 new_n_max_layers = network->n_max_layers * 2;
         network->layers = array_resize(network->layers, sizeof(Layer),
@@ -75,6 +195,7 @@ network_add_layer(Network* network, Layer* layer,
         network->n_max_layers = new_n_max_layers;
     }
     memcpy(network->layers + network->n_layers, layer, sizeof(*layer));
+    memset(layer, 0, sizeof(*layer));
     memory_free(layer);
     
     if (is_input == TRUE) {
@@ -195,6 +316,7 @@ network_inputs_destroy(NetworkInputs* inputs) {
         memory_free(input->data);
         memset(input, 0, sizeof(*input));
     }
+    memory_free(inputs->inputs);
     memset(inputs, 0, sizeof(*inputs));
     memory_free(inputs);
     
