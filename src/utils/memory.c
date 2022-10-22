@@ -240,6 +240,9 @@ MemoryHashTable* memory_table = NULL;
 #ifdef MEMORY_MANAGE
 internal void*
 memory_malloc(size_t size, char* desc) {
+    check(size != 0, "size is 0");
+    check(desc != NULL, "desc is NULL");
+    
     // TODO: check the size and desc to be valid and add tests for that
     if (memory_table == NULL)
         memory_table = memory_hash_table_create(MEMORY_TABLE_INITIAL_LENGTH);
@@ -257,6 +260,10 @@ memory_malloc(size_t size, char* desc) {
 
 internal void*
 memory_calloc(size_t nitems, size_t size, char* desc) {
+    check(nitems != 0, "nitems is 0");
+    check(size != 0, "size is 0");
+    check(desc != NULL, "desc is NULL");
+    
     if (memory_table == NULL)
         memory_table = memory_hash_table_create(MEMORY_TABLE_INITIAL_LENGTH);
 	void* ptr = calloc(nitems, size);
@@ -272,6 +279,10 @@ memory_calloc(size_t nitems, size_t size, char* desc) {
 
 internal void*
 memory_realloc(void* ptr, size_t size, char* desc) {
+    check(ptr != NULL, "ptr is NULL");
+    check(size != 0, "size is 0");
+    check(desc != NULL, "desc is NULL");
+    
     if (memory_table == NULL)
         memory_table = memory_hash_table_create(MEMORY_TABLE_INITIAL_LENGTH);
     
@@ -301,7 +312,8 @@ memory_realloc(void* ptr, size_t size, char* desc) {
 
 internal void
 memory_free(void* ptr) {
-	if (memory_table == NULL)
+	check(ptr != NULL, "ptr is NULL");
+    if (memory_table == NULL)
         memory_table = memory_hash_table_create(MEMORY_TABLE_INITIAL_LENGTH);
     
     // find node and remove it from list
