@@ -24,9 +24,13 @@ typedef struct Network {
     u32 n_max_out_layers;
     u32* out_layers_idxs;
     
-    // TODO: Do i need these??
-    SynapseCls* synapse_classes;
-    NeuronCls* neuron_classes;
+    u32 n_synapse_clss;
+    u32 n_max_synapse_clss;
+    SynapseCls* synapse_clss;
+    
+    u32 n_neuron_clss;
+    u32 n_max_neuron_clss;
+    NeuronCls* neuron_clss;
 } Network;
 
 
@@ -61,6 +65,8 @@ internal void network_compile(Network* network);
 
 // NOTE: the layer is moved into the network, it takes ownership, don't use it
 // NOTE: after this
+internal SynapseCls* network_add_synapse_cls(Network* network, SynapseCls* cls);
+internal NeuronCls* network_add_neuron_cls(Network* network, NeuronCls* cls);
 internal bool network_add_layer(Network* network, Layer* layer,
                                 bool is_input, bool is_output);
 internal void network_step(Network* network, NetworkInputs* inputs, u32 time);

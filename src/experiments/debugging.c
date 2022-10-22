@@ -15,8 +15,10 @@ Network* get_network() {
     
     // Add 5 layers, 2 inputs, 1 hidden and 2 outputs to test that all work
     NeuronCls* neuron_cls = neuron_cls_create_lif_refract("LIF refract cls", 5);
+    neuron_cls = network_add_neuron_cls(network, neuron_cls);
     SynapseCls* synapse_cls = synapse_cls_create("synapse cls", SYNAPSE_VOLTAGE,
                                                  0, 1, 20, 1);
+    synapse_cls = network_add_synapse_cls(network, synapse_cls);
     
     Layer* layer_in_1 = layer_create("input 1", LAYER_DENSE, 100, neuron_cls);
     Layer* layer_in_2 = layer_create("input 2", LAYER_DENSE, 400, neuron_cls);
@@ -44,7 +46,7 @@ Network* get_network() {
 
 int main() {
     Network* network = get_network();
-    DataGen* data = data_gen_create_constant_current(1.0, 100, 1000);
+    DataGen* data = data_gen_create_constant_current(1.0, 1, 10);
     Callback* callback = callback_network_dumper_create("C:\\repos\\Tango_outputs");
     Simulator* sim = simulator_create(network, data);
     simulator_add_callback(sim, callback);

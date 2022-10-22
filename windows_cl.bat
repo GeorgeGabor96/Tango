@@ -16,5 +16,4 @@ set compiler_params=%include_roots% %mode% %compiler_flags%
 
 pushd build
 call cl ..\src\experiments\debugging.c %compiler_params%
-debugging.exe
 popd

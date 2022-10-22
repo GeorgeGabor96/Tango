@@ -32,6 +32,7 @@ internal SynapseCls* synapse_cls_create(const char* name, SynapseType type,
                                         f32 rev_potential, f32 amp, 
                                         f32 tau_ms, u32 delay);
 internal void synapse_cls_destroy(SynapseCls* cls);
+internal void synapse_cls_reset(SynapseCls* cls);
 
 internal void synapse_cls_move(SynapseCls* cls_src, SynapseCls* cls_dst);
 

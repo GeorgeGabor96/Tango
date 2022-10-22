@@ -14,6 +14,7 @@ data_gen_create_constant_current(f32 value, u32 length, u32 sample_duration) {
     check_memory(data);
     
     data->type = DATA_GEN_CONSTANT_CURRENT;
+    data->length = length;
     data->gen_const_current.value = value;
     data->gen_const_current.duration = sample_duration;
     
@@ -36,6 +37,7 @@ data_gen_create_random_spikes(f32 chance, u32 length, u32 sample_duration) {
     check_memory(data);
     
     data->type = DATA_GEN_RANDOM_SPIKES;
+    data->length = length;
     data->gen_random_spikes.chance = chance;
     data->gen_random_spikes.duration = sample_duration;
     
@@ -141,8 +143,8 @@ data_network_inputs_create(DataSample* sample, Network* network, u32 time) {
             
             currents = (f32*)memory_malloc(sizeof(f32) * sample->duration,
                                            "data_gen_inputs_create CONSTANT CURRENT");
-            check_memory(input->data);
-            for (j = 0; j < input->n_values; ++j)
+            check_memory(currents);
+            for (j = 0; j < sample->duration; ++j)
                 currents[j] = sample->sample_const_current.value;
             
             input->type = NETWORK_INPUT_CURRENT;

@@ -87,6 +87,7 @@ layer_reset(Layer* layer) {
     for (i = 0; i < layer->n_neurons; ++i) {
         neuron_reset(layer->neurons + i);
     }
+    string_destroy(layer->name);
     memory_free(layer->neurons);
     memset(layer, 0, sizeof(*layer));
     
