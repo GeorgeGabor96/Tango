@@ -18,8 +18,8 @@ network_create(const char* name) {
     network->n_layers = 0;
     network->n_max_layers = NETWORK_INITIAL_N_LAYERS; 
     network->layers =
-    (Layer*)memory_malloc(sizeof(Layer) * network->n_max_layers,
-                          "network_create network->layers");
+    (LayerP*)memory_malloc(sizeof(LayerP) * network->n_max_layers,
+                           "network_create network->layers");
     check_memory(network->layers);
     
     network->n_in_layers = 0;
@@ -71,7 +71,7 @@ network_destroy(Network* network) {
     string_destroy(network->name);
     
     for (i = 0; i < network->n_layers; ++i)
-        layer_reset(network->layers + i);
+        layer_destroy(network->layers[i]);
     memory_free(network->layers);
     
     memory_free(network->in_layers_idxs);
@@ -105,19 +105,19 @@ network_show(Network* network) {
     
     printf("Layers:\n");
     for (i = 0; i < network->n_layers; ++i)  
-        layer_show(network->layers + i);
+        layer_show(network->layers[i]);
     printf("Number of layers: %u\n\n", network->n_layers);
     
     printf("Input Layers: ");
     for (i = 0; i < network->n_in_layers; ++i) {
-        layer = network->layers + network->in_layers_idxs[i];
+        layer = network->layers[network->in_layers_idxs[i]];
         printf("%s, ", string_to_c_str(layer->name));
     }
     printf("\nNumber of input layers: %u\n\n", network->n_in_layers);
     
     printf("Output Layers: ");
     for (i = 0; i < network->n_out_layers; ++i) {
-        layer = network->layers + network->out_layers_idxs[i];
+        layer = network->layers[network->out_layers_idxs[i]];
         printf("%s, ", string_to_c_str(layer->name));
     }
     printf("\nNumber of output layers: %u\n\n", network->n_out_layers);
@@ -186,17 +186,14 @@ network_add_layer(Network* network, Layer* layer,
     check(network != NULL, "network is NULL");
     check(layer != NULL, "layer is NULL");
     
-    printf("%u %u\n", network->n_layers, network->n_max_layers);
     if (network->n_layers == network->n_max_layers) {
         u32 new_n_max_layers = network->n_max_layers * 2;
-        network->layers = array_resize(network->layers, sizeof(Layer),
+        network->layers = array_resize(network->layers, sizeof(LayerP),
                                        network->n_max_layers, new_n_max_layers);
         check(network->layers != NULL, "network->layers is NULL");
         network->n_max_layers = new_n_max_layers;
     }
-    memcpy(network->layers + network->n_layers, layer, sizeof(*layer));
-    memset(layer, 0, sizeof(*layer));
-    memory_free(layer);
+    network->layers[network->n_layers] = layer;
     
     if (is_input == TRUE) {
         if (network->n_in_layers == network->n_max_in_layers) {
@@ -245,7 +242,7 @@ network_step(Network* network, NetworkInputs* inputs, u32 time) {
     // NOTE: the network
     for (i = 0; i < inputs->n_inputs; ++i) {
         input = inputs->inputs + i;
-        layer = network->layers + network->in_layers_idxs[i];
+        layer = network->layers[network->in_layers_idxs[i]];
         
         if (input->type == NETWORK_INPUT_SPIKES)
             layer_step_force_spike(layer, time, input->data, input->n_values);
@@ -257,7 +254,7 @@ network_step(Network* network, NetworkInputs* inputs, u32 time) {
     }
     
     for (i = 0; i < network->n_layers; ++i) {
-        layer = network->layers + i;
+        layer = network->layers[i];
         if (layer->it_ran == FALSE)
             layer_step(layer, time);
     }
@@ -272,7 +269,7 @@ network_clear(Network* network) {
     check(network != NULL, "network is NULL");
     
     for (u32 i = 0; i < network->n_layers; ++i)
-        layer_clear(network->layers + i);
+        layer_clear(network->layers[i]);
     
     error:
     return;
@@ -284,7 +281,7 @@ network_get_layer_voltages(Network* network, u32 i) {
     check(network != NULL, "network is NULL");
     check(i < network->n_layers, "i >= network->n_layers");
     
-    f32* voltages = layer_get_voltages(network->layers + i);
+    f32* voltages = layer_get_voltages(network->layers[i]);
     return voltages;
     
     error:
@@ -297,7 +294,7 @@ network_get_layer_spikes(Network* network, u32 i) {
     check(network != NULL, "network is NULL");
     check(i < network->n_layers, "i >= network->n_layers");
     
-    bool* spikes = layer_get_spikes(network->layers + i);
+    bool* spikes = layer_get_spikes(network->layers[i]);
     return spikes;
     
     error:

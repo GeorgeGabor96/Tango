@@ -47,12 +47,19 @@ layer_init(Layer* layer, const char* name, LayerType type,
     
     
     layer->n_neurons = n_neurons;
-    layer->neurons = (Neuron*)memory_malloc(layer->n_neurons * sizeof(Neuron), "layer_init");
+    layer->neurons = (Neuron*)memory_malloc(layer->n_neurons * sizeof(Neuron),
+                                            "layer_init layer->neurons");
     check_memory(layer->neurons);
     for (i = 0; i < layer->n_neurons; ++i) {
         status = neuron_init(layer->neurons + i, cls);
         check(status == TRUE, "couldn't init neuron %u", i);
     }
+    
+    layer->n_in_layers = 0;
+    layer->n_max_in_layers = 5;
+    layer->in_layers = (Layer**) memory_malloc(layer->n_max_in_layers * sizeof(Layer*),
+                                               "layer_init layer->in_layers");
+    check_memory(layer->in_layers);
     
     layer->name = string_create(name);
     check_memory(layer->name);
@@ -71,6 +78,8 @@ layer_init(Layer* layer, const char* name, LayerType type,
             neuron_reset(layer->neurons + j);
         memory_free(layer->neurons);
     }
+    if (layer->in_layers != NULL)
+        memory_free(layer->in_layers);
     if (layer->name != NULL)
         string_destroy(layer->name);
     
@@ -89,6 +98,7 @@ layer_reset(Layer* layer) {
     }
     string_destroy(layer->name);
     memory_free(layer->neurons);
+    memory_free(layer->in_layers);
     memset(layer, 0, sizeof(*layer));
     
     error:
@@ -164,6 +174,8 @@ layer_clear(Layer* layer) {
     for (u32 i = 0; i < layer->n_neurons; ++i)
         neuron_clear(layer->neurons + i);
     
+    layer->it_ran = FALSE;
+    
     error:
     return;
 }
@@ -173,8 +185,9 @@ internal void
 layer_show(Layer* layer) {
     check(layer != NULL, "layer is NULL");
     
+    u32 i = 0;
     u32 n_in_synapses = 0;
-    for (u32 i = 0; i < layer->n_neurons; ++i) {
+    for (i = 0; i < layer->n_neurons; ++i) {
         n_in_synapses += layer->neurons[i].n_in_synapses;
     }
     printf("-------------------\n");
@@ -184,8 +197,11 @@ layer_show(Layer* layer) {
            layer->n_neurons,
            string_to_c_str(layer->neurons[0].cls->name));
     printf("Number of input synapses %u\n", n_in_synapses);
-    printf("Input layers: \n");
-    printf("-------------------\n\n");
+    printf("Input layers: ");
+    for (i = 0; i < layer->n_in_layers; ++i)
+        printf("%s, ", string_to_c_str(layer->in_layers[i]->name));
+    
+    printf("\n-------------------\n\n");
     error:
     return;
 }
@@ -231,9 +247,23 @@ layer_link(Layer* layer, Layer* input_layer, SynapseCls* cls, f32 weight) {
     
     if (layer->type == LAYER_DENSE) {
         status = layer_link_dense(layer, input_layer, cls, weight);
+        check(status == TRUE, "couldn't link layers %s and %s",
+              string_to_c_str(layer->name), string_to_c_str(input_layer->name));
     } else {
         log_error("Unknown layer type %u", layer->type);
     }
+    
+    // NOTE: Save reference to the input layer
+    if (layer->n_in_layers == layer->n_max_in_layers) {
+        u32 new_n_max_in_layers = layer->n_max_in_layers * 2;
+        layer->in_layers = array_resize(layer->in_layers, sizeof(Layer*),
+                                        layer->n_in_layers,
+                                        new_n_max_in_layers);
+        check(layer->in_layers != NULL, "layer->in_layers is NULL");
+        layer->n_max_in_layers = new_n_max_in_layers;
+    }
+    layer->in_layers[layer->n_in_layers] = input_layer;
+    ++(layer->n_in_layers);
     
     error:
     return status;
