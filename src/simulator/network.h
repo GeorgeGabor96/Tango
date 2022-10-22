@@ -14,7 +14,7 @@ typedef struct Network {
     
     u32 n_layers;
     u32 n_max_layers;
-    Layer* layers;
+    LayerP* layers;
     
     u32 n_in_layers;
     u32 n_max_in_layers;

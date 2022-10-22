@@ -26,7 +26,11 @@ typedef struct Layer {
     Neuron* neurons;
     u32 n_neurons;
     bool it_ran;
-} Layer;
+    
+    u32 n_in_layers;
+    u32 n_max_in_layers;
+    struct Layer** in_layers;
+} Layer, *LayerP;
 
 
 // NOTE: The layer takes ownership of the name
