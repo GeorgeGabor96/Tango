@@ -110,16 +110,15 @@ network_show(Network* network) {
     
     printf("Input Layers: ");
     for (i = 0; i < network->n_in_layers; ++i) {
-        printf("%d ", network->in_layers_idxs[i]);
         layer = network->layers + network->in_layers_idxs[i];
-        printf("%s ", string_to_c_str(layer->name));
+        printf("%s, ", string_to_c_str(layer->name));
     }
     printf("\nNumber of input layers: %u\n\n", network->n_in_layers);
     
     printf("Output Layers: ");
     for (i = 0; i < network->n_out_layers; ++i) {
         layer = network->layers + network->out_layers_idxs[i];
-        printf("%s ", string_to_c_str(layer->name));
+        printf("%s, ", string_to_c_str(layer->name));
     }
     printf("\nNumber of output layers: %u\n\n", network->n_out_layers);
     // TODO: add number fo parameters
