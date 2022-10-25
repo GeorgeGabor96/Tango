@@ -1,30 +1,6 @@
 #include "simulator/callback.h"
 
 
-internal Callback*
-callback_network_dumper_create(const char* output_folder) {
-    String* output_folder_s = NULL;
-    Callback* callback = NULL;
-    
-    check(output_folder != NULL, "output_folder is NULL");
-    
-    output_folder_s = string_create(output_folder);
-    check_memory(output_folder_s);
-    
-    callback = (Callback*)memory_malloc(sizeof(*callback), "callback_network_dumper_create");
-    check_memory(callback);
-    
-    callback->type = CALLBACK_NETWORK_DUMPER;
-    callback->dumper.output_folder = output_folder_s;
-    
-    return callback;
-    
-    error:
-    
-    return NULL;
-}
-
-
 internal void
 callback_destroy(Callback* callback) {
     check(callback != NULL, "callback is NULL");
