@@ -22,11 +22,11 @@ typedef struct Callback {
     union {
         struct {
             String* output_folder;
-            StepsData steps;
-            // NOTE: just keep like 100 of each ouptut for each layer, or 10 or something fix
-            // NOTE: when its full just dump it and start over
-            // NOTE: when finished dump what we have currently
-        } dumper;
+            u32 time;
+            u32 sample_count;
+            u32 n_layers;
+            DumpLayerData* data;
+        } Dumper;
     };
 } Callback, *CallbackP;
 
