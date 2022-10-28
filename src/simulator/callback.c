@@ -1,25 +1,24 @@
 #include "simulator/callback.h"
 
+// NOTE: Consider that this file adds all the other callbacks
+#include "simulator/callbacks/dumper.c"
+
 
 internal void
 callback_destroy(Callback* callback) {
     check(callback != NULL, "callback is NULL");
     
     if (callback->type == CALLBACK_NETWORK_DUMPER) {
-        string_destroy(callback->dumper.output_folder);
+        callback_dumper_destroy(callback);
     } else {
-        log_error("Unknown callback type");
+        // TODO: add error
     }
-    
-    memset(callback, 0, sizeof(*callback));
-    memory_free(callback);
     
     error:
     return;
 }
 
 
-// TODO: maybe we need to rename the callbacks operations
 internal void
 callback_begin_sample(Callback* callback,
                       Network* network,
@@ -29,7 +28,9 @@ callback_begin_sample(Callback* callback,
     check(sample_duration != 0, "sample_duration is NULL");
     
     if (callback->type == CALLBACK_NETWORK_DUMPER) {
-        callback_dumper_begin_sample(callback, network, duration);
+        callback_dumper_begin_sample(callback, network, sample_duration);
+    } else {
+        // TODO: add error
     }
     
     error:
@@ -43,9 +44,9 @@ callback_update(Callback* callback, Network* network) {
     check(network != NULL, "network is NULL");
     
     if (callback->type == CALLBACK_NETWORK_DUMPER) {
-        log_info("Calling UPDATE on callback CALLBACK_NETWORK_DUMPER");
+        callback_dumper_update(callback, network);
     } else {
-        log_error("Unknown callback type");
+        // TODO: add error
     }
     
     error:
@@ -59,9 +60,9 @@ callback_end_sample(Callback* callback, Network* network) {
     check(network != NULL, "network is NULL");
     
     if (callback->type == CALLBACK_NETWORK_DUMPER) {
-        log_info("Calling RUN on callback CALLBACK_NETWORK_DUMPER");
+        callback_dumper_end_sample(callback, network);
     } else {
-        log_error("Unknown callback type");
+        // TODO: add error
     }
     
     
