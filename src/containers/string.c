@@ -139,12 +139,15 @@ string_path_join_c_str(String* str1, const char* c_str, bool keep_strs) {
     check(str1 != NULL, "str1 is NULL");
     check(c_str != NULL, "c_str is NULL");
     
+    // TODO: maybe add a string on stack??
     str2 = string_create(c_str);
     check(str2 != NULL, "str2 is NULL");
     
     //TODO: should I add a keep c_str???
     str = string_path_join(str1, str2, keep_strs);
-    if (keep_strs == FALSE) string_destroy(str2);
+    
+    if (keep_strs == FALSE) string_destroy(str1);
+    string_destroy(str2);
     error:
     return str;
 }

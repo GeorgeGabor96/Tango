@@ -2,6 +2,9 @@ internal bool
 os_folder_create_c_str(const char* path) {
     check(path != NULL, "path is NULL");
     
+    // Don't create if already exists because CreateDirectory will fail
+    if (os_folder_exists_c_str(path) == TRUE) return TRUE;
+    
     SECURITY_ATTRIBUTES attr = { 0 };
     attr.nLength = sizeof(attr);
     
@@ -28,6 +31,10 @@ os_folder_create_str(String* path) {
 internal bool
 os_folder_delete_c_str(const char* path) {
     check(path != NULL, "path is NULL");
+    
+    // NOTE: Just to be save only delete if it exists
+    if (os_folder_exists_c_str(path) == FALSE) return TRUE;
+    
     // NOTE: I use SHFileOperationA because its the simplest way to remove everything from
     // NOTE: a folder, but from what I saw it doesn't delete the folder itself
     // NOTE: thats why RemoveDirectoryA is called after

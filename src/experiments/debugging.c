@@ -48,7 +48,7 @@ Network* get_network() {
 int main() {
     Network* network = get_network();
     DataGen* data = data_gen_create_constant_current(1.0, 1, 10);
-    Callback* callback = callback_dumper_create("C:\\repos\\Tango_outputs", network);
+    Callback* callback = callback_dumper_create("D:\\repos\\Tango_outputs", network);
     Simulator* sim = simulator_create(network, data);
     simulator_add_callback(sim, callback);
     

@@ -61,11 +61,14 @@ callback_dumper_destroy(Callback* callback) {
     
     for (layer_i = 0; layer_i < dumper->n_layers; ++layer_i) {
         layer_data = dumper->layers_data + layer_i;
-        if (layer_data == NULL) continue;
+        
+        // NOTE: this may be freed already by the sample end
+        if (layer_data->neurons_steps == NULL) continue;
         
         // NOTE: free the steps for each neuron
         for (neuron_i = 0; neuron_i < layer_data->n_neurons; ++neuron_i) {
             neuron_steps = layer_data->neurons_steps[neuron_i];
+            if (neuron_steps == NULL) continue;
             memory_free(neuron_steps);
         }
         
@@ -106,6 +109,8 @@ callback_dumper_begin_sample(Callback* callback,
     DumperLayerData* layer_data = NULL;
     DumperNeuronStep* neuron_steps = NULL;
     
+    // TODO: We could do an optimization here, to only free if the current space is not big enough, to avoid more allocations than necessary
+    
     for (layer_i = 0; layer_i < dumper->n_layers; ++layer_i) {
         layer_data = dumper->layers_data + layer_i;
         check(layer_data->neurons_steps == NULL, "should had freed the steps");
@@ -145,6 +150,7 @@ callback_dumper_update(Callback* callback, Network* network) {
     for (layer_i = 0; layer_i < network->n_layers; ++layer_i) {
         layer = network->layers[layer_i];
         layer_data = dumper->layers_data + layer_i;
+        check(layer->n_neurons == layer_data->n_neurons, "layer->n_neurons != layer_data->n_neurons");
         
         for (neuron_i = 0; neuron_i < layer->n_neurons; ++neuron_i) {
             neuron = layer->neurons + neuron_i;
@@ -191,6 +197,7 @@ callback_dumper_end_sample(Callback* callback, Network* network) {
     
     fp = fopen(string_to_c_str(output_file), "wb");
     check(fp != NULL, "fp is NULL");
+    string_destroy(output_file);
     
     // NOTE: write the duration of sample and number of layers
     fwrite(&(dumper->sample_duration), sizeof(u32), 1, fp);
@@ -206,14 +213,17 @@ callback_dumper_end_sample(Callback* callback, Network* network) {
         for (neuron_i = 0; neuron_i < layer_data->n_neurons; ++neuron_i) {
             neuron_steps = layer_data->neurons_steps[neuron_i];
             
-            fwrite(neuron_step, sizeof(DumperNeuronStep), layer_data->n_neurons, fp);
+            fwrite(neuron_steps, sizeof(DumperNeuronStep),
+                   dumper->sample_duration, fp);
             
             // NOTE: don't need the neuron data anymore
             memory_free(neuron_steps);
+            layer_data->neurons_steps[neuron_i] = NULL;
         }
         
         memset(layer_data->neurons_steps, 0, sizeof(DumperNeuronStepP) * layer_data->n_neurons);
         memory_free(layer_data->neurons_steps);
+        layer_data->neurons_steps = NULL;
     }
     
     fflush(fp);
