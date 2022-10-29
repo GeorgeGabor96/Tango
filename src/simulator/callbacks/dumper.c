@@ -203,6 +203,8 @@ callback_dumper_end_sample(Callback* callback, Network* network) {
     fwrite(&(dumper->sample_duration), sizeof(u32), 1, fp);
     fwrite(&(dumper->n_layers), sizeof(u32), 1, fp);
     
+    // NOTE/TODO: We could just write in a big buffer and write the buffer to 
+    // NOTE/TODO: a file bug, IO is usually buffered so shouldn't matter
     for (layer_i = 0; layer_i < dumper->n_layers; ++layer_i) {
         layer_data = dumper->layers_data + layer_i;
         
