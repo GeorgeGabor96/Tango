@@ -139,7 +139,6 @@ layer_step_inject_current(Layer* layer, u32 time, f32* currents, u32 n_currents)
     for (i = 0; i < n_inputs; ++i) 
         neuron_step_inject_current(layer->neurons + i, currents[i], time);
     for (i = n_inputs; i < layer->n_neurons; ++i){
-        log_info("Should not get here");
         neuron_step(layer->neurons + i, time);
     }
     error:
@@ -193,7 +192,6 @@ layer_show(Layer* layer) {
     for (i = 0; i < layer->n_neurons; ++i) {
         neuron = layer->neurons + i;
         for (j = 0; j < neuron->n_in_arrays; ++j) {
-            // TODO: there may be a bug here for layers that are not fully connected like having a length and max lenght would be better?
             n_in_synapses = neuron->in_arrays[j]->length;
         }
     }
@@ -233,6 +231,7 @@ layer_link_dense(Layer* layer, Layer* in_layer,
         synapses = (SynapseArray*)memory_malloc(sizeof(SynapseArray) + sizeof(Synapse) *  in_layer->n_neurons,
                                                 "layer_link_dense synapses");
         check_memory(synapses);
+        synapses->max_length = in_layer->n_neurons;
         synapses->length = in_layer->n_neurons;
         synapses->data = (Synapse*)(synapses + 1);
         synapse_i = 0;

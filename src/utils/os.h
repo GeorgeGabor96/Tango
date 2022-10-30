@@ -6,11 +6,6 @@
 #include "common.h"
 #include "containers/string.h"
 
-#ifdef _WIN32
-#include <Windows.h>
-#endif
-
-#include <Windows.h>
 
 internal bool os_folder_create_c_str(const char* path);
 internal bool os_folder_create_str(String* path);

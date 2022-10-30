@@ -14,7 +14,6 @@
 /*****************************
 *  NETWORK DUMPER definitions
 *****************************/
-// TODO: Can't I use this directly in the neuron class???
 typedef struct DumperNeuronData {
     f32 voltage;
     bool spike;
@@ -48,6 +47,8 @@ typedef enum {
     CALLBACK_INVALID,
     CALLBACK_NETWORK_DUMPER,
 } CallbackType;
+
+internal char* callback_type_get_c_str(CallbackType type);
 
 
 typedef struct Callback {

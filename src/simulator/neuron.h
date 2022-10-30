@@ -53,6 +53,7 @@ internal void neuron_cls_move(NeuronCls* cls_src, NeuronCls* cls_dst);
 
 typedef struct SynapseArray {
     u32 length;
+    u32 max_length;
     Synapse* data;
 } SynapseArray, *SynapseArrayP;
 

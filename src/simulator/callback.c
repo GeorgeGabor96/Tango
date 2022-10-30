@@ -4,6 +4,13 @@
 #include "simulator/callbacks/dumper.c"
 
 
+internal char*
+callback_type_get_c_str(CallbackType type) {
+    if (type == CALLBACK_NETWORK_DUMPER) return "CALLBACK_NETWORK_DUMPER";
+    return "CALLBACK_INVALID";
+}
+
+
 internal void
 callback_destroy(Callback* callback) {
     check(callback != NULL, "callback is NULL");
@@ -11,7 +18,9 @@ callback_destroy(Callback* callback) {
     if (callback->type == CALLBACK_NETWORK_DUMPER) {
         callback_dumper_destroy(callback);
     } else {
-        // TODO: add error
+        log_error("Unknown callback type %u (%s)",
+                  callback->type,
+                  callback_type_get_c_str(callback->type));
     }
     
     error:
@@ -30,7 +39,9 @@ callback_begin_sample(Callback* callback,
     if (callback->type == CALLBACK_NETWORK_DUMPER) {
         callback_dumper_begin_sample(callback, network, sample_duration);
     } else {
-        // TODO: add error
+        log_error("Unknown callback type %u (%s)",
+                  callback->type,
+                  callback_type_get_c_str(callback->type));
     }
     
     error:
@@ -46,7 +57,9 @@ callback_update(Callback* callback, Network* network) {
     if (callback->type == CALLBACK_NETWORK_DUMPER) {
         callback_dumper_update(callback, network);
     } else {
-        // TODO: add error
+        log_error("Unknown callback type %u (%s)",
+                  callback->type,
+                  callback_type_get_c_str(callback->type));
     }
     
     error:
@@ -62,11 +75,11 @@ callback_end_sample(Callback* callback, Network* network) {
     if (callback->type == CALLBACK_NETWORK_DUMPER) {
         callback_dumper_end_sample(callback, network);
     } else {
-        // TODO: add error
+        log_error("Unknown callback type %u (%s)",
+                  callback->type,
+                  callback_type_get_c_str(callback->type));
     }
-    
     
     error:
     return;
 }
-

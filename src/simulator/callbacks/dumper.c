@@ -15,7 +15,8 @@ callback_dumper_create(const char* output_folder, Network* network) {
     output_folder_s = string_create(output_folder);
     check_memory(output_folder_s);
     
-    callback = (Callback*)memory_malloc(sizeof(*callback), "callback_dumper_create dumper");
+    callback = (Callback*)memory_malloc(sizeof(*callback),
+                                        "callback_dumper_create dumper");
     check_memory(callback);
     
     callback->type = CALLBACK_NETWORK_DUMPER;
@@ -24,10 +25,11 @@ callback_dumper_create(const char* output_folder, Network* network) {
     callback->dumper.sample_count = -1;
     callback->dumper.sample_duration = 0;
     callback->dumper.n_layers = network->n_layers;
-    // NOTE: alloc the data for the layers
-    callback->dumper.layers_data = (DumperLayerData*)memory_malloc(sizeof(DumperLayerData) * network->n_layers,
-                                                                   "callback_dumper_create callback->dumper.data");
+    callback->dumper.layers_data = (DumperLayerData*)
+        memory_malloc(sizeof(DumperLayerData) * network->n_layers,
+                      "callback_dumper_create callback->dumper.data");
     check_memory(callback->dumper.layers_data);
+    
     for (i = 0; i < network->n_layers; ++i) {
         layer = network->layers[i];
         layer_data = callback->dumper.layers_data + i;
@@ -50,7 +52,12 @@ callback_dumper_create(const char* output_folder, Network* network) {
 internal void
 callback_dumper_destroy(Callback* callback) {
     check(callback != NULL, "callback is NULL");
-    check(callback->type == CALLBACK_NETWORK_DUMPER, "callback->type is not CALLBACK_NETWORK_DUMPER");
+    check(callback->type == CALLBACK_NETWORK_DUMPER,
+          "callback->type should be %u (%s) not %u (%s)",
+          CALLBACK_NETWORK_DUMPER,
+          callback_type_get_c_str(CALLBACK_NETWORK_DUMPER),
+          callback->type,
+          callback_type_get_c_str(callback->type));
     
     // NOTE: free the info in the layer datas
     Dumper* dumper = &(callback->dumper);
@@ -83,9 +90,12 @@ callback_dumper_begin_sample(Callback* callback,
                              Network* network,
                              u32 sample_duration) {
     check(callback != NULL, "callback is NULL");
-    // TODO: add proper check for type
-    check(callback->type == CALLBACK_NETWORK_DUMPER, "callback->type is %d",
-          callback->type);
+    check(callback->type == CALLBACK_NETWORK_DUMPER,
+          "callback->type should be %u (%s) not %u (%s)",
+          CALLBACK_NETWORK_DUMPER,
+          callback_type_get_c_str(CALLBACK_NETWORK_DUMPER),
+          callback->type,
+          callback_type_get_c_str(callback->type));
     check(network != NULL, "network is NULL");
     check(sample_duration != 0, "sample_duration is 0");
     
@@ -128,7 +138,12 @@ callback_dumper_begin_sample(Callback* callback,
 internal void
 callback_dumper_update(Callback* callback, Network* network) {
     check(callback != NULL, "dumper is NULL");
-    check(callback->type == CALLBACK_NETWORK_DUMPER, "Wrong callback type");
+    check(callback->type == CALLBACK_NETWORK_DUMPER,
+          "callback->type should be %u (%s) not %u (%s)",
+          CALLBACK_NETWORK_DUMPER,
+          callback_type_get_c_str(CALLBACK_NETWORK_DUMPER),
+          callback->type,
+          callback_type_get_c_str(callback->type));
     check(network != NULL, "network is NULL");
     
     Dumper* dumper = &(callback->dumper);
@@ -172,7 +187,12 @@ callback_dumper_update(Callback* callback, Network* network) {
 internal void
 callback_dumper_end_sample(Callback* callback, Network* network) {
     check(callback != NULL, "dumper is NULL");
-    check(callback->type == CALLBACK_NETWORK_DUMPER, "wrong callback type");
+    check(callback->type == CALLBACK_NETWORK_DUMPER,
+          "callback->type should be %u (%s) not %u (%s)",
+          CALLBACK_NETWORK_DUMPER,
+          callback_type_get_c_str(CALLBACK_NETWORK_DUMPER),
+          callback->type,
+          callback_type_get_c_str(callback->type));
     check(network != NULL, "network is NULL");
     
     FILE* fp = NULL;

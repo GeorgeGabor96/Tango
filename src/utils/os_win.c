@@ -1,3 +1,6 @@
+#include <Windows.h>
+
+
 internal bool
 os_folder_create_c_str(const char* path) {
     check(path != NULL, "path is NULL");

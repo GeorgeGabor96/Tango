@@ -117,6 +117,7 @@ data_network_inputs_create(DataSample* sample, Network* network, u32 time) {
     
     u32 i = 0;
     u32 j = 0;
+    Layer* layer = NULL;
     NetworkInput* input = NULL;
     NetworkInputs* inputs = (NetworkInputs*) memory_malloc(sizeof(*inputs),
                                                            "data_gen_inputs_create inputs");
@@ -127,31 +128,35 @@ data_network_inputs_create(DataSample* sample, Network* network, u32 time) {
     check_memory(inputs->inputs);
     
     if (sample->type == DATA_SAMPLE_RANDOM_SPIKES) {
-        // TODO: need to fix this its not correct
+        bool* spikes = NULL;
         for (i = 0; i < inputs->n_inputs; ++i) {
             input = inputs->inputs + i;
+            layer = network->layers[network->in_layers_idxs[i]];
+            
+            spikes = (bool*)memory_calloc(layer->n_neurons, sizeof(bool),
+                                          "data_gen_inputs_create spikes");
+            check_memory(spikes);
+            // TODO: need a random number generator, don't use the one from C std is slow and stupid
+            
             input->type = NETWORK_INPUT_SPIKES;
-            input->data = (bool*) memory_calloc(sample->duration, sizeof(bool),
-                                                "data_gen_inputs_create RANDOM SPIKES");
-            check_memory(input->data);
-            // TODO: need a random number generator, don't use the one from C std
-            input->n_values = sample->duration; 
+            input->data = spikes;
+            input->n_neurons = layer->n_neurons; 
         }
     } else if (sample->type == DATA_SAMPLE_CONSTANT_CURRENT) {
         f32* currents = NULL;
         for (i = 0; i < network->n_in_layers; ++i) {
             input = inputs->inputs + i;
-            Layer* layer = network->layers[network->in_layers_idxs[i]];
+            layer = network->layers[network->in_layers_idxs[i]];
             
             currents = (f32*)memory_malloc(sizeof(f32) * layer->n_neurons,
-                                           "data_gen_inputs_create CONSTANT CURRENT");
+                                           "data_gen_inputs_create currents");
             check_memory(currents);
             for (j = 0; j < layer->n_neurons; ++j) {
                 currents[j] = sample->sample_const_current.value;
             }
             input->type = NETWORK_INPUT_CURRENT;
             input->data = currents;
-            input->n_values = layer->n_neurons;
+            input->n_neurons = layer->n_neurons;
             
         }
     } else {
