@@ -127,6 +127,7 @@ data_network_inputs_create(DataSample* sample, Network* network, u32 time) {
     check_memory(inputs->inputs);
     
     if (sample->type == DATA_SAMPLE_RANDOM_SPIKES) {
+        // TODO: need to fix this its not correct
         for (i = 0; i < inputs->n_inputs; ++i) {
             input = inputs->inputs + i;
             input->type = NETWORK_INPUT_SPIKES;
@@ -138,18 +139,20 @@ data_network_inputs_create(DataSample* sample, Network* network, u32 time) {
         }
     } else if (sample->type == DATA_SAMPLE_CONSTANT_CURRENT) {
         f32* currents = NULL;
-        for (i = 0; i < inputs->n_inputs; ++i) {
+        for (i = 0; i < network->n_in_layers; ++i) {
             input = inputs->inputs + i;
+            Layer* layer = network->layers[network->in_layers_idxs[i]];
             
-            currents = (f32*)memory_malloc(sizeof(f32) * sample->duration,
+            currents = (f32*)memory_malloc(sizeof(f32) * layer->n_neurons,
                                            "data_gen_inputs_create CONSTANT CURRENT");
             check_memory(currents);
-            for (j = 0; j < sample->duration; ++j)
+            for (j = 0; j < layer->n_neurons; ++j) {
                 currents[j] = sample->sample_const_current.value;
-            
+            }
             input->type = NETWORK_INPUT_CURRENT;
             input->data = currents;
-            input->n_values = sample->duration;
+            input->n_values = layer->n_neurons;
+            
         }
     } else {
         log_error("Unknown data sample type %u", sample->type);

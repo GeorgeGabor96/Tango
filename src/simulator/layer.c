@@ -135,12 +135,13 @@ layer_step_inject_current(Layer* layer, u32 time, f32* currents, u32 n_currents)
     check(currents != NULL, "currents is NULL");
     
     u32 n_inputs = math_min_u32(layer->n_neurons, n_currents);
-    u32 i;
+    u32 i = 0;
     for (i = 0; i < n_inputs; ++i) 
         neuron_step_inject_current(layer->neurons + i, currents[i], time);
-    for (i = n_inputs; i < layer->n_neurons; ++i)
+    for (i = n_inputs; i < layer->n_neurons; ++i){
+        log_info("Should not get here");
         neuron_step(layer->neurons + i, time);
-    
+    }
     error:
     return;
 }

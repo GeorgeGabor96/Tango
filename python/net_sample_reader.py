@@ -100,6 +100,7 @@ def plot_net_sample(net_sample, plot_path):
 	y_coord = 1 
 
 	for layer_data in net_sample.layers_data:
+		print(layer_data.spike.shape)
 		spikes_x, spikes_y = np.where(layer_data.spike == 1)
 		spikes_y += y_coord
 		layer_spikes.append((spikes_x, spikes_y))
@@ -109,14 +110,19 @@ def plot_net_sample(net_sample, plot_path):
 		line_y = np.array([y_coord, y_coord], dtype=np.uint32)
 		lines.append((line_x, line_y))
 
+	# Actual plotting
+	plt.clf()
+	plt.cla()
+	plt.close()
+	plt.figure(figsize=(10, 10))
+	plt.xlabel('time', fontsize=30)
+	plt.ylabel('layers', fontsize=30)
+
 	for line in lines:
-		print(line)
 		plt.plot(line[0], line[1], color='black')
 	
 	for spikes in layer_spikes:
-		print(123)
-		print(len(spikes[0]))
-		plt.scatter(spikes[0], spikes[1], color='black') 
+		plt.scatter(spikes[0], spikes[1], color='black', s=0.5) 
 
 	plt.show()
 

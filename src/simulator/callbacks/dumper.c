@@ -156,7 +156,6 @@ callback_dumper_update(Callback* callback, Network* network) {
             
             neuron_data->voltage = neuron->voltage;
             neuron_data->spike = neuron->spike;
-            if (neuron_data->spike == TRUE) printf("Spike\n");
             neuron_data->psc = neuron->epsc + neuron->ipsc;
             neuron_data->epsc = neuron->epsc;
             neuron_data->ipsc = neuron->ipsc;
