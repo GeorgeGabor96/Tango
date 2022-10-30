@@ -3,11 +3,12 @@ import sys
 import argparse
 import struct
 import numpy as np
+import matplotlib.pyplot as plt
 
 
 def get_args():
 	parser = argparse.ArgumentParser()
-	parser.add_argument('--bin_file', type=str, required=True)
+	parser.add_argument('--bin_folder', type=str, required=True)
 	return parser.parse_args()
 
 
@@ -45,8 +46,8 @@ class LayerData:
 
 
 class NetworkSample:
-	def __init__(self, sample_duration, n_layers):
-		self.sample_duration = sample_duration
+	def __init__(self, duration, n_layers):
+		self.duration = duration
 		self.n_layers = n_layers
 		self.layers_data = []
 
@@ -77,7 +78,47 @@ def parse_network_sample_file(sample_file_path):
 
 def main():
 	args = get_args()
-	net_sample = parse_network_sample_file(args.bin_file)
+	bin_files = [f for f in os.listdir(args.bin_folder) if f.endswith('bin')]
+	bin_files.sort()
+
+	for bin_file in bin_files:
+		net_sample = parse_network_sample_file(os.path.join(args.bin_folder, bin_file))
+
+		file_name = bin_file.split('.')[0]
+		plot_path = os.path.join(args.bin_folder, file_name + '.png')
+
+		plot_net_sample(net_sample, plot_path)
+
+
+def plot_net_sample(net_sample, plot_path):
+	# First plot the lines that separate the layers
+	lines = []
+	layer_spikes = []
+	line_x = np.array([0, net_sample.duration], dtype=np.uint32)
+	line_y = np.array([0, 0], dtype=np.uint32)
+	lines.append((line_x, line_y))
+	y_coord = 1 
+
+	for layer_data in net_sample.layers_data:
+		spikes_x, spikes_y = np.where(layer_data.spike == 1)
+		spikes_y += y_coord
+		layer_spikes.append((spikes_x, spikes_y))
+
+		y_coord += layer_data.n_neurons + 1
+		line_x = np.array([0, net_sample.duration], dtype=np.uint32)
+		line_y = np.array([y_coord, y_coord], dtype=np.uint32)
+		lines.append((line_x, line_y))
+
+	for line in lines:
+		print(line)
+		plt.plot(line[0], line[1], color='black')
+	
+	for spikes in layer_spikes:
+		print(123)
+		print(len(spikes[0]))
+		plt.scatter(spikes[0], spikes[1], color='black') 
+
+	plt.show()
 
 
 if __name__ == '__main__':
