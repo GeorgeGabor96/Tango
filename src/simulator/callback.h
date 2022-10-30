@@ -15,18 +15,18 @@
 *  NETWORK DUMPER definitions
 *****************************/
 // TODO: Can't I use this directly in the neuron class???
-typedef struct DumperNeuronStep {
+typedef struct DumperNeuronData {
     f32 voltage;
     bool spike;
     f32 psc;
     f32 epsc;
     f32 ipsc;
-} DumperNeuronStep, *DumperNeuronStepP;
+} DumperNeuronData;
 
 
 typedef struct DumperLayerData {
     u32 n_neurons;
-    DumperNeuronStepP* neurons_steps;
+    DumperNeuronData* neurons_data;
 } DumperLayerData;
 
 
