@@ -135,12 +135,12 @@ layer_step_inject_current(Layer* layer, u32 time, f32* currents, u32 n_currents)
     check(currents != NULL, "currents is NULL");
     
     u32 n_inputs = math_min_u32(layer->n_neurons, n_currents);
-    u32 i;
+    u32 i = 0;
     for (i = 0; i < n_inputs; ++i) 
         neuron_step_inject_current(layer->neurons + i, currents[i], time);
-    for (i = n_inputs; i < layer->n_neurons; ++i)
+    for (i = n_inputs; i < layer->n_neurons; ++i){
         neuron_step(layer->neurons + i, time);
-    
+    }
     error:
     return;
 }
@@ -186,9 +186,14 @@ layer_show(Layer* layer) {
     check(layer != NULL, "layer is NULL");
     
     u32 i = 0;
+    u32 j = 0;
     u32 n_in_synapses = 0;
+    Neuron* neuron = NULL;
     for (i = 0; i < layer->n_neurons; ++i) {
-        n_in_synapses += layer->neurons[i].n_in_synapses;
+        neuron = layer->neurons + i;
+        for (j = 0; j < neuron->n_in_arrays; ++j) {
+            n_in_synapses = neuron->in_arrays[j]->length;
+        }
     }
     printf("-------------------\n");
     printf("Name: %s\n", string_to_c_str(layer->name));
@@ -212,22 +217,35 @@ layer_link_dense(Layer* layer, Layer* in_layer,
                  SynapseCls* cls, f32 weight) {
     u32 neuron_i = 0;
     u32 in_neuron_i = 0;
+    u32 synapse_i = 0;
     Neuron* neuron = NULL;
     Neuron* in_neuron = NULL;
     Synapse* synapse = NULL;
+    SynapseArray* synapses = NULL;
     bool status = FALSE;
     
     for (neuron_i = 0; neuron_i < layer->n_neurons; ++neuron_i) {
         neuron = layer->neurons + neuron_i;
         
+        // ALLOC all input synapses
+        synapses = (SynapseArray*)memory_malloc(sizeof(SynapseArray) + sizeof(Synapse) *  in_layer->n_neurons,
+                                                "layer_link_dense synapses");
+        check_memory(synapses);
+        synapses->max_length = in_layer->n_neurons;
+        synapses->length = in_layer->n_neurons;
+        synapses->data = (Synapse*)(synapses + 1);
+        synapse_i = 0;
+        
         for (in_neuron_i = 0; in_neuron_i < in_layer->n_neurons; ++in_neuron_i) {
             in_neuron = in_layer->neurons + in_neuron_i;
             
-            synapse = synapse_create(cls, weight);
-            check_memory(synapse);
-            synapse = neuron_add_in_synapse(neuron, synapse, TRUE);
+            synapse = synapses->data + synapse_i;
+            ++synapse_i;
+            
+            synapse_init(synapse, cls, weight);
             neuron_add_out_synapse(in_neuron, synapse);
         }
+        neuron_add_in_synapse_array(neuron, synapses);
     }
     
     status = TRUE;

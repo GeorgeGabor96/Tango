@@ -51,6 +51,13 @@ internal void neuron_cls_reset(NeuronCls* cls);
 internal void neuron_cls_move(NeuronCls* cls_src, NeuronCls* cls_dst);
 
 
+typedef struct SynapseArray {
+    u32 length;
+    u32 max_length;
+    Synapse* data;
+} SynapseArray, *SynapseArrayP;
+
+
 typedef struct Neuron {
     NeuronCls* cls;
     f32 voltage;
@@ -58,9 +65,9 @@ typedef struct Neuron {
     f32 ipsc;
     
     // NOTE: the neuron owns its input synapses
-    u32 n_in_synapses;
-    u32 n_max_in_synapses;
-    Synapse* in_synapses;
+    u32 n_in_arrays;
+    u32 n_max_in_arrays;
+    SynapseArrayP* in_arrays;
     
     u32 n_out_synapses;
     u32 n_max_out_synapses;
@@ -81,10 +88,9 @@ internal bool neuron_init(Neuron* neuron, NeuronCls* cls);
 internal void neuron_destroy(Neuron* neuron);
 internal void neuron_reset(Neuron* neuron);
 
-// NOTE: When adding an input synapse take ownership and return the new address
-internal Synapse* neuron_add_in_synapse(Neuron* neuron,
-                                        Synapse* synapse,
-                                        bool free_synapse);
+// NOTE: the neuron takes ownership over the synapses array
+internal void neuron_add_in_synapse_array(Neuron* neuron,
+                                          SynapseArray* synapses);
 internal void neuron_add_out_synapse(Neuron* neuron, Synapse* synapse);
 
 // TODO: how to move a neuron

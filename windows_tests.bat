@@ -13,8 +13,9 @@ mkdir build_tests
 set include_roots=-I%cd%\src -I%cd%\tests
 set compiler_flags=-DCHECKS -DMEMORY_MANAGE
 set compiler_params=%include_roots% %mode% %compiler_flags%
+set libs=shell32.lib
 
 pushd build_tests
-call cl ..\tests\tests.c %compiler_params%
+call cl ..\tests\tests.c %libs% %compiler_params%
 call tests.exe
 popd

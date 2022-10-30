@@ -245,9 +245,9 @@ network_step(Network* network, NetworkInputs* inputs, u32 time) {
         layer = network->layers[network->in_layers_idxs[i]];
         
         if (input->type == NETWORK_INPUT_SPIKES)
-            layer_step_force_spike(layer, time, input->data, input->n_values);
+            layer_step_force_spike(layer, time, input->data, input->n_neurons);
         else if (input->type == NETWORK_INPUT_CURRENT)
-            layer_step_inject_current(layer, time, input->data, input->n_values);
+            layer_step_inject_current(layer, time, input->data, input->n_neurons);
         else
             log_error("Unknown network input type %d", input->type);
         layer->it_ran = TRUE;

@@ -4,6 +4,7 @@
 #include "containers/array.h"
 #include "containers/array.c"
 
+#include "utils_tests/os_tests.c"
 #include "utils_tests/memory_tests.c"
 #include "containers_tests/string_tests.c"
 #include "containers_tests/memory_arena_tests.c"
@@ -12,6 +13,8 @@
 
 
 TestInfo tests[] = {
+    // OS test
+    { os_directory_test, "os_directory_test" },
     // Memory tests
     { memory_general_test, "memory_management_general_test" },
     { memory_report_test, "memory_report_test" },

@@ -70,6 +70,9 @@ simulator_run(Simulator* simulator)
         
         network_clear(simulator->network);
         
+        for (i = 0; i < simulator->n_callbacks; ++i)
+            callback_begin_sample(simulator->callbacks[i], simulator->network, sample->duration);
+        
         for (time = 0; time < sample->duration; ++time) {
             inputs = data_network_inputs_create(sample, simulator->network, time);
             
@@ -84,7 +87,7 @@ simulator_run(Simulator* simulator)
         data_gen_sample_destroy(sample);
         
         for (i = 0; i < simulator->n_callbacks; ++i)
-            callback_run(simulator->callbacks[i], simulator->network);
+            callback_end_sample(simulator->callbacks[i], simulator->network);
     }
     
     error:

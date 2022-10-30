@@ -5,36 +5,82 @@
 
 
 #include "common.h"
+#include "utils/memory.h"
+#include "utils/os.h"
 #include "containers/string.h"
 #include "simulator/network.h"
 
 
+/*****************************
+*  NETWORK DUMPER definitions
+*****************************/
+typedef struct DumperNeuronData {
+    f32 voltage;
+    bool spike;
+    f32 psc;
+    f32 epsc;
+    f32 ipsc;
+} DumperNeuronData;
+
+
+typedef struct DumperLayerData {
+    u32 n_neurons;
+    DumperNeuronData* neurons_data;
+} DumperLayerData;
+
+
+typedef struct Dumper {
+    String* output_folder;
+    u32 time;
+    u32 sample_count;
+    u32 sample_duration;
+    u32 n_layers;
+    DumperLayerData* layers_data;
+} Dumper;
+
+
+
+/**********************
+* Callback definitions
+**********************/
 typedef enum {
     CALLBACK_INVALID,
     CALLBACK_NETWORK_DUMPER,
-    
 } CallbackType;
+
+internal char* callback_type_get_c_str(CallbackType type);
 
 
 typedef struct Callback {
     CallbackType type;
     
     union {
-        struct {
-            String* output_folder;
-            // NOTE: just keep like 100 of each ouptut for each layer, or 10 or something fix
-            // NOTE: when its full just dump it and start over
-            // NOTE: when finished dump what we have currently
-        } dumper;
+        Dumper dumper;
     };
 } Callback, *CallbackP;
 
 
-internal Callback* callback_network_dumper_create(const char* output_folder);
+/********************
+* Callback functions
+********************/
 internal void callback_destroy(Callback* callback);
 
+internal void callback_begin_sample(Callback* callback, Network* network, u32 sample_duration);
 internal void callback_update(Callback* callback, Network* network);
-internal void callback_run(Callback* callback, Network* network);
+internal void callback_end_sample(Callback* callback, Network* network);
+
+
+/**************************
+* Network Dumper functions
+**************************/
+internal Callback* callback_dumper_create(const char* output_folder, 
+                                          Network* network);
+internal void callback_dumper_destroy(Callback* callback);
+internal void callback_dumper_begin_sample(Callback* callback, 
+                                           Network* network, 
+                                           u32 sample_duration);
+internal void callback_dumper_update(Callback* callback, Network* network);
+internal void callback_dumper_end_sample(Callback* callbac, Network* network);
 
 
 #endif //CALLBACK_H

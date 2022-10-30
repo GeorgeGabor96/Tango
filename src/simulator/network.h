@@ -47,7 +47,7 @@ typedef enum {
 typedef struct NetworkInput {
     NetworkInputType type;
     void* data;
-    u32 n_values;
+    u32 n_neurons;
 } NetworkInput;
 
 
