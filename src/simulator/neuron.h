@@ -88,7 +88,7 @@ internal bool neuron_init(Neuron* neuron, NeuronCls* cls);
 internal void neuron_destroy(Neuron* neuron);
 internal void neuron_reset(Neuron* neuron);
 
-// NOTE: When adding an input synapse take ownership and return the new address
+// NOTE: the neuron takes ownership over the synapses array
 internal void neuron_add_in_synapse_array(Neuron* neuron,
                                           SynapseArray* synapses);
 internal void neuron_add_out_synapse(Neuron* neuron, Synapse* synapse);
