@@ -1,5 +1,6 @@
 #include "utils/memory.c"
 #include "utils/os.c"
+#include "utils/timing.c"
 #include "containers/string.c"
 #include "containers/array.c"
 #include "simulator/synapse.c"
@@ -58,6 +59,9 @@ int main() {
     
     memory_report();
     check(memory_is_empty() == TRUE, "We have memory leaks");
+    
+    timing_report();
+    
     error:
     
     

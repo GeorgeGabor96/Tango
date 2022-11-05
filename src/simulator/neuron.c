@@ -354,11 +354,15 @@ neuron_update_out_synapses(Neuron* neuron, u32 time) {
 
 internal void
 neuron_step(Neuron* neuron, u32 time) {
+    TIMING_COUNTER_START(NEURON_STEP);
+    
     check(neuron != NULL, "neuron is NULL");
     
     f32 psc = neuron_compute_psc(neuron, time);
     neuron_update(neuron, time, psc);
     neuron_update_out_synapses(neuron, time);
+    
+    TIMING_COUNTER_END(NEURON_STEP);
     
     error:
     return;
@@ -367,6 +371,8 @@ neuron_step(Neuron* neuron, u32 time) {
 
 internal void
 neuron_step_force_spike(Neuron* neuron, u32 time) {
+    TIMING_COUNTER_START(NEURON_STEP_FORCE_SPIKE);
+    
     check(neuron != NULL, "neuron is NULL");
     
     neuron_update_in_synapses(neuron, time);
@@ -382,6 +388,8 @@ neuron_step_force_spike(Neuron* neuron, u32 time) {
     }
     neuron_update_out_synapses(neuron, time);
     
+    TIMING_COUNTER_END(NEURON_STEP_FORCE_SPIKE);
+    
     error:
     return;
 }
@@ -389,11 +397,15 @@ neuron_step_force_spike(Neuron* neuron, u32 time) {
 
 internal void
 neuron_step_inject_current(Neuron* neuron, f32 psc, u32 time) {
+    TIMING_COUNTER_START(NEURON_STEP_INJECT_CURRENT);
+    
     check(neuron != NULL, "neuron is NULL");
     
     psc = neuron_compute_psc(neuron, time) + psc;
     neuron_update(neuron, time, psc);
     neuron_update_out_synapses(neuron, time);
+    
+    TIMING_COUNTER_END(NEURON_STEP_INJECT_CURRENT);
     
     error:
     return;

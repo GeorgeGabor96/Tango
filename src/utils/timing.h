@@ -18,31 +18,37 @@ typedef struct TimeCounter {
 
 
 typedef enum {
-    TIMER_SIMUlATOR_RUN;
-    
-    TIMER_INVALID;
+    TIMER_SIMULATOR_RUN,
+    TIMER_NETWORK_STEP,
+    TIMER_LAYER_STEP,
+    TIMER_LAYER_STEP_INJECT_CURRENT,
+    TIMER_LAYER_STEP_FORCE_SPIKE,
+    TIMER_NEURON_STEP,
+    TIMER_NEURON_STEP_FORCE_SPIKE,
+    TIMER_NEURON_STEP_INJECT_CURRENT,
+    TIMER_SYNAPSE_STEP,
+    TIMER_INVALID
 } TimingCounterType;
 
 
+TimingCounter timing_counters[128];
+
 #define TIMING_COUNTER_START(NAME) u64 timing_start = __rdtsc();
 
-#define TIMING_COUNTER_END(NAME) timing_counters[TIMER_##NAME].cycle_count += __rdtsc() - timing_start
+#define TIMING_COUNTER_END(NAME) timing_counters[TIMER_##NAME].cycle_count += __rdtsc() - timing_start; \
 ++(timing_counters[TIMER_##NAME].hit_count);
-                   
-                   internal const char* timing_counter_name();
-                   internal void timing_report();
-                   
-#include "utils/timing.c"
-                   
+
+internal const char* timing_counter_name(TimingCounterType type);
+internal void timing_report();
+
 #else
-                   
+
 #define TIMING_COUNTER_START(NAME)
 #define TIMING_COUNTER_END(NAME)
-                   
-#define timing_counter_name();
-#define timing_report();
-                   
+
+//#define timing_counter_name();
+//#define timing_report();
+
 #endif
-                   
+
 #endif //TIMING_H
-                   

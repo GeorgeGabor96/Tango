@@ -57,7 +57,7 @@ simulator_destroy(Simulator* simulator) {
 internal void
 simulator_run(Simulator* simulator)
 {
-    timing_counter_begin("SIMULATOR_RUN");
+    TIMING_COUNTER_START(SIMULATOR_RUN);
     
     check(simulator != NULL, "simulator is NULL");
     DataSample* sample = NULL;
@@ -92,7 +92,7 @@ simulator_run(Simulator* simulator)
             callback_end_sample(simulator->callbacks[i], simulator->network);
     }
     
-    timing_counter_end("SIMULATOR_RUN");
+    TIMING_COUNTER_END(SIMULATOR_RUN);
     
     error:
     return;

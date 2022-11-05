@@ -236,6 +236,8 @@ synapse_compute_psc(Synapse* synapse, f32 voltage) {
 
 internal void
 synapse_step(Synapse* synapse, u32 time) {
+    TIMING_COUNTER_START(SYNAPSE_STEP);
+    
     check(synapse != NULL, "synapse is NULL");
     
     if (synapse_is_spike_arriving_at_this_time(synapse, time)) {
@@ -253,6 +255,8 @@ synapse_step(Synapse* synapse, u32 time) {
             synapse->conductance = 0.0f;
         }
     }
+    
+    TIMING_COUNTER_END(SYNAPSE_STEP);
     
     error:
     return;
