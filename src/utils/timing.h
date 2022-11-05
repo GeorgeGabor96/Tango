@@ -5,10 +5,6 @@
 
 #include "common.h"
 
-#define TIMING
-
-// TODO: add a compile flag so that this module is not compiled
-// TODO: add cl compile flag for the _rdtsc
 
 #ifdef TIMING
 typedef struct TimeCounter {
@@ -33,9 +29,16 @@ typedef enum {
 
 TimingCounter timing_counters[128];
 
-#define TIMING_COUNTER_START(NAME) u64 timing_start = __rdtsc();
 
-#define TIMING_COUNTER_END(NAME) timing_counters[TIMER_##NAME].cycle_count += __rdtsc() - timing_start; \
+// NOTE: need a version for each compiler
+#ifdef _MSC_VER
+#define timing_clock() __rdtsc()
+#endif
+
+
+#define TIMING_COUNTER_START(NAME) u64 timing_start = timing_clock();
+
+#define TIMING_COUNTER_END(NAME) timing_counters[TIMER_##NAME].cycle_count += timing_clock() - timing_start; \
 ++(timing_counters[TIMER_##NAME].hit_count);
 
 internal const char* timing_counter_name(TimingCounterType type);
@@ -46,8 +49,8 @@ internal void timing_report();
 #define TIMING_COUNTER_START(NAME)
 #define TIMING_COUNTER_END(NAME)
 
-//#define timing_counter_name();
-//#define timing_report();
+#define timing_counter_name(type);
+#define timing_report();
 
 #endif
 

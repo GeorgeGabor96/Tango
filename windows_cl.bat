@@ -11,7 +11,7 @@ rmdir /s /q build
 mkdir build
 
 set include_roots=-I%cd%\src
-set compiler_flags=-DCHECKS -DMEMORY_MANAGE
+set compiler_flags=-DCHECKS -DMEMORY_MANAGE -DTIMING
 set compiler_params=%include_roots% %mode% %compiler_flags%
 
 pushd build

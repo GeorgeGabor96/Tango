@@ -1,5 +1,6 @@
 #include "utils/timing.h"
 
+#ifdef TIMING
 
 internal const char*
 timing_counter_name(TimingCounterType type) {
@@ -28,13 +29,10 @@ timing_report() {
         printf("CYCLE COUNT: %llu\n", timer->cycle_count);
         printf("HIT COUNT: %u\n", timer->hit_count);
         if (timer->hit_count > 0)
-            printf("CYCLES PER HIT: %.3lf\n\n", (f64)timer->cycle_count / timer->hit_count);
+            printf("CYCLES PER HIT: %.2lf\n\n", (f64)timer->cycle_count / timer->hit_count);
         else
             printf("\n");
     }
-    
-    // TODO: You can do like a total cycle count in all counters and compute
-    // TODO: the percentage of each timer
 }
-
-
+1
+#endif // TIMING
