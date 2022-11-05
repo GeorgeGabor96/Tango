@@ -4,6 +4,7 @@
 #define TIMING_H
 
 #include "common.h"
+#include "time.h"
 
 
 #ifdef TIMING
