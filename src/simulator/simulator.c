@@ -57,6 +57,8 @@ simulator_destroy(Simulator* simulator) {
 internal void
 simulator_run(Simulator* simulator)
 {
+    TIMING_COUNTER_START(SIMULATOR_RUN);
+    
     check(simulator != NULL, "simulator is NULL");
     DataSample* sample = NULL;
     NetworkInputs* inputs = NULL;
@@ -89,6 +91,8 @@ simulator_run(Simulator* simulator)
         for (i = 0; i < simulator->n_callbacks; ++i)
             callback_end_sample(simulator->callbacks[i], simulator->network);
     }
+    
+    TIMING_COUNTER_END(SIMULATOR_RUN);
     
     error:
     return;

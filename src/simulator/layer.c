@@ -119,10 +119,14 @@ layer_destroy(Layer* layer) {
 
 internal void
 layer_step(Layer* layer, u32 time) {
+    TIMING_COUNTER_START(LAYER_STEP);
+    
     check(layer != NULL, "layer is NULL");
     
     for (u32 i = 0; i < layer->n_neurons; ++i)
         neuron_step(layer->neurons + i, time);
+    
+    TIMING_COUNTER_END(LAYER_STEP);
     
     error:
     return;
@@ -131,6 +135,8 @@ layer_step(Layer* layer, u32 time) {
 
 internal void
 layer_step_inject_current(Layer* layer, u32 time, f32* currents, u32 n_currents) {
+    TIMING_COUNTER_START(LAYER_STEP_INJECT_CURRENT);
+    
     check(layer != NULL, "layer is NULL");
     check(currents != NULL, "currents is NULL");
     
@@ -141,6 +147,9 @@ layer_step_inject_current(Layer* layer, u32 time, f32* currents, u32 n_currents)
     for (i = n_inputs; i < layer->n_neurons; ++i){
         neuron_step(layer->neurons + i, time);
     }
+    
+    TIMING_COUNTER_END(LAYER_STEP_INJECT_CURRENT);
+    
     error:
     return;
 }
@@ -148,6 +157,8 @@ layer_step_inject_current(Layer* layer, u32 time, f32* currents, u32 n_currents)
 
 internal void
 layer_step_force_spike(Layer* layer, u32 time, bool* spikes, u32 n_spikes) {
+    TIMING_COUNTER_START(LAYER_STEP_FORCE_SPIKE);
+    
     check(layer != NULL, "layer is NULL");
     check(spikes != NULL, "spikes is NULL");
     
@@ -161,6 +172,8 @@ layer_step_force_spike(Layer* layer, u32 time, bool* spikes, u32 n_spikes) {
     }
     for (i = n_inputs; i < layer->n_neurons; ++i)
         neuron_step(layer->neurons + i, time);
+    
+    TIMING_COUNTER_END(LAYER_STEP_FORCE_SPIKE);
     
     error:
     return;

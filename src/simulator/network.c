@@ -230,6 +230,8 @@ network_add_layer(Network* network, Layer* layer,
 
 internal void
 network_step(Network* network, NetworkInputs* inputs, u32 time) {
+    TIMING_COUNTER_START(NETWORK_STEP);
+    
     check(network != NULL, "network is NULL");
     check(network->n_in_layers == inputs->n_inputs,
           "network->n_in_layers is %u, inputs->n_inputs is %u, should be equal",
@@ -259,6 +261,7 @@ network_step(Network* network, NetworkInputs* inputs, u32 time) {
             layer_step(layer, time);
     }
     
+    TIMING_COUNTER_END(NETWORK_STEP);
     error:
     return;
 }
