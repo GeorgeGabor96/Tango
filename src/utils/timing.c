@@ -1,5 +1,6 @@
 #include "utils/timing.h"
 
+
 #ifdef TIMING
 
 internal const char*
@@ -18,21 +19,59 @@ timing_counter_name(TimingCounterType type) {
 
 
 internal void
-timing_report() {
+timing_report(const char* output_folder_c_str) {
     u32 i = 0;
     TimingCounter* timer = NULL;
+    String* out_folder = NULL;
+    String* out_file = NULL;
+    FILE* fp = NULL;
     
-    printf("---------------TIMING REPORT----------------\n");
+    out_folder = string_create(output_folder_c_str);
+    
+    if (out_folder != NULL) {
+        char buffer[256] = { 0 };
+        time_t raw_time;
+        time(&raw_time);
+        struct tm* time_info = localtime(&raw_time);
+        sprintf(buffer, "timing_d_%d_%d_%d_t_%d_%d_%d.txt",
+                time_info->tm_mday,
+                time_info->tm_mon + 1,
+                time_info->tm_year + 1900,
+                time_info->tm_hour,
+                time_info->tm_min,
+                time_info->tm_sec);
+        out_file = string_path_join_c_str(out_folder, buffer, FALSE);
+    }
+    if (out_file == NULL) fp = stdout;
+    else {
+        fp = fopen(string_to_c_str(out_file), "w");
+        if (fp == NULL) {
+            printf("[WARNING] Could not open %s\n", string_to_c_str(out_file));
+            fp = stdout;
+        } else {
+            printf("[INFO] Saving timings in %s\n", string_to_c_str(out_file));
+        }
+        string_destroy(out_file);
+    }
+    fprintf(fp, "---------------TIMING REPORT----------------\n");
     for (i = 0; i < TIMER_INVALID; ++i) {
         timer = timing_counters + i;
-        printf("%s:\n", timing_counter_name(i));
-        printf("CYCLE COUNT: %llu\n", timer->cycle_count);
-        printf("HIT COUNT: %u\n", timer->hit_count);
+        fprintf(fp, "%s:\n", timing_counter_name(i));
+        fprintf(fp, "CYCLE COUNT: %llu\n", timer->cycle_count);
+        fprintf(fp, "HIT COUNT: %u\n", timer->hit_count);
         if (timer->hit_count > 0)
-            printf("CYCLES PER HIT: %.2lf\n\n", (f64)timer->cycle_count / timer->hit_count);
+            fprintf(fp, "CYCLES PER HIT: %.2lf\n\n",
+                    (f64)timer->cycle_count / timer->hit_count);
         else
-            printf("\n");
+            fprintf(fp, "\n");
     }
+    
+    if (fp != stdout) {
+        fflush(fp);
+        fclose(fp);
+    }
+    
+    return;
 }
-1
+
 #endif // TIMING

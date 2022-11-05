@@ -47,9 +47,10 @@ Network* get_network() {
 
 
 int main() {
+    const char* output_folder = "D:\\repos\\Tango_outputs";
     Network* network = get_network();
     DataGen* data = data_gen_create_constant_current(20.0, 1, 100);
-    Callback* callback = callback_dumper_create("D:\\repos\\Tango_outputs", network);
+    Callback* callback = callback_dumper_create(output_folder, network);
     Simulator* sim = simulator_create(network, data);
     simulator_add_callback(sim, callback);
     
@@ -57,10 +58,10 @@ int main() {
     
     simulator_destroy(sim);
     
+    timing_report(output_folder);
+    
     memory_report();
     check(memory_is_empty() == TRUE, "We have memory leaks");
-    
-    timing_report();
     
     error:
     

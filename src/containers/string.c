@@ -133,7 +133,7 @@ string_path_join(String* str1, String* str2, bool keep_strs) {
 
 
 internal String*
-string_path_join_c_str(String* str1, const char* c_str, bool keep_strs) {
+string_path_join_c_str(String* str1, const char* c_str, bool keep_str1) {
     String* str2 = NULL;
     String* str = NULL;
     check(str1 != NULL, "str1 is NULL");
@@ -142,14 +142,12 @@ string_path_join_c_str(String* str1, const char* c_str, bool keep_strs) {
     str2 = string_create(c_str);
     check(str2 != NULL, "str2 is NULL");
     
-    str = string_path_join(str1, str2, keep_strs);
+    str = string_path_join(str1, str2, keep_str1);
     
-    if (keep_strs == FALSE) string_destroy(str1);
-    string_destroy(str2);
+    if (keep_str1 == TRUE) string_destroy(str2);
     error:
     return str;
 }
-
 
 internal const char*
 string_to_c_str(String* str) {
