@@ -48,7 +48,7 @@ synapse_cls_create(const char* name, SynapseType type,
     cls->type = type;
     cls->rev_potential = rev_potential;
     cls->amp = amp;
-    cls->tau_exp = math_op_exp((f64)(-1)/tau_ms);
+    cls->tau_exp = (f32)math_op_exp((f64)(-1)/tau_ms);
     cls->delay = delay;
     return cls;
     
