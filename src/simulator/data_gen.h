@@ -6,6 +6,7 @@
 
 #include "common.h"
 #include "utils/memory.h"
+#include "utils/random.h"
 #include "simulator/network.h"
 
 

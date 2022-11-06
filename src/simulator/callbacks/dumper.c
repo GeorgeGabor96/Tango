@@ -34,6 +34,7 @@ callback_dumper_create(const char* output_folder, Network* network) {
         layer = network->layers[i];
         layer_data = callback->dumper.layers_data + i;
         layer_data->n_neurons = layer->n_neurons;
+        layer_data->name = layer->name;
     }
     bool result = os_folder_create_str(callback->dumper.output_folder);
     check(result == TRUE, "couldn't create folder %s", string_to_c_str(callback->dumper.output_folder));
@@ -71,6 +72,7 @@ callback_dumper_destroy(Callback* callback) {
         if (layer_data->neurons_data == NULL) continue;
         memory_free(layer_data->neurons_data);
         
+        layer_data->name = NULL;
         layer_data->n_neurons = 0;
         layer_data->neurons_data = NULL;
     }
@@ -222,6 +224,8 @@ callback_dumper_end_sample(Callback* callback, Network* network) {
     for (i = 0; i < dumper->n_layers; ++i) {
         layer_data = dumper->layers_data + i;
         
+        fwrite(&(layer_data->name->length), sizeof(u32), 1, fp);
+        fwrite(layer_data->name->data, sizeof(char), layer_data->name->length, fp);
         fwrite(&(layer_data->n_neurons), sizeof(u32), 1, fp);
         fwrite(layer_data->neurons_data, sizeof(DumperNeuronData),
                dumper->sample_duration * layer_data->n_neurons, fp);

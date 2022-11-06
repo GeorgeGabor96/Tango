@@ -24,6 +24,7 @@ typedef struct DumperNeuronData {
 
 
 typedef struct DumperLayerData {
+    String* name; // no ownership
     u32 n_neurons;
     DumperNeuronData* neurons_data;
 } DumperLayerData;

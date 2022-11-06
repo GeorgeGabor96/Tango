@@ -136,8 +136,9 @@ data_network_inputs_create(DataSample* sample, Network* network, u32 time) {
             spikes = (bool*)memory_calloc(layer->n_neurons, sizeof(bool),
                                           "data_gen_inputs_create spikes");
             check_memory(spikes);
-            // TODO: need a random number generator, don't use the one from C std is slow and stupid
-            
+            for (j = 0; j < layer->n_neurons; ++j) {
+                spikes[j] = random_get_bool(sample->sample_random_spikes.chance);
+            }
             input->type = NETWORK_INPUT_SPIKES;
             input->data = spikes;
             input->n_neurons = layer->n_neurons; 
