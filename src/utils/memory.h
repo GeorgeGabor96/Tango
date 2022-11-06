@@ -5,6 +5,14 @@
 
 #include "common.h"
 
+
+#ifdef MEMORY_MANAGE
+// overide the normal memory management function to save aditional information
+internal void* memory_malloc(size_t size, char* desc);
+internal void* memory_calloc(size_t nitems, size_t size, char* desc);
+internal void* memory_realloc(void* ptr, size_t size, char* desc);
+internal void memory_free(void* ptr);
+
 // for debuging to see how the memory structure is filled
 internal void memory_show_inner_state(u32 show_entries, u32 show_empty);
 
@@ -20,14 +28,6 @@ internal bool memory_is_empty();
 // Shows information about every memory allocations not freed
 internal void memory_report();
 
-
-#ifdef MEMORY_MANAGE
-// overide the normal memory management function to save aditional information
-internal void* memory_malloc(size_t size, char* desc);
-internal void* memory_calloc(size_t nitems, size_t size, char* desc);
-internal void* memory_realloc(void* ptr, size_t size, char* desc);
-internal void memory_free(void* ptr);
-
 #else
 
 #define memory_malloc(s_data, desc) malloc(s_data)
@@ -35,7 +35,13 @@ internal void memory_free(void* ptr);
 #define memory_realloc(p, s_data, desc) realloc(p, s_data)
 #define memory_free(p) free(p)
 
-#endif
+#define memory_show_inner_state(a, b)
+#define memory_get_n_blocks() 0
+#define memory_get_size() 0
+#define memory_is_empty() TRUE
+#define memory_report()
+
+#endif // MEMORY_MANAGE
 
 #endif // __MEMORY_H__
 

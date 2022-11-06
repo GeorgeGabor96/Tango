@@ -43,15 +43,15 @@ TimingCounter timing_counters[128];
 ++(timing_counters[TIMER_##NAME].hit_count);
 
 internal const char* timing_counter_name(TimingCounterType type);
-internal void timing_report();
+internal void timing_report(const char* output_folder_c_str);
 
 #else
 
 #define TIMING_COUNTER_START(NAME)
 #define TIMING_COUNTER_END(NAME)
 
-#define timing_counter_name(type);
-#define timing_report();
+#define timing_counter_name(type) "TIMING NOTE COMPILED"
+#define timing_report(out_folder)
 
 #endif
 

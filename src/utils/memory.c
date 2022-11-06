@@ -1,3 +1,4 @@
+#ifdef MEMORY_MANAGE
 #include "utils/memory.h"
 
 
@@ -448,3 +449,4 @@ memory_show_inner_state(u32 show_entries, u32 show_empty) {
 	printf("TABLE LENGTH: %llu\nTABLE ENTRIES: %llu\nAverage List Length %f\n", memory_table->length, memory_table->n_entries, (float)memory_table->length / n_lists);
 }
 
+#endif
