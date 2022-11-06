@@ -1,6 +1,7 @@
 #include "utils/memory.c"
 #include "utils/os.c"
 #include "utils/timing.c"
+#include "utils/random.c"
 #include "containers/string.c"
 #include "containers/array.c"
 #include "simulator/synapse.c"
@@ -49,7 +50,7 @@ Network* get_network() {
 int main() {
     const char* output_folder = "D:\\repos\\Tango_outputs";
     Network* network = get_network();
-    DataGen* data = data_gen_create_constant_current(20.0, 1, 100);
+    DataGen* data = data_gen_create_random_spikes(0.1f, 1, 100);
     Callback* callback = callback_dumper_create(output_folder, network);
     Simulator* sim = simulator_create(network, data);
     simulator_add_callback(sim, callback);

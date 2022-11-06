@@ -24,6 +24,13 @@ class SampleFileParser:
 	def parse_bool(self) -> bool:
 		return bool(self.parse_u32())
 
+	def parse_string(self) -> str:
+		string_len = self.parse_u32()
+		string_data = self.bytes[self.offset: self.offset + string_len]
+		self.offset += string_len
+		string = string_data.decode('utf-8')
+		return string
+
 
 class LayerData:
 	def __init__(self, n_steps: int, n_neurons: int):
@@ -40,6 +47,8 @@ class NetworkSample:
 		self.duration = duration
 		self.n_layers = n_layers
 		self.layers_data = []
+		self.layers_names = []
+		self.layers_y_ticks = []
 
 
 def parse_network_sample_file(sample_file_path: str) -> NetworkSample:
@@ -50,6 +59,7 @@ def parse_network_sample_file(sample_file_path: str) -> NetworkSample:
 	net_sample = NetworkSample(sample_duration, n_layers)
 
 	for i in range(n_layers):
+		layer_name = parser.parse_string()
 		n_neurons = parser.parse_u32()
 		layer_data = LayerData(sample_duration, n_neurons)
 
@@ -62,6 +72,17 @@ def parse_network_sample_file(sample_file_path: str) -> NetworkSample:
 				layer_data.epsc[step_i, neuron_i] = parser.parse_f32()
 				layer_data.ipsc[step_i, neuron_i] = parser.parse_f32()
 
-		net_sample.layers_data.append(layer_data)
+		net_sample.layers_data.insert(0, layer_data)
+		net_sample.layers_names.insert(0, layer_name)
+		
+	y_tick = 1
+	for i in range(n_layers):
+		layer_data = net_sample.layers_data[i]
+	
+		layer_y_tick = y_tick + layer_data.n_neurons // 2
+		net_sample.layers_y_ticks.append(layer_y_tick)
+
+		y_tick += layer_data.n_neurons + 2
+
 	return net_sample
 

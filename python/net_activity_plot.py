@@ -39,7 +39,7 @@ def plot_net_sample(net_sample: NetworkSample, plot_path: str):
 		spikes_y += y_coord
 		layer_spikes.append((spikes_x, spikes_y))
 
-		y_coord += layer_data.n_neurons + 1
+		y_coord += layer_data.n_neurons + 2
 		line_x = np.array([0, net_sample.duration], dtype=np.uint32)
 		line_y = np.array([y_coord, y_coord], dtype=np.uint32)
 		lines.append((line_x, line_y))
@@ -48,9 +48,8 @@ def plot_net_sample(net_sample: NetworkSample, plot_path: str):
 	plt.clf()
 	plt.cla()
 	plt.close()
+
 	plt.figure(figsize=(10, 10))
-	plt.xlabel('time', fontsize=30)
-	plt.ylabel('layers', fontsize=30)
 
 	for line in lines:
 		plt.plot(line[0], line[1], color='black')
@@ -58,9 +57,16 @@ def plot_net_sample(net_sample: NetworkSample, plot_path: str):
 	for spikes in layer_spikes:
 		plt.scatter(spikes[0], spikes[1], color='black', s=0.5) 
 
+	plt.yticks(ticks=net_sample.layers_y_ticks, labels=net_sample.layers_names)
+	plt.xlabel('time', fontsize=30)
+	plt.ylabel('layers', fontsize=30)
+
+	plt.axis('tight')
+	plt.tight_layout()
+
 	if plot_path:
 		print(f'[INFO] Saving in {plot_path}')
-		plt.savefig(plot_path)
+		plt.savefig(plot_path, dpi=500)
 	else:
 		plt.show()
 
