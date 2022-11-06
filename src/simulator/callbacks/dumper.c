@@ -22,7 +22,7 @@ callback_dumper_create(const char* output_folder, Network* network) {
     callback->type = CALLBACK_NETWORK_DUMPER;
     
     callback->dumper.output_folder = output_folder_s;
-    callback->dumper.sample_count = -1;
+    callback->dumper.sample_count = (u32)-1;
     callback->dumper.sample_duration = 0;
     callback->dumper.n_layers = network->n_layers;
     callback->dumper.layers_data = (DumperLayerData*)
@@ -89,6 +89,7 @@ internal void
 callback_dumper_begin_sample(Callback* callback,
                              Network* network,
                              u32 sample_duration) {
+    Dumper* dumper = NULL;
     check(callback != NULL, "callback is NULL");
     check(callback->type == CALLBACK_NETWORK_DUMPER,
           "callback->type should be %u (%s) not %u (%s)",
@@ -99,7 +100,7 @@ callback_dumper_begin_sample(Callback* callback,
     check(network != NULL, "network is NULL");
     check(sample_duration != 0, "sample_duration is 0");
     
-    Dumper* dumper = &(callback->dumper);
+    dumper = &(callback->dumper);
     bool should_alloc = sample_duration > dumper->sample_duration;
     u32 i = 0;
     
@@ -124,10 +125,12 @@ callback_dumper_begin_sample(Callback* callback,
     error:
     
     // free all the data for the neurons
-    for (i = 0; i < dumper->n_layers; ++i) {
-        layer_data = dumper->layers_data + i;
-        if (layer_data->neurons_data == NULL) continue;
-        memory_free(layer_data->neurons_data);
+    if (dumper != NULL) {
+        for (i = 0; i < dumper->n_layers; ++i) {
+            layer_data = dumper->layers_data + i;
+            if (layer_data->neurons_data == NULL) continue;
+            memory_free(layer_data->neurons_data);
+        }
     }
     
     return;

@@ -4,6 +4,7 @@
 #define STRING_H
 
 #include "common.h"
+#include "utils/memory.h"
 
 
 // TODO: need to know which os sep to use, how do I know I'm on windows or linux???

@@ -4,6 +4,7 @@
 #define ARRAY_H
 
 #include "math_ops.h"
+#include "utils/memory.h"
 
 
 // NOTE: Be carefull if the @new_len < @current_len because it will only
