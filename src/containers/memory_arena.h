@@ -27,7 +27,6 @@ typedef struct MemoryArena {
 } MemoryArena;
 
 
-
 internal MemoryArena* memory_arena_create(sz memory_size);
 internal void memory_arena_destroy(MemoryArena* arena);
 internal void memory_arena_clear(MemoryArena* arena);

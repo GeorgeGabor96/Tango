@@ -12,32 +12,17 @@ callback_type_get_c_str(CallbackType type) {
 
 
 internal void
-callback_destroy(Callback* callback) {
-    check(callback != NULL, "callback is NULL");
-    
-    if (callback->type == CALLBACK_NETWORK_DUMPER) {
-        callback_dumper_destroy(callback);
-    } else {
-        log_error("Unknown callback type %u (%s)",
-                  callback->type,
-                  callback_type_get_c_str(callback->type));
-    }
-    
-    error:
-    return;
-}
-
-
-internal void
-callback_begin_sample(Callback* callback,
+callback_begin_sample(State* state,
+                      Callback* callback,
                       Network* network,
                       u32 sample_duration) {
+    check(state != NULL, "state is NULL");
     check(callback != NULL, "callback is NULL");
     check(network != NULL, "network is NULL");
     check(sample_duration != 0, "sample_duration is NULL");
     
     if (callback->type == CALLBACK_NETWORK_DUMPER) {
-        callback_dumper_begin_sample(callback, network, sample_duration);
+        callback_dumper_begin_sample(state, callback, network, sample_duration);
     } else {
         log_error("Unknown callback type %u (%s)",
                   callback->type,
@@ -50,7 +35,8 @@ callback_begin_sample(Callback* callback,
 
 
 internal void
-callback_update(Callback* callback, Network* network) {
+callback_update(State* state, Callback* callback, Network* network) {
+    check(state != NULL, "state is NULL");
     check(callback != NULL, "callback is NULL");
     check(network != NULL, "network is NULL");
     
@@ -68,7 +54,8 @@ callback_update(Callback* callback, Network* network) {
 
 
 internal void
-callback_end_sample(Callback* callback, Network* network) {
+callback_end_sample(State* state, Callback* callback, Network* network) {
+    check(state != NULL, "state si NULL");
     check(callback != NULL, "callback is NULL");
     check(network != NULL, "network is NULL");
     

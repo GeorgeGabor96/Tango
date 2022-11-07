@@ -5,12 +5,12 @@
 * DATA GENERATOR
 ***********************/
 internal DataGen*
-data_gen_create_constant_current(f32 value, u32 length, u32 sample_duration) {
+data_gen_create_constant_current(State* state, f32 value, u32 length, u32 sample_duration) {
+    check(state != NULL, "state is NULL");
     check(length > 0, "length is 0");
     check(sample_duration > 0, "sample_duration is 0");
     
-    DataGen* data = (DataGen*) memory_malloc(sizeof(*data),
-                                             "data_gen_create_constant_current");
+    DataGen* data = (DataGen*) memory_arena_push(state->permanent_storage, sizeof(*data));
     check_memory(data);
     
     data->type = DATA_GEN_CONSTANT_CURRENT;
@@ -26,14 +26,14 @@ data_gen_create_constant_current(f32 value, u32 length, u32 sample_duration) {
 
 
 internal DataGen*
-data_gen_create_random_spikes(f32 chance, u32 length, u32 sample_duration) {
+data_gen_create_random_spikes(State* state, f32 chance, u32 length, u32 sample_duration) {
+    check(state != NULL, "state is NULL");
     check(length > 0, "length is 0");
     check(sample_duration > 0, "sample_duration is 0");
     check(chance >= 0.0f, "chance should be at least 0, its %f", chance);
     check(chance <= 1.0f, "chance should be at most 1, its %f", chance);
     
-    DataGen* data = (DataGen*) memory_malloc(sizeof(*data),
-                                             "data_gen_create_random_spikes");
+    DataGen* data = (DataGen*) memory_arena_push(arena->permanent_storage, sizeof(*data));
     check_memory(data);
     
     data->type = DATA_GEN_RANDOM_SPIKES;
@@ -48,33 +48,15 @@ data_gen_create_random_spikes(f32 chance, u32 length, u32 sample_duration) {
 }
 
 
-internal void
-data_gen_destroy(DataGen* data) {
-    check(data != NULL, "data is NULL");
-    
-    if (data->type == DATA_GEN_CONSTANT_CURRENT) {
-        // NOTHING TO DO
-    } else if (data->type == DATA_GEN_RANDOM_SPIKES) {
-        // NOTHING TO DO
-    }
-    memset(data, 0, sizeof(*data));
-    memory_free(data);
-    
-    error:
-    return;
-}
-
-
-
 /***********************
 * DATA SAMPLE
 ***********************/
 internal DataSample*
-data_gen_sample_create(DataGen* data, u32 idx) {
+data_gen_sample_create(State* state, DataGen* data, u32 idx) {
+    check(state != NULL, "state is NULL");
     check(data != NULL, "data is NULL");
     
-    DataSample* sample = (DataSample*) memory_malloc(sizeof(*sample),
-                                                     "data_gen_sample_create");
+    DataSample* sample = (DataSample*) memory_arena_push(arena->transient_storage, sizeof(*sample));
     check_memory(sample);
     
     if (data->type == DATA_GEN_CONSTANT_CURRENT) {
@@ -95,23 +77,12 @@ data_gen_sample_create(DataGen* data, u32 idx) {
 }
 
 
-internal void
-data_gen_sample_destroy(DataSample* sample) {
-    check(sample != NULL, "sample is NULL");
-    
-    memset(sample, 0, sizeof(*sample));
-    memory_free(sample);
-    
-    error:
-    return;
-}
-
-
 /***********************
 * NETWORK INPUTS
 ***********************/
 internal NetworkInputs*
-data_network_inputs_create(DataSample* sample, Network* network, u32 time) {
+data_network_inputs_create(State* state, DataSample* sample, Network* network, u32 time) {
+    check(state != NULL, "state is NULL");
     check(sample != NULL, "sample is NULL");
     check(network != NULL, "network is NULL");
     
@@ -119,12 +90,12 @@ data_network_inputs_create(DataSample* sample, Network* network, u32 time) {
     u32 j = 0;
     Layer* layer = NULL;
     NetworkInput* input = NULL;
-    NetworkInputs* inputs = (NetworkInputs*) memory_malloc(sizeof(*inputs),
-                                                           "data_gen_inputs_create inputs");
+    NetworkInputs* inputs = (NetworkInputs*)
+        memory_arena_push(arena->transient_storage, sizeof(*inputs));
     check_memory(inputs);
     inputs->n_inputs = network->n_in_layers;
-    inputs->inputs = (NetworkInput*) memory_malloc(sizeof(*input) * inputs->n_inputs,
-                                                   "data_gen_inputs_create inputs->inputs");
+    inputs->inputs = (NetworkInput*) memory_arena_push(arena->transient_storage, 
+                                                       sizeof(*input) * inputs->n_inputs);
     check_memory(inputs->inputs);
     
     if (sample->type == DATA_SAMPLE_RANDOM_SPIKES) {
@@ -133,8 +104,8 @@ data_network_inputs_create(DataSample* sample, Network* network, u32 time) {
             input = inputs->inputs + i;
             layer = network->layers[network->in_layers_idxs[i]];
             
-            spikes = (bool*)memory_calloc(layer->n_neurons, sizeof(bool),
-                                          "data_gen_inputs_create spikes");
+            spikes = (bool*)
+                memory_arena_push(arena->transient_storage, layer->n_neurons * sizeof(bool));
             check_memory(spikes);
             for (j = 0; j < layer->n_neurons; ++j) {
                 spikes[j] = random_get_bool(sample->sample_random_spikes.chance);
@@ -149,8 +120,8 @@ data_network_inputs_create(DataSample* sample, Network* network, u32 time) {
             input = inputs->inputs + i;
             layer = network->layers[network->in_layers_idxs[i]];
             
-            currents = (f32*)memory_malloc(sizeof(f32) * layer->n_neurons,
-                                           "data_gen_inputs_create currents");
+            currents = (f32*) 
+                memory_arena_push(arena->transient_storage, sizeof(f32) * layer->n_neurons);
             check_memory(currents);
             for (j = 0; j < layer->n_neurons; ++j) {
                 currents[j] = sample->sample_const_current.value;

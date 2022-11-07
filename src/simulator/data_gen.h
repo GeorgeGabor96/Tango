@@ -34,10 +34,14 @@ typedef struct DataGen {
 } DataGen;
 
 
-internal DataGen* data_gen_create_constant_current(f32 value, u32 length, u32 sample_duration);
-internal DataGen* data_gen_create_random_spikes(f32 chance, u32 length, u32 sample_duration);
-internal void data_gen_destroy(DataGen* data);
-
+internal DataGen* data_gen_create_constant_current(State* state,
+                                                   f32 value,
+                                                   u32 length,
+                                                   u32 sample_duration);
+internal DataGen* data_gen_create_random_spikes(State* state,
+                                                f32 chance,
+                                                u32 length,
+                                                u32 sample_duration);
 
 typedef enum {
     DATA_SAMPLE_INVALID,
@@ -61,13 +65,14 @@ typedef struct DataSample {
 } DataSample;
 
 
-internal DataSample* data_gen_sample_create(DataGen* data, u32 idx);
-internal void data_gen_sample_destroy(DataSample* sample);
-
+internal DataSample* data_gen_sample_create(State* state, DataGen* data, u32 idx);
 
 // NOTE: Currently the easiest thing to do is to give the network when creating inputs
 // NOTE: Probably in the future this is not enough but we will see
-internal NetworkInputs* data_network_inputs_create(DataSample* sample, Network* network, u32 time);
+internal NetworkInputs* data_network_inputs_create(State* state,
+                                                   DataSample* sample,
+                                                   Network* network,
+                                                   u32 time);
 
 
 #endif //DATA_GEN_H

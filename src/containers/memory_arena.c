@@ -134,5 +134,5 @@ memory_arena_push(MemoryArena* arena, sz size) {
     }
     
     error:
-    return memory; 
+    return (void*)memory; 
 }

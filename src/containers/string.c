@@ -16,9 +16,11 @@ get_c_str_length(const char* c_str) {
 
 
 inline internal String*
-string_create_from_length(u32 length) {
-    String* str = (String*) memory_malloc(str_size_from_length(length),
-                                          "string_create_from_length");
+string_create_from_length(MemoryArena* arena, u32 length) {
+    check(arena != NULL, "arena is NULL");
+    check(length > 0, "length is 0");
+    
+    String* str = (String*) memory_arena_push(arena, str_size_from_length(length));
     check_memory(str);
     str->length = length;
     str->data = (char*)(str + 1);
@@ -28,28 +30,18 @@ string_create_from_length(u32 length) {
 
 
 internal String*
-string_create(const char* c_str) {
+string_create(MemoryArena* arena, const char* c_str) {
     String* str = NULL;
+    check(arena != NULL, "arena is NULL");
     check(c_str != NULL, "c_str is NULL");
     
     u32 length = get_c_str_length(c_str);
-    str = string_create_from_length(length);
+    str = string_create_from_length(arena, length);
     check_memory(str);
     memcpy(str->data, c_str, str->length + 1);
     
     error:
     return str;
-}
-
-
-internal void
-string_destroy(String* str) {
-    check(str != NULL, "str is NULL");
-    memset(str, 0, str_size(str));
-    memory_free(str);
-    
-    error:
-    return;
 }
 
 
@@ -104,13 +96,15 @@ string_equal_c_str(String* str, const char* c_str) {
 
 
 internal String*
-string_path_join(String* str1, String* str2, bool keep_strs) {
+string_path_join(MemoryArena* arena, String* str1, String* str2) {
     String* str = NULL;
+    check(arena != NULL, "arena is NULL");
     check(str1 != NULL, "str1 is NULL");
     check(str2 != NULL, "str2 is NULL");
     
+    // TODO: nu trebuia + 2?? gen pentru \0
     u32 length = str1->length + 1 + str2->length;
-    str = string_create_from_length(length);
+    str = string_create_from_length(arena, length);
     u32 str_offset = 0;
     u32 i = 0;
     for (i = 0; i < str1->length; ++i, ++str_offset) {
@@ -122,32 +116,34 @@ string_path_join(String* str1, String* str2, bool keep_strs) {
     } 
     str->data[str_offset] = '\0';
     
-    if (keep_strs == FALSE) {
-        string_destroy(str1);
-        string_destroy(str2);
-    }
-    
     error:
     return str;
 }
 
 
 internal String*
-string_path_join_c_str(String* str1, const char* c_str, bool keep_str1) {
-    String* str2 = NULL;
+string_path_join_c_str(MemoryArena* arena, String* str, const char* c_str) {
     String* str = NULL;
+    check(arena != NULL, "arena is NULL");
     check(str1 != NULL, "str1 is NULL");
     check(c_str != NULL, "c_str is NULL");
     
-    str2 = string_create(c_str);
-    check(str2 != NULL, "str2 is NULL");
+    u32 c_str_len = get_c_str_length(c_str);
+    u32 length = str->length + 1 + c_str_len;
+    str = string_create_from_length(arena, length);
+    u32 str_offset = 0;
+    u32 i = 0;
+    for (i = 0; i < str->length; ++i, ++str_offset)
+        str->data[str_offset] = str->data[i];
+    str->data[str_offset++] = STR_OS_PATH_SEP;
+    for (i = 0; i < c_str_len; ++i, ++str_offset)
+        str->data[str_offset] = c_str[i];
+    str->data[str_offset] = '\0';
     
-    str = string_path_join(str1, str2, keep_str1);
-    
-    if (keep_str1 == TRUE) string_destroy(str2);
     error:
     return str;
 }
+
 
 internal const char*
 string_to_c_str(String* str) {
@@ -157,24 +153,4 @@ string_to_c_str(String* str) {
     
     error:
     return NULL;
-}
-
-
-internal char*
-string_to_c_str_copy(String* str) {
-    char* c_str = NULL;
-    check(str != NULL, "str is NULL");
-    
-    c_str = (char*) memory_malloc((str->length + 1) * sizeof(char),
-                                  "string_to_c_str_copy");
-    check_memory(c_str);
-    
-    u32 i = 0;
-    for (i = 0; i < str->length; ++i) {
-        c_str[i] = str->data[i];
-    }
-    c_str[i] = '\0';
-    
-    error:
-    return c_str;
 }
