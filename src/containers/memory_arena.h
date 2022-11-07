@@ -10,15 +10,27 @@
 #define MB(a) KB(a) * 1024
 
 
+typedef struct MemoryArenaBlock {
+    u8* memory_start;
+    u8* memory_end;
+    struct MemoryArenaBlock* next;
+} MemoryArenaBlock;
+
+
 typedef struct MemoryArena {
-    sz size;
-    sz current;
-    u8* memory;
+    sz block_size;
+    u8* current_adr;
+    MemoryArenaBlock* current_block;
+    MemoryArenaBlock* first_block;
+    MemoryArenaBlock* last_block;
+    u32 n_blocks;
 } MemoryArena;
 
 
-internal MemoryArena* memory_arena_create(sz memory_size, bool clear_to_zero);
+
+internal MemoryArena* memory_arena_create(sz memory_size);
 internal void memory_arena_destroy(MemoryArena* arena);
+internal void memory_arena_clear(MemoryArena* arena);
 internal void* memory_arena_push(MemoryArena* arena, sz size); 
 
 
