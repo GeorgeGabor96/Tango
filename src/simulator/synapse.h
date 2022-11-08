@@ -7,6 +7,7 @@
 #include "math_ops.h"
 #include "utils/memory.h"
 #include "containers/string.h"
+#include "containers/memory_arena.h"
 
 
 typedef enum {
@@ -31,11 +32,6 @@ typedef struct SynapseCls {
 internal SynapseCls* synapse_cls_create(const char* name, SynapseType type,
                                         f32 rev_potential, f32 amp, 
                                         f32 tau_ms, u32 delay);
-internal void synapse_cls_destroy(SynapseCls* cls);
-internal void synapse_cls_reset(SynapseCls* cls);
-
-internal void synapse_cls_move(SynapseCls* cls_src, SynapseCls* cls_dst);
-
 
 typedef struct Synapse {
     SynapseCls* cls;
@@ -46,17 +42,13 @@ typedef struct Synapse {
     u32 n_spike_times;
     u32 spike_times_head;  // remove
     u32 spike_times_tail;  // add
-    u32* spike_times;
-} Synapse, *SynapseP;
+    u32* spike_times;      // Directly after the synapse
+} Synapse;
 
 
-internal Synapse* synapse_create(SynapseCls* cls, f32 weight);
-internal bool synapse_init(Synapse* synapse, SynapseCls* cls, f32 weight);
-internal void synapse_destroy(Synapse* synapse);
-internal void synapse_reset(Synapse* synapse);
-
-// TODO: how to move a synapse?
-// internal void synapse_move(Synapse* synapse_src, Synapse* synapse_dst);
+internal sz synapse_size_with_cls(SynapseCls* cls);
+internal Synapse* synapse_create(State* state, SynapseCls* cls, f32 weight);
+internal void synapse_init(Synapse* synapse, SynapseCls* cls, f32 weight);
 
 internal u32 synapse_next_spike_time(Synapse* synapse);
 internal void synapse_add_spike_time(Synapse* synapse, u32 spike_time);

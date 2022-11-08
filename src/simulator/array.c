@@ -1,6 +1,6 @@
 #include "array.h"
 
-
+// TODO: whats with this file
 internal void*
 array_increase_length(void* array, sz el_size, u32 length, u32 new_length) {
     check(array != NULL, "array is NULL");

@@ -26,9 +26,12 @@ synapse_type_get_c_str(SynapseType type) {
 * Synapse Class
 *******************/
 internal SynapseCls*
-synapse_cls_create(const char* name, SynapseType type,
+synapse_cls_create(State* state, 
+                   const char* name, SynapseType type,
                    f32 rev_potential, f32 amp, f32 tau_ms, u32 delay) {
     SynapseCls* cls = NULL;
+    
+    check(state != NULL, "state is NULL");
     check(name != NULL, "name is NULL");
     check(type == SYNAPSE_CONDUCTANCE || type == SYNAPSE_VOLTAGE,
           "invalid synapse type %s",
@@ -40,11 +43,12 @@ synapse_cls_create(const char* name, SynapseType type,
     check(tau_ms > 0.0f, "tau_ms needs to be > 0");
     check(delay > 0, "delay needs to be > 0");
     
-    cls = (SynapseCls*)memory_malloc(sizeof(*cls), "synapse_cls_create");
+    cls = (SynapseCls*)memory_arena_push(state->permanent_storage, sizeof(*cls));
     check_memory(cls);
     
-    cls->name = string_create(name);
+    cls->name = string_create(state->permanent_storage, name);
     check_memory(cls->name);
+    
     cls->type = type;
     cls->rev_potential = rev_potential;
     cls->amp = amp;
@@ -53,71 +57,36 @@ synapse_cls_create(const char* name, SynapseType type,
     return cls;
     
     error:
-    if (cls != NULL) {
-        if (cls->name != NULL) string_destroy(cls->name);
-        memory_free(cls);
-    }
     return NULL;
-}
-
-
-internal void
-synapse_cls_destroy(SynapseCls* cls) {
-    check(cls != NULL, "cls is NULL");
-    
-    synapse_cls_reset(cls);
-    memory_free(cls);
-    
-    error:
-    return;
-}
-
-
-internal void
-synapse_cls_reset(SynapseCls* cls) {
-    check(cls != NULL, "cls is NULL");
-    
-    string_destroy(cls->name);
-    memset(cls, 0, sizeof(*cls));
-    
-    error:
-    return;
-}
-
-
-internal void
-synapse_cls_move(SynapseCls* cls_src, SynapseCls* cls_dst) {
-    check(cls_src != NULL, "cls_src is NULL");
-    check(cls_dst != NULL, "cls_dst is NULL");
-    
-    memcpy(cls_dst, cls_src, sizeof(*cls_src));
-    memset(cls_src, 0, sizeof(*cls_src));
-    
-    error:
-    return;
 }
 
 
 /*******************
 * Synapse
 *******************/
+internal sz
+synapse_size_with_cls(SynapseCls* cls) {
+    sz result = sizeof(Synapse) + (cls->delay + 1) * sizeof(u32);
+    return result;
+}
+
+
 internal Synapse*
-synapse_create(SynapseCls* cls, f32 weight) {
+synapse_create(State* state, SynapseCls* cls, f32 weight) {
     Synapse* synapse = NULL;
     
-    synapse = (Synapse*)memory_malloc(sizeof(*synapse), "synapse_create");
+    check(state != NULL, "state is NULL");
+    check(cls != NULL, "cls is NULL");
+    
+    // Alloc also the queue after the synapse for max cache
+    synapse = (Synapse*)memory_arena_push(state->permanent_storage,
+                                          synapse_size_with_cls(cls));
     check_memory(synapse);
     
-    bool status = synapse_init(synapse, cls, weight);
-    check(status == TRUE, "couldn't init synapse");
+    synapse_init(synapse, cls, weight);
     
     return synapse;
-    
     error:
-    if (synapse != NULL) {
-        memset(synapse, 0, sizeof(*synapse));
-        memory_free(synapse);
-    }
     return NULL;
 }
 
@@ -133,46 +102,15 @@ synapse_init(Synapse* synapse, SynapseCls* cls, f32 weight) {
     // need a number of delay slots in the queue (in case update then add)
     // NOTE: or delay + 1 (in case add then update)
     // NOTE: Recheck this, for now its okay
-    synapse->spike_times = (u32*)memory_malloc((cls->delay + 1) * sizeof(u32),
-                                               "synapse_init");
-    check_memory(synapse->spike_times);
-    synapse->spike_times_head = 0;
-    synapse->spike_times_tail = 0;
-    synapse->n_spike_times = 0;
-    synapse->n_max_spike_times = cls->delay + 1;
-    
     synapse->cls = cls;
     synapse->weight = weight;
     synapse->conductance = 0.0f;
-    return TRUE;
     
-    error:
-    return FALSE;
-    
-}
-
-
-internal void
-synapse_destroy(Synapse* synapse) {
-    check(synapse != NULL, "synapse is NULL");
-    memory_free(synapse);
-    
-    synapse_reset(synapse);
-    
-    error:
-    return;
-}
-
-
-internal void
-synapse_reset(Synapse* synapse) {
-    check(synapse != NULL, "synapse is NULL");
-    
-    memory_free(synapse->spike_times);
-    memset(synapse, 0, sizeof(Synapse));
-    
-    error:
-    return;
+    synapse->n_max_spike_times = cls->delay + 1;
+    synapse->n_spike_times = 0;
+    synapse->spike_times_head = 0;
+    synapse->spike_times_tail = 0;
+    synapse->spike_times = (u32*)(synapse + 1);
 }
 
 
