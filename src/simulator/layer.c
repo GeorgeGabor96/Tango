@@ -171,30 +171,57 @@ layer_link_dense(State* state,
     Neuron* neuron = NULL;
     Neuron* in_neuron = NULL;
     Synapse* synapse = NULL;
-    SynapseArray* synapses = NULL;
+    InSynapseArray* in_synapses = NULL;
     bool status = FALSE;
+    sz synapse_size = synapse_size_with_cls(cls);
+    
+    OutSynapseArray* out_synapses = NULL;
+    OutSynapseArray** out_synapses_in_layer = memory_arena_push(state->transient_storage,
+                                                                in_layer->n_neurons * sizeof(OutSynapseArray*));
+    check_memory(out_synapses_in_layer);
+    
+    // INIT the output synapses for each of the input neurons
+    for (neuron_i = 0; neuron_i < in_layer->n_neurons; ++i) {
+        out_synapses = memory_arena_push(state->permanent_storage,
+                                         sizeof(OutSynapseArray) + sizeof(Synapse*) * layer->n_layers);
+        check_memory(out_synapses);
+        out_synapses->length = 0;
+        out_synapses->synapses = (Synapses**)(out_synapses + 1);
+        out_synapses_in_layer[neuron_i] = out_synapses;
+    }
     
     for (neuron_i = 0; neuron_i < layer->n_neurons; ++neuron_i) {
         neuron = layer->neurons + neuron_i;
         
         // ALLOC all input synapses
-        synapses = (SynapseArray*) memory_arena_push(state->permanent_storage, sizeof(SynapseArray) + sizeof(Synapse) *  in_layer->n_neurons);
+        in_synapses = (SynapseArray*)
+            memory_arena_push(state->permanent_storage,
+                              sizeof(InSynapseArray) + synapse_size * in_layer->n_neurons);
         check_memory(synapses);
-        synapses->max_length = in_layer->n_neurons;
-        synapses->length = in_layer->n_neurons;
-        synapses->data = (Synapse*)(synapses + 1);
-        synapse_i = 0;
+        in_synapses->length = in_layer->n_neurons;
+        in_synapses->synapse_size = synapse_size;
+        in_synapses->synapses = (Synapse*)(synapses + 1);
         
         for (in_neuron_i = 0; in_neuron_i < in_layer->n_neurons; ++in_neuron_i) {
             in_neuron = in_layer->neurons + in_neuron_i;
             
-            synapse = synapses->data + synapse_i;
+            synapse = in_synapses->synapses + synapse_i;
             ++synapse_i;
             
             synapse_init(synapse, cls, weight);
-            neuron_add_out_synapse(in_neuron, synapse);
+            
+            // NOTE: save the synapse in the output synapses of the input neuron
+            out_synapses = out_synapses_in_layer[in_neuron_i];
+            out_synapses->synapses[out_synapses->length] = synapse;
+            ++(out_synapses->length);
         }
         neuron_add_in_synapse_array(neuron, synapses);
+    }
+    
+    for (neuron_i = 0; neuron_i < in_layer->n_neurons; ++i) {
+        neuron = in_layer->neurons + neuron_i;
+        synapses_out = out_synapses_in_layer[neuron_i];
+        neuron_add_out_synapse_array(neuron, out_synapses);
     }
     
     status = TRUE;
