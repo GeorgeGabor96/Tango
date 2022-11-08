@@ -12,22 +12,23 @@
 #include "simulator/callback.h"
 
 
+typedef struct CallbackNode {
+    Callback* callback;
+    struct CallbackNode* next;
+} CallbackNode;
+
+
 typedef struct Simulator {
     Network* network;
     DataGen* data;
-    
-    u32 n_callbacks;
-    u32 n_max_callbacks;
-    CallbackP* callbacks;
-    
+    CallbackNode* callback_list;
 } Simulator;
 
 
-internal Simulator* simulator_create(Network* network, DataGen* data);
-internal void simulator_destroy(Simulator* simulator);
+internal Simulator* simulator_create(State* state, Network* network, DataGen* data);
 
-internal void simulator_run(Simulator* simulator);
-internal void simulator_add_callback(Simulator* simulator, Callback* callback);
+internal void simulator_run(State* state, Simulator* simulator);
+internal void simulator_add_callback(State* state, Simulator* simulator, Callback* callback);
 
 
 #endif //SIMULATOR_H

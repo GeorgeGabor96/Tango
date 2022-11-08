@@ -15,105 +15,40 @@ layer_type_get_c_str(LayerType type) {
 *   LAYER
 ****************/
 internal Layer*
-layer_create(const char* name, LayerType type, u32 n_neurons, NeuronCls* cls) {
+layer_create(State* state, const char* name, LayerType type, u32 n_neurons, NeuronCls* cls) {
     Layer* layer = NULL;
-    bool flag = FALSE;
-    
-    layer = (Layer*) memory_malloc(sizeof(*layer), "layer_create");
-    check_memory(layer);
-    
-    flag = layer_init(layer, name, type, n_neurons, cls);
-    check(flag == TRUE, "couldn't init the layer");
-    
-    return layer;
-    
-    error:
-    memory_free(layer);
-    return NULL;
-}
-
-
-internal bool
-layer_init(Layer* layer, const char* name, LayerType type, 
-           u32 n_neurons, NeuronCls* cls) {
     u32 i = 0;
-    bool status = FALSE;
     
-    check(layer != NULL, "layer is NULL");
+    check(state != NULL, "state is NULL");
     check(name != NULL, "name is NULL");
     check(type == LAYER_DENSE, "invalid layer type %s", 
           layer_type_get_c_str(type));
+    check(n_neurons > 0, "n_neurons is 0");
     check(cls != NULL, "cls is NULL");
     
+    layer = (Layer*) memory_arena_push(state->permanent_storage, sizeof(*layer));
+    check_memory(layer);
     
     layer->n_neurons = n_neurons;
-    layer->neurons = (Neuron*)memory_malloc(layer->n_neurons * sizeof(Neuron),
-                                            "layer_init layer->neurons");
+    // TODO: should I just keep pointers to neurons and remove the init?
+    layer->neurons = (Neuron*)
+        memory_arena_push(state->permanent_storage, layer->n_neurons * sizeof(Neuron));
     check_memory(layer->neurons);
     for (i = 0; i < layer->n_neurons; ++i) {
         status = neuron_init(layer->neurons + i, cls);
         check(status == TRUE, "couldn't init neuron %u", i);
     }
     
-    layer->n_in_layers = 0;
-    layer->n_max_in_layers = 5;
-    layer->in_layers = (Layer**) memory_malloc(layer->n_max_in_layers * sizeof(Layer*),
-                                               "layer_init layer->in_layers");
-    check_memory(layer->in_layers);
+    memset(layer->n_in_layers, 0, sizeof(Layer*) * LAYER_N_MAX_IN_LAYERS);
     
-    layer->name = string_create(name);
+    layer->name = string_create(state->permanent_storage, name);
     check_memory(layer->name);
     layer->type = type;
     layer->it_ran = FALSE;
     
-    // TODO:
-    if (layer->type == LAYER_DENSE) {
-        
-    }
-    
-    return TRUE;
+    return layer;
     error:
-    if (layer->neurons != NULL) {
-        for (u32 j = 0; j < i; ++j)
-            neuron_reset(layer->neurons + j);
-        memory_free(layer->neurons);
-    }
-    if (layer->in_layers != NULL)
-        memory_free(layer->in_layers);
-    if (layer->name != NULL)
-        string_destroy(layer->name);
-    
-    return FALSE;
-}
-
-
-internal void
-layer_reset(Layer* layer) {
-    check(layer != NULL, "layer is NULL");
-    
-    // NOTE: reset the neuron memory
-    u32 i = 0;
-    for (i = 0; i < layer->n_neurons; ++i) {
-        neuron_reset(layer->neurons + i);
-    }
-    string_destroy(layer->name);
-    memory_free(layer->neurons);
-    memory_free(layer->in_layers);
-    memset(layer, 0, sizeof(*layer));
-    
-    error:
-    return;
-}
-
-
-internal void
-layer_destroy(Layer* layer) {
-    check(layer != NULL, "layer is NULL");
-    layer_reset(layer);
-    memory_free(layer);
-    
-    error:
-    return;
+    return NULL;
 }
 
 
@@ -202,6 +137,7 @@ layer_show(Layer* layer) {
     u32 j = 0;
     u32 n_in_synapses = 0;
     Neuron* neuron = NULL;
+    // TODO: This probably will change??
     for (i = 0; i < layer->n_neurons; ++i) {
         neuron = layer->neurons + i;
         for (j = 0; j < neuron->n_in_arrays; ++j) {
@@ -226,7 +162,8 @@ layer_show(Layer* layer) {
 
 
 inline internal bool
-layer_link_dense(Layer* layer, Layer* in_layer,
+layer_link_dense(State* state,
+                 Layer* layer, Layer* in_layer,
                  SynapseCls* cls, f32 weight) {
     u32 neuron_i = 0;
     u32 in_neuron_i = 0;
@@ -241,8 +178,7 @@ layer_link_dense(Layer* layer, Layer* in_layer,
         neuron = layer->neurons + neuron_i;
         
         // ALLOC all input synapses
-        synapses = (SynapseArray*)memory_malloc(sizeof(SynapseArray) + sizeof(Synapse) *  in_layer->n_neurons,
-                                                "layer_link_dense synapses");
+        synapses = (SynapseArray*) memory_arena_push(state->permanent_storage, sizeof(SynapseArray) + sizeof(Synapse) *  in_layer->n_neurons);
         check_memory(synapses);
         synapses->max_length = in_layer->n_neurons;
         synapses->length = in_layer->n_neurons;
@@ -263,21 +199,19 @@ layer_link_dense(Layer* layer, Layer* in_layer,
     
     status = TRUE;
     error:
-    // NOTE: NO NEED TO DEALLOCATE THE SYNAPSES THAT WERE SUCCESFULL
-    // NOTE: BECAUSE IF THIS FAILS WE WOULD DELETE THE LAYER WHICH
-    // NOTE: DELETES THE NEURONS WHICH DELETE THE SYNAPSES
     return status;
 }
 
 
 internal bool
-layer_link(Layer* layer, Layer* input_layer, SynapseCls* cls, f32 weight) {
+layer_link(State* state, Layer* layer, Layer* input_layer, SynapseCls* cls, f32 weight) {
     bool status = FALSE;
+    check(state != NULL, "state is NULL");
     check(layer != NULL, "layer is NULL");
     check(input_layer != NULL, "input_layer is NULL");
     
     if (layer->type == LAYER_DENSE) {
-        status = layer_link_dense(layer, input_layer, cls, weight);
+        status = layer_link_dense(state, layer, input_layer, cls, weight);
         check(status == TRUE, "couldn't link layers %s and %s",
               string_to_c_str(layer->name), string_to_c_str(input_layer->name));
     } else {
@@ -285,14 +219,7 @@ layer_link(Layer* layer, Layer* input_layer, SynapseCls* cls, f32 weight) {
     }
     
     // NOTE: Save reference to the input layer
-    if (layer->n_in_layers == layer->n_max_in_layers) {
-        u32 new_n_max_in_layers = layer->n_max_in_layers * 2;
-        layer->in_layers = array_resize(layer->in_layers, sizeof(Layer*),
-                                        layer->n_in_layers,
-                                        new_n_max_in_layers);
-        check(layer->in_layers != NULL, "layer->in_layers is NULL");
-        layer->n_max_in_layers = new_n_max_in_layers;
-    }
+    check(layer->n_in_layers < LAYER_N_MAX_IN_LAYERS, "too many input layers");
     layer->in_layers[layer->n_in_layers] = input_layer;
     ++(layer->n_in_layers);
     
@@ -302,10 +229,12 @@ layer_link(Layer* layer, Layer* input_layer, SynapseCls* cls, f32 weight) {
 
 
 internal f32*
-layer_get_voltages(Layer* layer) {
+layer_get_voltages(State* state, Layer* layer) {
+    check(state != NULL, "state is NULL");
     check(layer != NULL, "layer is NULL");
     
-    f32* voltages = (f32*)memory_malloc(sizeof(f32) * layer->n_neurons, "layer_get_voltages");
+    f32* voltages = (f32*)
+        memory_arena_push(state->transient_storage, sizeof(f32) * layer->n_neurons);
     check_memory(voltages);
     
     for (u32 i = 0; i < layer->n_neurons; ++i)
@@ -319,10 +248,12 @@ layer_get_voltages(Layer* layer) {
 
 
 internal f32*
-layer_get_pscs(Layer* layer) {
+layer_get_pscs(State* state, Layer* layer) {
+    check(state != NULL, "state is NULL");
     check(layer != NULL, "layer is NULL");
     
-    f32* pscs = (f32*)memory_malloc(sizeof(f32) * layer->n_neurons, "layer_get_pscs");
+    f32* pscs = (f32*)
+        memory_arena_push(state->transient_memory, sizeof(f32) * layer->n_neurons);
     check_memory(pscs);
     
     for (u32 i = 0; i < layer->n_neurons; ++i)
@@ -336,10 +267,12 @@ layer_get_pscs(Layer* layer) {
 
 
 internal f32*
-layer_get_epscs(Layer* layer) {
+layer_get_epscs(State* state, Layer* layer) {
+    check(state != NULL, "state is NULL");
     check(layer != NULL, "layer is NULL");
     
-    f32* epscs = (f32*)memory_malloc(sizeof(f32) * layer->n_neurons, "layer_get_epscs");
+    f32* epscs = (f32*)
+        memory_arena_push(state->transient_storage, sizeof(f32) * layer->n_neurons);
     check_memory(epscs);
     
     for (u32 i = 0; i < layer->n_neurons; ++i)
@@ -353,10 +286,12 @@ layer_get_epscs(Layer* layer) {
 
 
 internal f32*
-layer_get_ipscs(Layer* layer) {
+layer_get_ipscs(State* state, Layer* layer) {
+    check(state != NULL, "state is NULL");
     check(layer != NULL, "layer is NULL");
     
-    f32* ipscs = (f32*)memory_malloc(sizeof(f32) * layer->n_neurons, "layer_get_ipscs");
+    f32* ipscs = (f32*)
+        memory_arena_push(state->transient_storage, sizeof(f32) * layer->n_neurons);
     check_memory(ipscs);
     
     for (u32 i = 0; i < layer->n_neurons; ++i)
@@ -370,10 +305,12 @@ layer_get_ipscs(Layer* layer) {
 
 
 internal bool*
-layer_get_spikes(Layer* layer) {
+layer_get_spikes(State* state, Layer* layer) {
+    check(state != NULL, "state is NULL");
     check(layer != NULL, "layer is NULL");
     
-    bool* spikes = (bool*)memory_malloc(sizeof(bool) * layer->n_neurons, "layer_get_spikes");
+    bool* spikes = (bool*)
+        memory_arena_push(state->transient_storage, sizeof(bool) * layer->n_neurons);
     check_memory(spikes);
     
     for (u32 i = 0; i < layer->n_neurons; ++i)
