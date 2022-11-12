@@ -200,11 +200,12 @@ layer_link_dense(State* state,
         in_synapses->synapse_size = synapse_size;
         in_synapses->synapses = (Synapse*)(in_synapses + 1);
         
-        for (in_neuron_i = 0; in_neuron_i < in_layer->n_neurons; ++in_neuron_i) {
+        for (in_neuron_i = 0, synapse_i = 0;
+             in_neuron_i < in_layer->n_neurons;
+             ++in_neuron_i, ++synapse_i) {
             in_neuron = in_layer->neurons + in_neuron_i;
             
             synapse = in_synapses->synapses + synapse_i;
-            ++synapse_i;
             
             synapse_init(synapse, cls, weight);
             
@@ -234,6 +235,7 @@ layer_link(State* state, Layer* layer, Layer* input_layer, SynapseCls* cls, f32 
     check(state != NULL, "state is NULL");
     check(layer != NULL, "layer is NULL");
     check(input_layer != NULL, "input_layer is NULL");
+    check(cls != NULL, "cls is NULL");
     
     if (layer->type == LAYER_DENSE) {
         status = layer_link_dense(state, layer, input_layer, cls, weight);

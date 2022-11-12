@@ -55,10 +55,10 @@ Network* get_network(State* state) {
 
 
 
-int main_old() {
+int main() {
     State* state = state_create();
     
-    const char* output_folder = "D:\\repos\\Tango_outputs";
+    const char* output_folder = "D:\\repos\\Tango_outputs_arena";
     Network* network = get_network(state);
     DataGen* data = data_gen_create_random_spikes(state, 0.1f, 1, 100);
     Callback* callback = callback_dumper_create(state, output_folder, network);
@@ -77,10 +77,5 @@ int main_old() {
     error:
     
     
-    return 0;
-}
-
-
-int main() {
     return 0;
 }

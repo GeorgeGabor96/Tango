@@ -12,6 +12,8 @@ state_create() {
     state->transient_storage = memory_arena_create(BLOCK_SIZE);
     check(state->transient_storage != NULL, "state->transient_storage is NULL");
     
+    return state;
+    
     error:
     
     if (state != NULL) {
