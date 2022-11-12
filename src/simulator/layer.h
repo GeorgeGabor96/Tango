@@ -19,7 +19,7 @@ typedef enum {
 internal char* layer_type_get_c_str(LayerType type);
 
 
-#define LAYER_N_MAX_IN_LAYERS 5;
+#define LAYER_N_MAX_IN_LAYERS 5
 
 typedef struct Layer {
     LayerType type;
@@ -29,7 +29,7 @@ typedef struct Layer {
     u32 n_neurons;
     bool it_ran;
     
-    Layer* in_layers[LAYER_N_MAX_IN_LAYERS];
+    struct Layer* in_layers[LAYER_N_MAX_IN_LAYERS];
     u32 n_in_layers;
 } Layer;
 

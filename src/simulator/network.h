@@ -9,7 +9,7 @@
 #include "simulator/layer.h"
 
 
-#define NETWORK_N_MAX_LAYERS 32
+#define NETWORK_N_MAX_LAYERS 32u
 
 typedef struct Network {
     String* name;
@@ -53,8 +53,7 @@ internal Network* network_create(State* state, const char* name);
 internal void network_show(Network* network);
 internal void network_compile(Network* network);
 
-internal void network_add_layer(State* state,
-                                Network* network, Layer* layer,
+internal void network_add_layer(Network* network, Layer* layer,
                                 bool is_input, bool is_output);
 internal void network_step(Network* network, NetworkInputs* inputs, u32 time);
 internal void network_clear(Network* network);

@@ -11,7 +11,7 @@
 typedef struct State {
     MemoryArena* permanent_storage;
     MemoryArena* transient_storage;
-} State
+} State;
 
 
 #define BLOCK_SIZE MB(10)

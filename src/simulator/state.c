@@ -1,4 +1,4 @@
-#include "simulator/state.c"
+#include "simulator/state.h"
 
 
 internal State*
@@ -30,7 +30,7 @@ state_destroy(State* state) {
     
     memory_arena_destroy(state->permanent_storage);
     memory_arena_destroy(state->transient_storage);
-    memste(state, 0, sizeof(*state));
+    memset(state, 0, sizeof(*state));
     memory_free(state);
     
     error:

@@ -162,8 +162,7 @@ callback_dumper_end_sample(State* state, Callback* callback, Network* network) {
     
     String* output_file = string_path_join_c_str(state->transient_storage,
                                                  dumper->output_folder,
-                                                 file_name,
-                                                 TRUE); // need the first string for further calls
+                                                 file_name);
     log_info("Dumping in %s", string_to_c_str(output_file));
     
     fp = fopen(string_to_c_str(output_file), "wb");

@@ -6,14 +6,16 @@
 #include "common.h"
 #include "math_ops.h"
 #include "utils/memory.h"
+#include "utils/timing.h"
 #include "containers/string.h"
 #include "containers/memory_arena.h"
+#include "simulator/state.h"
 
 
 typedef enum {
     SYNAPSE_INVALID,
     SYNAPSE_CONDUCTANCE,
-    SYNAPSE_VOLTAGE
+    SYNAPSE_VOLTAGE,
 } SynapseType;
 
 internal char* synapse_type_get_c_str(SynapseType type);
@@ -29,7 +31,8 @@ typedef struct SynapseCls {
 } SynapseCls;
 
 
-internal SynapseCls* synapse_cls_create(const char* name, SynapseType type,
+internal SynapseCls* synapse_cls_create(State* state,
+                                        const char* name, SynapseType type,
                                         f32 rev_potential, f32 amp, 
                                         f32 tau_ms, u32 delay);
 

@@ -33,7 +33,7 @@ data_gen_create_random_spikes(State* state, f32 chance, u32 length, u32 sample_d
     check(chance >= 0.0f, "chance should be at least 0, its %f", chance);
     check(chance <= 1.0f, "chance should be at most 1, its %f", chance);
     
-    DataGen* data = (DataGen*) memory_arena_push(arena->permanent_storage, sizeof(*data));
+    DataGen* data = (DataGen*) memory_arena_push(state->permanent_storage, sizeof(*data));
     check_memory(data);
     
     data->type = DATA_GEN_RANDOM_SPIKES;
@@ -56,7 +56,7 @@ data_gen_sample_create(State* state, DataGen* data, u32 idx) {
     check(state != NULL, "state is NULL");
     check(data != NULL, "data is NULL");
     
-    DataSample* sample = (DataSample*) memory_arena_push(arena->transient_storage, sizeof(*sample));
+    DataSample* sample = (DataSample*) memory_arena_push(state->transient_storage, sizeof(*sample));
     check_memory(sample);
     
     if (data->type == DATA_GEN_CONSTANT_CURRENT) {
@@ -91,10 +91,10 @@ data_network_inputs_create(State* state, DataSample* sample, Network* network, u
     Layer* layer = NULL;
     NetworkInput* input = NULL;
     NetworkInputs* inputs = (NetworkInputs*)
-        memory_arena_push(arena->transient_storage, sizeof(*inputs));
+        memory_arena_push(state->transient_storage, sizeof(*inputs));
     check_memory(inputs);
     inputs->n_inputs = network->n_in_layers;
-    inputs->inputs = (NetworkInput*) memory_arena_push(arena->transient_storage, 
+    inputs->inputs = (NetworkInput*) memory_arena_push(state->transient_storage, 
                                                        sizeof(*input) * inputs->n_inputs);
     check_memory(inputs->inputs);
     
@@ -102,10 +102,10 @@ data_network_inputs_create(State* state, DataSample* sample, Network* network, u
         bool* spikes = NULL;
         for (i = 0; i < inputs->n_inputs; ++i) {
             input = inputs->inputs + i;
-            layer = network->layers[network->in_layers_idxs[i]];
+            layer = network->in_layers[i];
             
             spikes = (bool*)
-                memory_arena_push(arena->transient_storage, layer->n_neurons * sizeof(bool));
+                memory_arena_push(state->transient_storage, layer->n_neurons * sizeof(bool));
             check_memory(spikes);
             for (j = 0; j < layer->n_neurons; ++j) {
                 spikes[j] = random_get_bool(sample->sample_random_spikes.chance);
@@ -118,10 +118,10 @@ data_network_inputs_create(State* state, DataSample* sample, Network* network, u
         f32* currents = NULL;
         for (i = 0; i < network->n_in_layers; ++i) {
             input = inputs->inputs + i;
-            layer = network->layers[network->in_layers_idxs[i]];
+            layer = network->in_layers[i];
             
             currents = (f32*) 
-                memory_arena_push(arena->transient_storage, sizeof(f32) * layer->n_neurons);
+                memory_arena_push(state->transient_storage, sizeof(f32) * layer->n_neurons);
             check_memory(currents);
             for (j = 0; j < layer->n_neurons; ++j) {
                 currents[j] = sample->sample_const_current.value;

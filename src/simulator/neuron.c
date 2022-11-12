@@ -69,8 +69,7 @@ neuron_create(State* state, NeuronCls* cls) {
     neuron = (Neuron*)memory_arena_push(state->permanent_storage, sizeof(Neuron));
     check_memory(neuron);
     
-    bool status = neuron_init(neuron, cls);
-    check(status == TRUE, "couldn't init the neuron");
+    neuron_init(neuron, cls);
     
     return neuron;
     
@@ -85,7 +84,7 @@ neuron_init(Neuron* neuron, NeuronCls* cls) {
     check(cls != NULL, "cls is NULL");
     
     memset(neuron->in_synapse_arrays, 0, sizeof(InSynapseArray*) * NEURON_N_MAX_INPUTS);
-    memset(neuron->out_syanpse_arrays, 0, sizeof(OutSynapseArray*) * NEURON_N_MAX_OUTPUTS);
+    memset(neuron->out_synapse_arrays, 0, sizeof(OutSynapseArray*) * NEURON_N_MAX_OUTPUTS);
     
     neuron->n_in_synapse_arrays = 0;
     neuron->n_out_synapse_arrays = 0;
@@ -101,6 +100,9 @@ neuron_init(Neuron* neuron, NeuronCls* cls) {
         neuron->voltage = NEURON_LIF_VOLTAGE_REST;
         neuron->lif_refract.last_spike_time = 0;
     }
+    
+    error:
+    return;
 }
 
 
@@ -111,16 +113,22 @@ neuron_add_in_synapse_array(Neuron* neuron, InSynapseArray* synapses) {
     
     neuron->in_synapse_arrays[neuron->n_in_synapse_arrays] = synapses;
     ++(neuron->n_in_synapse_arrays);
+    
+    error:
+    return;
 }
 
 
 internal void
 neuron_add_out_synapse_array(Neuron* neuron, OutSynapseArray* synapses) {
     check(neuron != NULL, "neuron is NULL");
-    check(synapse != NULL, "synapse is NULL");
+    check(synapses != NULL, "synapses is NULL");
     
     neuron->out_synapse_arrays[neuron->n_out_synapse_arrays] = synapses;
     ++(neuron->n_out_synapse_arrays);
+    
+    error:
+    return;
 }
 
 
@@ -132,13 +140,13 @@ neuron_compute_psc(Neuron* neuron, u32 time) {
     u32 i = 0;
     u32 synapse_i = 0;
     Synapse* synapse = NULL;
-    SynapseArray* synapses = NULL;
+    InSynapseArray* synapses = NULL;
     
-    for (i = 0; i < neuron->n_in_arrays; ++i) {
-        synapses = neuron->in_arrays[i];
+    for (i = 0; i < neuron->n_in_synapse_arrays; ++i) {
+        synapses = neuron->in_synapse_arrays[i];
         
         for (synapse_i = 0; synapse_i < synapses->length; ++synapse_i) {
-            synapse = synapses->data + synapse_i;
+            synapse = synapses->synapses + synapse_i;
             synapse_step(synapse, time);
             
             current = synapse_compute_psc(synapse, neuron->voltage);
@@ -216,7 +224,7 @@ neuron_update_out_synapses(Neuron* neuron, u32 time) {
     u32 i = 0;
     u32 synapse_i = 0;
     Synapse* synapse = NULL;
-    OutSynapseArray* synapses = NULL:
+    OutSynapseArray* synapses = NULL;
     
     if (neuron->spike == FALSE) return;
     
@@ -304,13 +312,13 @@ neuron_clear(Neuron* neuron) {
         log_error("Unknown neuron type %u", neuron->cls->type);
     
     Synapse* synapse = NULL;
-    SynapseArray* synapses = NULL;
+    InSynapseArray* synapses = NULL;
     u32 i = 0;
     u32 synapse_i = 0;
-    for (i = 0; i < neuron->n_in_arrays; ++i) {
-        synapses = neuron->in_arrays[i];
+    for (i = 0; i < neuron->n_in_synapse_arrays; ++i) {
+        synapses = neuron->in_synapse_arrays[i];
         for (synapse_i = 0; synapse_i < synapses->length; ++synapse_i) {
-            synapse = synapses->data + synapse_i;
+            synapse = synapses->synapses + synapse_i;
             synapse_clear(synapse);
         }
     }

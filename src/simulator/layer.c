@@ -34,12 +34,10 @@ layer_create(State* state, const char* name, LayerType type, u32 n_neurons, Neur
     layer->neurons = (Neuron*)
         memory_arena_push(state->permanent_storage, layer->n_neurons * sizeof(Neuron));
     check_memory(layer->neurons);
-    for (i = 0; i < layer->n_neurons; ++i) {
-        status = neuron_init(layer->neurons + i, cls);
-        check(status == TRUE, "couldn't init neuron %u", i);
-    }
+    for (i = 0; i < layer->n_neurons; ++i)
+        neuron_init(layer->neurons + i, cls);
     
-    memset(layer->n_in_layers, 0, sizeof(Layer*) * LAYER_N_MAX_IN_LAYERS);
+    memset(layer->in_layers, 0, sizeof(Layer*) * LAYER_N_MAX_IN_LAYERS);
     
     layer->name = string_create(state->permanent_storage, name);
     check_memory(layer->name);
@@ -137,11 +135,11 @@ layer_show(Layer* layer) {
     u32 j = 0;
     u32 n_in_synapses = 0;
     Neuron* neuron = NULL;
-    // TODO: This probably will change??
+    
     for (i = 0; i < layer->n_neurons; ++i) {
         neuron = layer->neurons + i;
-        for (j = 0; j < neuron->n_in_arrays; ++j) {
-            n_in_synapses = neuron->in_arrays[j]->length;
+        for (j = 0; j < neuron->n_in_synapse_arrays; ++j) {
+            n_in_synapses = neuron->in_synapse_arrays[j]->length;
         }
     }
     printf("-------------------\n");
@@ -181,12 +179,12 @@ layer_link_dense(State* state,
     check_memory(out_synapses_in_layer);
     
     // INIT the output synapses for each of the input neurons
-    for (neuron_i = 0; neuron_i < in_layer->n_neurons; ++i) {
+    for (neuron_i = 0; neuron_i < in_layer->n_neurons; ++neuron_i) {
         out_synapses = memory_arena_push(state->permanent_storage,
-                                         sizeof(OutSynapseArray) + sizeof(Synapse*) * layer->n_layers);
+                                         sizeof(OutSynapseArray) + sizeof(Synapse*) * layer->n_neurons);
         check_memory(out_synapses);
         out_synapses->length = 0;
-        out_synapses->synapses = (Synapses**)(out_synapses + 1);
+        out_synapses->synapses = (Synapse**)(out_synapses + 1);
         out_synapses_in_layer[neuron_i] = out_synapses;
     }
     
@@ -194,13 +192,13 @@ layer_link_dense(State* state,
         neuron = layer->neurons + neuron_i;
         
         // ALLOC all input synapses
-        in_synapses = (SynapseArray*)
+        in_synapses = (InSynapseArray*)
             memory_arena_push(state->permanent_storage,
                               sizeof(InSynapseArray) + synapse_size * in_layer->n_neurons);
-        check_memory(synapses);
+        check_memory(in_synapses);
         in_synapses->length = in_layer->n_neurons;
         in_synapses->synapse_size = synapse_size;
-        in_synapses->synapses = (Synapse*)(synapses + 1);
+        in_synapses->synapses = (Synapse*)(in_synapses + 1);
         
         for (in_neuron_i = 0; in_neuron_i < in_layer->n_neurons; ++in_neuron_i) {
             in_neuron = in_layer->neurons + in_neuron_i;
@@ -215,12 +213,12 @@ layer_link_dense(State* state,
             out_synapses->synapses[out_synapses->length] = synapse;
             ++(out_synapses->length);
         }
-        neuron_add_in_synapse_array(neuron, synapses);
+        neuron_add_in_synapse_array(neuron, in_synapses);
     }
     
-    for (neuron_i = 0; neuron_i < in_layer->n_neurons; ++i) {
+    for (neuron_i = 0; neuron_i < in_layer->n_neurons; ++neuron_i) {
         neuron = in_layer->neurons + neuron_i;
-        synapses_out = out_synapses_in_layer[neuron_i];
+        out_synapses = out_synapses_in_layer[neuron_i];
         neuron_add_out_synapse_array(neuron, out_synapses);
     }
     
@@ -280,7 +278,8 @@ layer_get_pscs(State* state, Layer* layer) {
     check(layer != NULL, "layer is NULL");
     
     f32* pscs = (f32*)
-        memory_arena_push(state->transient_memory, sizeof(f32) * layer->n_neurons);
+        memory_arena_push(state->transient_storage,
+                          sizeof(f32) * layer->n_neurons);
     check_memory(pscs);
     
     for (u32 i = 0; i < layer->n_neurons; ++i)

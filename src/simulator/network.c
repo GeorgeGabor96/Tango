@@ -14,9 +14,9 @@ network_create(State* state, const char* name) {
     network->name = string_create(state->permanent_storage, name);
     check(network->name != NULL, "network->name is NULL");
     
-    memset(network->layers, 0, sizeof(Layer*) * NETWORK_N_MAX_LAYERS]);
-    memset(network->in_layers, 0, sizeof(Layer*) * NETWORK_N_MAX_LAYERS]);
-    memset(network->out_layers, 0, sizeof(Layer*) * NETWORK_N_MAX_LAYERS]);
+    memset(network->layers, 0, sizeof(Layer*) * NETWORK_N_MAX_LAYERS);
+    memset(network->in_layers, 0, sizeof(Layer*) * NETWORK_N_MAX_LAYERS);
+    memset(network->out_layers, 0, sizeof(Layer*) * NETWORK_N_MAX_LAYERS);
     
     network->n_layers = 0;
     network->n_in_layers = 0;
@@ -32,6 +32,7 @@ network_create(State* state, const char* name) {
 internal void
 network_show(Network* network) {
     check(network != NULL, "network is NULL");
+    u32 i = 0;
     
     printf("-----------------------NETWORK---------------------\n");
     printf("Name: %s\n\n", string_to_c_str(network->name));
@@ -58,14 +59,14 @@ network_show(Network* network) {
 
 
 internal void
-network_add_layer(State* state, 
-                  Network* network, Layer* layer,
+network_add_layer(Network* network, Layer* layer,
                   bool is_input, bool is_output) {
-    check(state != NULL, "state is NULL");
     check(network != NULL, "network is NULL");
     check(layer != NULL, "layer is NULL");
     
-    check(network->n_layers < NETWORK_N_MAX_LAYERS);
+    check(network->n_layers < NETWORK_N_MAX_LAYERS,
+          "network->n_layers %u  >= NETWORK_N_MAX_LAYERS %u, increase array size",
+          network->n_layers, NETWORK_N_MAX_LAYERS);
     
     network->layers[network->n_layers] = layer;
     ++(network->n_layers);
@@ -100,7 +101,7 @@ network_step(Network* network, NetworkInputs* inputs, u32 time) {
     
     // NOTE: Assume that the order of inputs are the same as the order of input layers in
     // NOTE: the network
-    for (i = 0,; i < inputs->n_inputs; ++i) {
+    for (i = 0; i < inputs->n_inputs; ++i) {
         input = inputs->inputs + i;
         layer = network->layers[i];
         
@@ -129,10 +130,8 @@ internal void
 network_clear(Network* network) {
     check(network != NULL, "network is NULL");
     
-    for (LayerNode* node = network->layers;
-         node != NULL;
-         node = node->next)
-        layer_clear(node->layer);
+    for (u32 i = 0; i < network->n_layers; ++i)
+        layer_clear(network->layers[i]);
     
     error:
     return;

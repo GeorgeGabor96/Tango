@@ -9,7 +9,7 @@ simulator_create(State* state, Network* network, DataGen* data) {
     check(network != NULL, "network is NULL");
     check(data != NULL, "data is NULL");
     
-    simulator = (Simulator*) memory_arena_push(arena->permanent_storage, sizeof(*simulator));
+    simulator = (Simulator*) memory_arena_push(state->permanent_storage, sizeof(*simulator));
     check_memory(simulator);
     
     simulator->network = network;
@@ -53,7 +53,7 @@ simulator_run(State* state, Simulator* simulator)
                                   sample->duration);
         
         for (time = 0; time < sample->duration; ++time) {
-            inputs = data_network_inputs_create(sample, simulator->network, time);
+            inputs = data_network_inputs_create(state, sample, simulator->network, time);
             
             network_step(simulator->network, inputs, time);
             

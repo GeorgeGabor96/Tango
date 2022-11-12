@@ -19,14 +19,14 @@ timing_counter_name(TimingCounterType type) {
 
 
 internal void
-timing_report(const char* output_folder_c_str) {
+timing_report(MemoryArena* arena, const char* output_folder_c_str) {
     u32 i = 0;
     TimingCounter* timer = NULL;
     String* out_folder = NULL;
     String* out_file = NULL;
     FILE* fp = NULL;
     
-    out_folder = string_create(output_folder_c_str);
+    out_folder = string_create(arena, output_folder_c_str);
     
     if (out_folder != NULL) {
         char buffer[256] = { 0 };
@@ -40,7 +40,7 @@ timing_report(const char* output_folder_c_str) {
                 time_info->tm_hour,
                 time_info->tm_min,
                 time_info->tm_sec);
-        out_file = string_path_join_c_str(out_folder, buffer, FALSE);
+        out_file = string_path_join_c_str(arena, out_folder, buffer);
     }
     if (out_file == NULL) fp = stdout;
     else {
@@ -51,7 +51,6 @@ timing_report(const char* output_folder_c_str) {
         } else {
             printf("[INFO] Saving timings in %s\n", string_to_c_str(out_file));
         }
-        string_destroy(out_file);
     }
     fprintf(fp, "---------------TIMING REPORT----------------\n");
     for (i = 0; i < TIMER_INVALID; ++i) {

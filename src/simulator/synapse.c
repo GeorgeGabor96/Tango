@@ -1,5 +1,6 @@
 #include "simulator/synapse.h"
 
+
 /*******************
 * Helpfull functions
 *******************/
@@ -91,7 +92,7 @@ synapse_create(State* state, SynapseCls* cls, f32 weight) {
 }
 
 
-internal bool
+internal void
 synapse_init(Synapse* synapse, SynapseCls* cls, f32 weight) {
     check(synapse != NULL, "synapse is NULL");
     check(cls != NULL, "cls is NULL");
@@ -111,6 +112,9 @@ synapse_init(Synapse* synapse, SynapseCls* cls, f32 weight) {
     synapse->spike_times_head = 0;
     synapse->spike_times_tail = 0;
     synapse->spike_times = (u32*)(synapse + 1);
+    
+    error:
+    return;
 }
 
 

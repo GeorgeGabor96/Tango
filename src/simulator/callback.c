@@ -41,7 +41,7 @@ callback_update(State* state, Callback* callback, Network* network) {
     check(network != NULL, "network is NULL");
     
     if (callback->type == CALLBACK_NETWORK_DUMPER) {
-        callback_dumper_update(callback, network);
+        callback_dumper_update(state, callback, network);
     } else {
         log_error("Unknown callback type %u (%s)",
                   callback->type,
@@ -60,7 +60,7 @@ callback_end_sample(State* state, Callback* callback, Network* network) {
     check(network != NULL, "network is NULL");
     
     if (callback->type == CALLBACK_NETWORK_DUMPER) {
-        callback_dumper_end_sample(callback, network);
+        callback_dumper_end_sample(state, callback, network);
     } else {
         log_error("Unknown callback type %u (%s)",
                   callback->type,

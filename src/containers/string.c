@@ -17,10 +17,11 @@ get_c_str_length(const char* c_str) {
 
 inline internal String*
 string_create_from_length(MemoryArena* arena, u32 length) {
+    String* str = NULL;
     check(arena != NULL, "arena is NULL");
     check(length > 0, "length is 0");
     
-    String* str = (String*) memory_arena_push(arena, str_size_from_length(length));
+    str = (String*) memory_arena_push(arena, str_size_from_length(length));
     check_memory(str);
     str->length = length;
     str->data = (char*)(str + 1);
@@ -123,9 +124,8 @@ string_path_join(MemoryArena* arena, String* str1, String* str2) {
 
 internal String*
 string_path_join_c_str(MemoryArena* arena, String* str, const char* c_str) {
-    String* str = NULL;
     check(arena != NULL, "arena is NULL");
-    check(str1 != NULL, "str1 is NULL");
+    check(str != NULL, "str1 is NULL");
     check(c_str != NULL, "c_str is NULL");
     
     u32 c_str_len = get_c_str_length(c_str);
