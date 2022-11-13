@@ -98,10 +98,10 @@ layer_step_force_spike(Layer* layer, u32 time, bool* spikes, u32 n_spikes) {
     u32 n_inputs = math_min_u32(layer->n_neurons, n_spikes);
     u32 i = 0;
     for (i = 0; i < n_inputs; ++i) {
-        //if (spikes[i] == TRUE) 
-        neuron_step_force_spike(layer->neurons + i, time);
-        //else
-        //neuron_step(layer->neurons + i, time);
+        if (spikes[i] == TRUE) 
+            neuron_step_force_spike(layer->neurons + i, time);
+        else
+            neuron_step(layer->neurons + i, time);
     }
     for (i = n_inputs; i < layer->n_neurons; ++i)
         neuron_step(layer->neurons + i, time);
