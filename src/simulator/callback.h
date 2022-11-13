@@ -8,6 +8,7 @@
 #include "utils/memory.h"
 #include "utils/os.h"
 #include "containers/string.h"
+#include "containers/memory_arena.h"
 #include "simulator/network.h"
 
 
@@ -64,24 +65,26 @@ typedef struct Callback {
 /********************
 * Callback functions
 ********************/
-internal void callback_destroy(Callback* callback);
-
-internal void callback_begin_sample(Callback* callback, Network* network, u32 sample_duration);
-internal void callback_update(Callback* callback, Network* network);
-internal void callback_end_sample(Callback* callback, Network* network);
+internal void callback_begin_sample(State* state, 
+                                    Callback* callback,
+                                    Network* network,
+                                    u32 sample_duration);
+internal void callback_update(State* state, Callback* callback, Network* network);
+internal void callback_end_sample(State* state, Callback* callback, Network* network);
 
 
 /**************************
 * Network Dumper functions
 **************************/
-internal Callback* callback_dumper_create(const char* output_folder, 
+internal Callback* callback_dumper_create(State* state,
+                                          const char* output_folder, 
                                           Network* network);
-internal void callback_dumper_destroy(Callback* callback);
-internal void callback_dumper_begin_sample(Callback* callback, 
+internal void callback_dumper_begin_sample(State* state, 
+                                           Callback* callback, 
                                            Network* network, 
                                            u32 sample_duration);
-internal void callback_dumper_update(Callback* callback, Network* network);
-internal void callback_dumper_end_sample(Callback* callbac, Network* network);
+internal void callback_dumper_update(State* state, Callback* callback, Network* network);
+internal void callback_dumper_end_sample(State* state, Callback* callbac, Network* network);
 
 
 #endif //CALLBACK_H

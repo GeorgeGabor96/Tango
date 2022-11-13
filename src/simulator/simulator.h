@@ -12,22 +12,20 @@
 #include "simulator/callback.h"
 
 
+#define SIMULATOR_N_MAX_CALLBACKS 5u
+
 typedef struct Simulator {
     Network* network;
     DataGen* data;
-    
+    Callback* callbacks[SIMULATOR_N_MAX_CALLBACKS];
     u32 n_callbacks;
-    u32 n_max_callbacks;
-    CallbackP* callbacks;
-    
 } Simulator;
 
 
-internal Simulator* simulator_create(Network* network, DataGen* data);
-internal void simulator_destroy(Simulator* simulator);
+internal Simulator* simulator_create(State* state, Network* network, DataGen* data);
 
-internal void simulator_run(Simulator* simulator);
-internal void simulator_add_callback(Simulator* simulator, Callback* callback);
+internal void simulator_run(State* state, Simulator* simulator);
+internal void simulator_add_callback(State* state, Simulator* simulator, Callback* callback);
 
 
 #endif //SIMULATOR_H

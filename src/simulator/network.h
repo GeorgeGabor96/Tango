@@ -9,28 +9,19 @@
 #include "simulator/layer.h"
 
 
+#define NETWORK_N_MAX_LAYERS 32u
+
 typedef struct Network {
     String* name;
     
+    Layer* layers[NETWORK_N_MAX_LAYERS];
+    Layer* in_layers[NETWORK_N_MAX_LAYERS];
+    Layer* out_layers[NETWORK_N_MAX_LAYERS];
+    
     u32 n_layers;
-    u32 n_max_layers;
-    LayerP* layers;
-    
     u32 n_in_layers;
-    u32 n_max_in_layers;
-    u32* in_layers_idxs;
-    
     u32 n_out_layers;
-    u32 n_max_out_layers;
-    u32* out_layers_idxs;
     
-    u32 n_synapse_clss;
-    u32 n_max_synapse_clss;
-    SynapseCls* synapse_clss;
-    
-    u32 n_neuron_clss;
-    u32 n_max_neuron_clss;
-    NeuronCls* neuron_clss;
 } Network;
 
 
@@ -57,25 +48,18 @@ typedef struct NetworkInputs {
 } NetworkInputs;
 
 
-internal Network* network_create(const char* name);
-internal void network_destroy(Network* network);
+internal Network* network_create(State* state, const char* name);
 
 internal void network_show(Network* network);
 internal void network_compile(Network* network);
 
-// NOTE: the layer is moved into the network, it takes ownership, don't use it
-// NOTE: after this
-internal SynapseCls* network_add_synapse_cls(Network* network, SynapseCls* cls);
-internal NeuronCls* network_add_neuron_cls(Network* network, NeuronCls* cls);
-internal bool network_add_layer(Network* network, Layer* layer,
+internal void network_add_layer(Network* network, Layer* layer,
                                 bool is_input, bool is_output);
 internal void network_step(Network* network, NetworkInputs* inputs, u32 time);
 internal void network_clear(Network* network);
 
-internal f32* network_get_layer_voltages(Network* network, u32 i);
-internal bool* network_get_layer_spikes(Network* network, u32 i);
-// TODO: probably need some for psc
+internal f32* network_get_layer_voltages(State* state, Network* network, u32 i);
+internal bool* network_get_layer_spikes(State* state, Network* network, u32 i);
 
-internal void network_inputs_destroy(NetworkInputs* inputs);
 
 #endif //NETWORK_H

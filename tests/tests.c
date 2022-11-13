@@ -8,8 +8,6 @@
 #include "utils_tests/memory_tests.c"
 #include "containers_tests/string_tests.c"
 #include "containers_tests/memory_arena_tests.c"
-#include "simulator_tests/synapse_tests.c"
-#include "simulator_tests/neuron_tests.c"
 
 
 TestInfo tests[] = {
@@ -22,6 +20,7 @@ TestInfo tests[] = {
     { memory_arena_create_destroy_test, "memory_arena_create_destroy_test" }, 
     { memory_arena_push_test, "memory_arena_push" },
     { memory_arena_alignment_test, "memory_arena_alignment_test" }, 
+    { memory_arena_clear_test, "memory_arena_clear_test" },
     // String tests
     { string_create_destroy_test, "string_create_destroy_test" },
     { string_path_join_test, "string_path_join_test" },
@@ -31,12 +30,6 @@ TestInfo tests[] = {
     /*******************
     * SIMULATOR TESTS
     *******************/
-    // Synapse tests
-    { synapse_create_destroy_test, "synapse_create_destroy_test" },
-    { synapse_behaviour_test, "synapse_behaviour_test" },
-    // Neuron tests
-    { neuron_create_destroy_test, "neuron_create_destroy_test" },
-    { neuron_step_test, "neuron_step_test" },
 };
 
 

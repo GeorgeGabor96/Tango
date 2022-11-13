@@ -5,6 +5,7 @@
 
 #include "common.h"
 #include "time.h"
+#include "containers/memory_arena.h"
 
 
 #ifdef TIMING
@@ -43,7 +44,8 @@ TimingCounter timing_counters[128];
 ++(timing_counters[TIMER_##NAME].hit_count);
 
 internal const char* timing_counter_name(TimingCounterType type);
-internal void timing_report(const char* output_folder_c_str);
+internal void timing_report(MemoryArena* arena,
+                            const char* output_folder_c_str);
 
 #else
 
