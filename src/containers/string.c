@@ -124,24 +124,25 @@ string_path_join(MemoryArena* arena, String* str1, String* str2) {
 
 internal String*
 string_path_join_c_str(MemoryArena* arena, String* str, const char* c_str) {
+    String* result = NULL;
     check(arena != NULL, "arena is NULL");
     check(str != NULL, "str1 is NULL");
     check(c_str != NULL, "c_str is NULL");
     
     u32 c_str_len = get_c_str_length(c_str);
     u32 length = str->length + 1 + c_str_len;
-    str = string_create_from_length(arena, length);
+    result = string_create_from_length(arena, length);
     u32 str_offset = 0;
     u32 i = 0;
     for (i = 0; i < str->length; ++i, ++str_offset)
-        str->data[str_offset] = str->data[i];
-    str->data[str_offset++] = STR_OS_PATH_SEP;
+        result->data[str_offset] = str->data[i];
+    result->data[str_offset++] = STR_OS_PATH_SEP;
     for (i = 0; i < c_str_len; ++i, ++str_offset)
-        str->data[str_offset] = c_str[i];
-    str->data[str_offset] = '\0';
+        result->data[str_offset] = c_str[i];
+    result->data[str_offset] = '\0';
     
     error:
-    return str;
+    return result;
 }
 
 

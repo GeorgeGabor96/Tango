@@ -54,7 +54,7 @@ simulator_run(State* state, Simulator* simulator)
         
         for (time = 0; time < sample->duration; ++time) {
             inputs = data_network_inputs_create(state, sample, simulator->network, time);
-            
+            time += 1;
             network_step(simulator->network, inputs, time);
             
             for (callback_node = simulator->callback_list;

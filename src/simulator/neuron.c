@@ -146,7 +146,8 @@ neuron_compute_psc(Neuron* neuron, u32 time) {
         synapses = neuron->in_synapse_arrays[i];
         
         for (synapse_i = 0; synapse_i < synapses->length; ++synapse_i) {
-            synapse = synapses->synapses + synapse_i;
+            synapse = (Synapse*)
+            ((u8*)(synapses->synapses) + synapses->synapse_size * synapse_i);
             synapse_step(synapse, time);
             
             current = synapse_compute_psc(synapse, neuron->voltage);
@@ -212,7 +213,8 @@ neuron_update_in_synapses(Neuron* neuron, u32 time) {
         synapses = neuron->in_synapse_arrays[i];
         
         for (synapse_i = 0; synapse_i < synapses->length; ++synapse_i) {
-            synapse = synapses->synapses + synapse_i;
+            synapse = (Synapse*)
+            ((u8*)(synapses->synapses) + synapses->synapse_size * synapse_i);
             synapse_step(synapse, time);
         }
     }
@@ -318,7 +320,8 @@ neuron_clear(Neuron* neuron) {
     for (i = 0; i < neuron->n_in_synapse_arrays; ++i) {
         synapses = neuron->in_synapse_arrays[i];
         for (synapse_i = 0; synapse_i < synapses->length; ++synapse_i) {
-            synapse = synapses->synapses + synapse_i;
+            synapse = (Synapse*)
+            ((u8*)(synapses->synapses) + synapses->synapse_size * synapse_i);
             synapse_clear(synapse);
         }
     }
