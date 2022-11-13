@@ -52,11 +52,11 @@ data_gen_create_random_spikes(State* state, f32 chance, u32 length, u32 sample_d
 * DATA SAMPLE
 ***********************/
 internal DataSample*
-data_gen_sample_create(State* state, DataGen* data, u32 idx) {
-    check(state != NULL, "state is NULL");
+data_gen_sample_create(MemoryArena* arena, DataGen* data, u32 idx) {
+    check(arena != NULL, "arena is NULL");
     check(data != NULL, "data is NULL");
     
-    DataSample* sample = (DataSample*) memory_arena_push(state->transient_storage, sizeof(*sample));
+    DataSample* sample = (DataSample*) memory_arena_push(arena, sizeof(*sample));
     check_memory(sample);
     
     if (data->type == DATA_GEN_CONSTANT_CURRENT) {
@@ -81,8 +81,9 @@ data_gen_sample_create(State* state, DataGen* data, u32 idx) {
 * NETWORK INPUTS
 ***********************/
 internal NetworkInputs*
-data_network_inputs_create(State* state, DataSample* sample, Network* network, u32 time) {
-    check(state != NULL, "state is NULL");
+data_network_inputs_create(MemoryArena* arena, DataSample* sample,
+                           Network* network, u32 time) {
+    check(arena != NULL, "arena is NULL");
     check(sample != NULL, "sample is NULL");
     check(network != NULL, "network is NULL");
     
@@ -91,11 +92,11 @@ data_network_inputs_create(State* state, DataSample* sample, Network* network, u
     Layer* layer = NULL;
     NetworkInput* input = NULL;
     NetworkInputs* inputs = (NetworkInputs*)
-        memory_arena_push(state->transient_storage, sizeof(*inputs));
+        memory_arena_push(arena, sizeof(*inputs));
     check_memory(inputs);
     inputs->n_inputs = network->n_in_layers;
-    inputs->inputs = (NetworkInput*) memory_arena_push(state->transient_storage, 
-                                                       sizeof(*input) * inputs->n_inputs);
+    inputs->inputs = (NetworkInput*)
+        memory_arena_push(arena, sizeof(*input) * inputs->n_inputs);
     check_memory(inputs->inputs);
     
     if (sample->type == DATA_SAMPLE_RANDOM_SPIKES) {
@@ -105,7 +106,7 @@ data_network_inputs_create(State* state, DataSample* sample, Network* network, u
             layer = network->in_layers[i];
             
             spikes = (bool*)
-                memory_arena_push(state->transient_storage, layer->n_neurons * sizeof(bool));
+                memory_arena_push(arena, layer->n_neurons * sizeof(bool));
             check_memory(spikes);
             for (j = 0; j < layer->n_neurons; ++j) {
                 spikes[j] = random_get_bool(sample->sample_random_spikes.chance);
@@ -121,7 +122,7 @@ data_network_inputs_create(State* state, DataSample* sample, Network* network, u
             layer = network->in_layers[i];
             
             currents = (f32*) 
-                memory_arena_push(state->transient_storage, sizeof(f32) * layer->n_neurons);
+                memory_arena_push(arena, sizeof(f32) * layer->n_neurons);
             check_memory(currents);
             for (j = 0; j < layer->n_neurons; ++j) {
                 currents[j] = sample->sample_const_current.value;
@@ -138,6 +139,5 @@ data_network_inputs_create(State* state, DataSample* sample, Network* network, u
     return inputs;
     
     error:
-    // NOTE: Don't free anything yet, when its stable we will free all the things
     return NULL;
 }

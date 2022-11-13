@@ -144,7 +144,8 @@ network_get_layer_voltages(State* state, Network* network, u32 i) {
     check(network != NULL, "network is NULL");
     check(i < network->n_layers, "i >= network->n_layers");
     
-    f32* voltages = layer_get_voltages(state, network->layers[i]);
+    f32* voltages = layer_get_voltages(state->transient_storage,
+                                       network->layers[i]);
     return voltages;
     
     error:
@@ -158,7 +159,8 @@ network_get_layer_spikes(State* state, Network* network, u32 i) {
     check(network != NULL, "network is NULL");
     check(i < network->n_layers, "i >= network->n_layers");
     
-    bool* spikes = layer_get_spikes(state, network->layers[i]);
+    bool* spikes = layer_get_spikes(state->transient_storage,
+                                    network->layers[i]);
     return spikes;
     
     error:

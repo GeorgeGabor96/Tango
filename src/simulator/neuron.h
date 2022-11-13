@@ -54,6 +54,8 @@ typedef struct InSynapseArray {
     Synapse* synapses;
 } InSynapseArray;
 
+internal Synapse* in_synapse_array_get(InSynapseArray* synapses, u32 i);
+
 
 typedef struct OutSynapseArray {
     u32 length;
@@ -61,8 +63,8 @@ typedef struct OutSynapseArray {
 } OutSynapseArray;
 
 
-#define NEURON_N_MAX_INPUTS 5
-#define NEURON_N_MAX_OUTPUTS 5
+#define NEURON_N_MAX_INPUTS 5u
+#define NEURON_N_MAX_OUTPUTS 5u
 
 
 typedef struct Neuron {

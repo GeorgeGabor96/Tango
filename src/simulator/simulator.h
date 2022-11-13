@@ -12,16 +12,13 @@
 #include "simulator/callback.h"
 
 
-typedef struct CallbackNode {
-    Callback* callback;
-    struct CallbackNode* next;
-} CallbackNode;
-
+#define SIMULATOR_N_MAX_CALLBACKS 5u
 
 typedef struct Simulator {
     Network* network;
     DataGen* data;
-    CallbackNode* callback_list;
+    Callback* callbacks[SIMULATOR_N_MAX_CALLBACKS];
+    u32 n_callbacks;
 } Simulator;
 
 

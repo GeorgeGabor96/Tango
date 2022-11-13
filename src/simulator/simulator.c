@@ -14,7 +14,7 @@ simulator_create(State* state, Network* network, DataGen* data) {
     
     simulator->network = network;
     simulator->data = data;
-    simulator->callback_list = NULL;
+    simulator->n_callbacks = 0;
     
     return simulator;
     
@@ -33,46 +33,43 @@ simulator_run(State* state, Simulator* simulator)
     
     DataSample* sample = NULL;
     NetworkInputs* inputs = NULL;
-    CallbackNode* callback_node = NULL;
     u32 data_idx = 0;
     u32 time = 0;
-    u32 i = 0;
-    
+    u32 callback_i = 0;
     
     for (data_idx = 0; data_idx < simulator->data->length; ++data_idx) {
-        sample = data_gen_sample_create(state, simulator->data, data_idx);
+        sample = data_gen_sample_create(state->transient_storage,
+                                        simulator->data, data_idx);
         
         network_clear(simulator->network);
         
-        for (callback_node = simulator->callback_list;
-             callback_node != NULL;
-             callback_node = callback_node->next)
+        for (callback_i = 0; callback_i < simulator->n_callbacks; ++callback_i)
             callback_begin_sample(state,
-                                  callback_node->callback,
+                                  simulator->callbacks[callback_i],
                                   simulator->network,
                                   sample->duration);
         
         for (time = 0; time < sample->duration; ++time) {
-            inputs = data_network_inputs_create(state, sample, simulator->network, time);
+            inputs = data_network_inputs_create(state->transient_storage,
+                                                sample,
+                                                simulator->network,
+                                                time);
             network_step(simulator->network, inputs, time);
             
-            for (callback_node = simulator->callback_list;
-                 callback_node != NULL;
-                 callback_node = callback_node->next)
+            for (callback_i = 0;
+                 callback_i < simulator->n_callbacks;
+                 ++callback_i)
                 callback_update(state,
-                                callback_node->callback,
+                                simulator->callbacks[callback_i],
                                 simulator->network);
         }
         
-        for (callback_node = simulator->callback_list;
-             callback_node != NULL;
-             callback_node = callback_node->next)
+        for (callback_i = 0; callback_i < simulator->n_callbacks; ++callback_i)
             callback_end_sample(state,
-                                callback_node->callback,
+                                simulator->callbacks[callback_i],
                                 simulator->network);
         
-        // TODO: Where to put the transient arena reset
-        // HERE?
+        memory_arena_clear(state->transient_storage);
     }
     
     TIMING_COUNTER_END(SIMULATOR_RUN);
@@ -87,14 +84,12 @@ simulator_add_callback(State* state, Simulator* simulator, Callback* callback) {
     check(state != NULL, "state is NULL");
     check(simulator != NULL, "simulator is NULL");
     check(callback != NULL, "callback is NULL");
+    check(simulator->n_callbacks <= SIMULATOR_N_MAX_CALLBACKS,
+          "Cannot add more callbacks: simulator->n_callbacks %u, SIMULATOR_N_MAX_CALLBACKS %u",
+          simulator->n_callbacks, SIMULATOR_N_MAX_CALLBACKS);
     
-    CallbackNode* node = (CallbackNode*) memory_arena_push(state->permanent_storage,
-                                                           sizeof(*node));
-    check_memory(node);
-    
-    node->callback = callback;
-    node->next = simulator->callback_list;
-    simulator->callback_list = node;
+    simulator->callbacks[simulator->n_callbacks] = callback;
+    ++(simulator->n_callbacks);
     
     error:
     return;

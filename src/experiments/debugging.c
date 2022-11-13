@@ -1,18 +1,4 @@
-#include "utils/memory.c"
-#include "utils/os.c"
-#include "utils/timing.c"
-#include "utils/random.c"
-#include "containers/string.c"
-#include "containers/array.c"
-#include "containers/memory_arena.c"
-#include "simulator/state.c"
-#include "simulator/synapse.c"
-#include "simulator/neuron.c"
-#include "simulator/layer.c"
-#include "simulator/network.c"
-#include "simulator/data_gen.c"
-#include "simulator/callback.c"
-#include "simulator/simulator.c"
+#include "tango.h"
 
 
 Network* get_network(State* state) {

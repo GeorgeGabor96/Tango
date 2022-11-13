@@ -1,21 +1,34 @@
 #include "containers/memory_arena.h"
 
 
-inline internal MemoryArenaBlock*
-memory_arena_block_create(sz block_size) {
+inline internal void
+memory_arena_add_block(MemoryArena* arena) {
     MemoryArenaBlock* block = NULL;
-    check(block_size != 0, "block_size is 0");
+    check(arena != NULL, "arena is NULL");
     
-    block = (MemoryArenaBlock*)memory_malloc(sizeof(*block) + block_size,
-                                             "memory_arena_block_create");
+    block = (MemoryArenaBlock*)
+        memory_malloc(sizeof(*block) + arena->block_size,
+                      "memory_arena_block_create");
     check_memory(block);
     
     block->memory_start = (u8*)(block + 1);
-    block->memory_end = block->memory_start + block_size;
+    block->memory_end = block->memory_start + arena->block_size;
     block->next = NULL;
     
+    if (arena->first_block == NULL) {
+        arena->first_block = block;
+        arena->last_block = block;
+    } else {
+        arena->last_block->next = block;
+        arena->last_block = block;
+    }
+    
+    arena->current_block = block;
+    ++(arena->n_blocks);
+    arena->current_adr = arena->current_block->memory_start;
+    
     error:
-    return block;
+    return;
 }
 
 
@@ -25,20 +38,11 @@ memory_arena_create(sz block_size) {
     MemoryArenaBlock* block = NULL;
     
     check(block_size != 0, "block_size is 0");
-    arena = (MemoryArena*) memory_malloc(sizeof(*arena), "memory_arena_create");
+    arena = (MemoryArena*) memory_calloc(1, sizeof(*arena), "memory_arena_create");
     check_memory(arena);
-    
     arena->block_size = block_size;
-    arena->current_adr = 0;
     
-    arena->first_block = memory_arena_block_create(arena->block_size);
-    check(arena->first_block != NULL, "Couldn't create arena memory block of size %zu",
-          arena->block_size);
-    
-    arena->last_block = arena->first_block;
-    arena->current_block = arena->first_block;
-    arena->current_adr = arena->current_block->memory_start;
-    arena->n_blocks = 1;
+    memory_arena_add_block(arena);
     
     return arena;
     
@@ -89,7 +93,6 @@ memory_arena_clear(MemoryArena* arena) {
 internal void*
 memory_arena_push(MemoryArena* arena, sz size) {
     u8* memory = NULL;
-    MemoryArenaBlock* block = NULL;
     
     check(arena != NULL, "arena is NULL");
     check(size != 0, "size is 0");
@@ -119,18 +122,11 @@ memory_arena_push(MemoryArena* arena, sz size) {
         if (arena->current_block->next != NULL) {
             arena->current_block = arena->current_block->next;
         } else {
-            // NOTE: need to alocate another block and move the adr to it
-            block = memory_arena_block_create(arena->block_size);
-            check(block != NULL, "couldn't allocate block of size %zu", arena->block_size);
-            
-            arena->last_block->next = block;
-            arena->last_block = block;
-            arena->current_block = block;
-            ++(arena->n_blocks);
+            memory_arena_add_block(arena);
         }
         
-        memory = block->memory_start;
-        arena->current_adr = block->memory_start + size;
+        memory = arena->current_block->memory_start;
+        arena->current_adr = arena->current_block->memory_start + size;
     }
     
     error:

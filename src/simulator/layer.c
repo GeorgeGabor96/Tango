@@ -139,7 +139,7 @@ layer_show(Layer* layer) {
     for (i = 0; i < layer->n_neurons; ++i) {
         neuron = layer->neurons + i;
         for (j = 0; j < neuron->n_in_synapse_arrays; ++j) {
-            n_in_synapses = neuron->in_synapse_arrays[j]->length;
+            n_in_synapses += neuron->in_synapse_arrays[j]->length;
         }
     }
     printf("-------------------\n");
@@ -205,9 +205,7 @@ layer_link_dense(State* state,
              ++in_neuron_i) {
             in_neuron = in_layer->neurons + in_neuron_i;
             
-            // NOTE: Here we iterate with a sizeof(Synapse) step
-            synapse = (Synapse*)
-            ((u8*)(in_synapses->synapses) + synapse_size * in_neuron_i);
+            synapse = in_synapse_array_get(in_synapses, in_neuron_i);
             
             synapse_init(synapse, cls, weight);
             
@@ -262,12 +260,12 @@ layer_link(State* state, Layer* layer, Layer* input_layer, SynapseCls* cls, f32 
 
 
 internal f32*
-layer_get_voltages(State* state, Layer* layer) {
-    check(state != NULL, "state is NULL");
+layer_get_voltages(MemoryArena* arena, Layer* layer) {
+    check(arena != NULL, "arena is NULL");
     check(layer != NULL, "layer is NULL");
     
     f32* voltages = (f32*)
-        memory_arena_push(state->transient_storage, sizeof(f32) * layer->n_neurons);
+        memory_arena_push(arena, sizeof(f32) * layer->n_neurons);
     check_memory(voltages);
     
     for (u32 i = 0; i < layer->n_neurons; ++i)
@@ -281,13 +279,12 @@ layer_get_voltages(State* state, Layer* layer) {
 
 
 internal f32*
-layer_get_pscs(State* state, Layer* layer) {
-    check(state != NULL, "state is NULL");
+layer_get_pscs(MemoryArena* arena, Layer* layer) {
+    check(arena != NULL, "arena is NULL");
     check(layer != NULL, "layer is NULL");
     
     f32* pscs = (f32*)
-        memory_arena_push(state->transient_storage,
-                          sizeof(f32) * layer->n_neurons);
+        memory_arena_push(arena, sizeof(f32) * layer->n_neurons);
     check_memory(pscs);
     
     for (u32 i = 0; i < layer->n_neurons; ++i)
@@ -301,12 +298,12 @@ layer_get_pscs(State* state, Layer* layer) {
 
 
 internal f32*
-layer_get_epscs(State* state, Layer* layer) {
-    check(state != NULL, "state is NULL");
+layer_get_epscs(MemoryArena* arena, Layer* layer) {
+    check(arena != NULL, "arena is NULL");
     check(layer != NULL, "layer is NULL");
     
     f32* epscs = (f32*)
-        memory_arena_push(state->transient_storage, sizeof(f32) * layer->n_neurons);
+        memory_arena_push(arena, sizeof(f32) * layer->n_neurons);
     check_memory(epscs);
     
     for (u32 i = 0; i < layer->n_neurons; ++i)
@@ -320,12 +317,12 @@ layer_get_epscs(State* state, Layer* layer) {
 
 
 internal f32*
-layer_get_ipscs(State* state, Layer* layer) {
-    check(state != NULL, "state is NULL");
+layer_get_ipscs(MemoryArena* arena, Layer* layer) {
+    check(arena != NULL, "arena is NULL");
     check(layer != NULL, "layer is NULL");
     
     f32* ipscs = (f32*)
-        memory_arena_push(state->transient_storage, sizeof(f32) * layer->n_neurons);
+        memory_arena_push(arena, sizeof(f32) * layer->n_neurons);
     check_memory(ipscs);
     
     for (u32 i = 0; i < layer->n_neurons; ++i)
@@ -339,12 +336,12 @@ layer_get_ipscs(State* state, Layer* layer) {
 
 
 internal bool*
-layer_get_spikes(State* state, Layer* layer) {
-    check(state != NULL, "state is NULL");
+layer_get_spikes(MemoryArena* arena, Layer* layer) {
+    check(arena != NULL, "arena is NULL");
     check(layer != NULL, "layer is NULL");
     
     bool* spikes = (bool*)
-        memory_arena_push(state->transient_storage, sizeof(bool) * layer->n_neurons);
+        memory_arena_push(arena, sizeof(bool) * layer->n_neurons);
     check_memory(spikes);
     
     for (u32 i = 0; i < layer->n_neurons; ++i)

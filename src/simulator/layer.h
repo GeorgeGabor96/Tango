@@ -52,12 +52,11 @@ internal void layer_step_force_spike(Layer* layer, u32 time, bool* spikes, u32 n
 
 internal void layer_clear(Layer* layer);
 
-// NOTE: These usually will be in the transient storage should I just use that?
-internal f32* layer_get_voltages(State* state, Layer* layer);
-internal f32* layer_get_pscs(State* state, Layer* layer);
-internal f32* layer_get_epscs(State* state, Layer* layer);
-internal f32* layer_get_ipscs(State* state, Layer* layer);
-internal bool* layer_get_spikes(State* state, Layer* layer);
+internal f32* layer_get_voltages(MemoryArena* arena, Layer* layer);
+internal f32* layer_get_pscs(MemoryArena* arena, Layer* layer);
+internal f32* layer_get_epscs(MemoryArena* arena, Layer* layer);
+internal f32* layer_get_ipscs(MemoryArena* arena, Layer* layer);
+internal bool* layer_get_spikes(MemoryArena* arena, Layer* layer);
 
 
 #endif //LAYER_H

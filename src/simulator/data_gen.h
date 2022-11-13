@@ -65,11 +65,11 @@ typedef struct DataSample {
 } DataSample;
 
 
-internal DataSample* data_gen_sample_create(State* state, DataGen* data, u32 idx);
+internal DataSample* data_gen_sample_create(MemoryArena* arena, DataGen* data, u32 idx);
 
 // NOTE: Currently the easiest thing to do is to give the network when creating inputs
 // NOTE: Probably in the future this is not enough but we will see
-internal NetworkInputs* data_network_inputs_create(State* state,
+internal NetworkInputs* data_network_inputs_create(MemoryArena* arena,
                                                    DataSample* sample,
                                                    Network* network,
                                                    u32 time);

@@ -7,17 +7,13 @@
 #include "containers/memory_arena.h"
 
 
-
-// TODO: need to know which os sep to use, how do I know I'm on windows or linux???
-//#define STR_OS_PATH_SEP '/'
-
 #ifdef _WIN32
 #define STR_OS_PATH_SEP '\\'
 #endif
 
 
 typedef struct String {
-    u32 length;
+    u32 length;   // does not containe the \0 in the length
     char* data;   // NOTE: this should point directly after the String
 } String;
 

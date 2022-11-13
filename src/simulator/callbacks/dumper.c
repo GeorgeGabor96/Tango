@@ -39,7 +39,6 @@ callback_dumper_create(State* state, const char* output_folder, Network* network
     return callback;
     
     error:
-    // NO cleanup needed the arena will clean everything
     
     return NULL;
 }
@@ -63,7 +62,6 @@ callback_dumper_begin_sample(State* state,
     check(sample_duration != 0, "sample_duration is 0");
     
     dumper = &(callback->dumper);
-    bool should_alloc = sample_duration > dumper->sample_duration;
     u32 i = 0;
     
     DumperLayerData* layer_data = NULL;
@@ -71,18 +69,11 @@ callback_dumper_begin_sample(State* state,
     dumper->sample_count += 1;
     dumper->sample_duration = sample_duration;
     
-    // NOTE: Only alloc space if we need to, reuse if we can
-    if (should_alloc != FALSE) {
-        for (i = 0; i < dumper->n_layers; ++i) {
-            layer_data = dumper->layers_data + i;
-            if (layer_data->neurons_data != NULL) 
-                memory_free(layer_data->neurons_data);
-            
-            // TODO: maybe this needs to be in the transient storage and actually alloc it every time because the area push is super fast
-            layer_data->neurons_data = (DumperNeuronData*) memory_arena_push(state->permanent_storage, dumper->sample_duration * layer_data->n_neurons * sizeof(DumperNeuronData));
-            check_memory(layer_data->neurons_data);
-        } 
-    }
+    for (i = 0; i < dumper->n_layers; ++i) {
+        layer_data = dumper->layers_data + i;
+        layer_data->neurons_data = (DumperNeuronData*) memory_arena_push(state->transient_storage, dumper->sample_duration * layer_data->n_neurons * sizeof(DumperNeuronData));
+        check_memory(layer_data->neurons_data);
+    } 
     
     error:
     return;

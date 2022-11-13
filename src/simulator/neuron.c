@@ -58,6 +58,24 @@ neuron_cls_create_lif_refract(State* state, const char* name, u32 refract_time) 
 
 
 /********************
+*   SYNAPSE ARRAYS
+********************/
+internal Synapse*
+in_synapse_array_get(InSynapseArray* synapses, u32 i) {
+    Synapse* result = NULL;
+    
+    check(synapses != NULL, "synapses is NULL");
+    check(i < synapses->length,
+          "i (%u) >= synapses->length (%u)", i, synapses->length);
+    result = (Synapse*) 
+    ((u8*)(synapses->synapses) + synapses->synapse_size * i);
+    
+    error:
+    return result;
+}
+
+
+/********************
 *   NEURON
 ********************/
 internal Neuron*
@@ -110,6 +128,9 @@ internal void
 neuron_add_in_synapse_array(Neuron* neuron, InSynapseArray* synapses) {
     check(neuron != NULL, "neuron is NULL");
     check(synapses != NULL, "synapses is NULL");
+    check(neuron->n_in_synapse_arrays <= NEURON_N_MAX_INPUTS,
+          "in_synapse_arrays is full %u (NEURON_N_MAX_INPUTS %u)",
+          neuron->n_in_synapse_arrays, NEURON_N_MAX_INPUTS);
     
     neuron->in_synapse_arrays[neuron->n_in_synapse_arrays] = synapses;
     ++(neuron->n_in_synapse_arrays);
@@ -123,6 +144,9 @@ internal void
 neuron_add_out_synapse_array(Neuron* neuron, OutSynapseArray* synapses) {
     check(neuron != NULL, "neuron is NULL");
     check(synapses != NULL, "synapses is NULL");
+    check(neuron->n_out_synapse_arrays <= NEURON_N_MAX_OUTPUTS,
+          "out_synapse_arrays is full %u (NEURON_N_MAX_OUTPUTS %u)",
+          neuron->n_out_synapse_arrays, NEURON_N_MAX_OUTPUTS);
     
     neuron->out_synapse_arrays[neuron->n_out_synapse_arrays] = synapses;
     ++(neuron->n_out_synapse_arrays);
@@ -146,8 +170,7 @@ neuron_compute_psc(Neuron* neuron, u32 time) {
         synapses = neuron->in_synapse_arrays[i];
         
         for (synapse_i = 0; synapse_i < synapses->length; ++synapse_i) {
-            synapse = (Synapse*)
-            ((u8*)(synapses->synapses) + synapses->synapse_size * synapse_i);
+            synapse = in_synapse_array_get(synapses, synapse_i);
             synapse_step(synapse, time);
             
             current = synapse_compute_psc(synapse, neuron->voltage);
@@ -213,8 +236,7 @@ neuron_update_in_synapses(Neuron* neuron, u32 time) {
         synapses = neuron->in_synapse_arrays[i];
         
         for (synapse_i = 0; synapse_i < synapses->length; ++synapse_i) {
-            synapse = (Synapse*)
-            ((u8*)(synapses->synapses) + synapses->synapse_size * synapse_i);
+            synapse = in_synapse_array_get(synapses, synapse_i);
             synapse_step(synapse, time);
         }
     }
@@ -320,8 +342,7 @@ neuron_clear(Neuron* neuron) {
     for (i = 0; i < neuron->n_in_synapse_arrays; ++i) {
         synapses = neuron->in_synapse_arrays[i];
         for (synapse_i = 0; synapse_i < synapses->length; ++synapse_i) {
-            synapse = (Synapse*)
-            ((u8*)(synapses->synapses) + synapses->synapse_size * synapse_i);
+            synapse = in_synapse_array_get(synapses, synapse_i);
             synapse_clear(synapse);
         }
     }

@@ -103,8 +103,8 @@ string_path_join(MemoryArena* arena, String* str1, String* str2) {
     check(str1 != NULL, "str1 is NULL");
     check(str2 != NULL, "str2 is NULL");
     
-    // TODO: nu trebuia + 2?? gen pentru \0
-    u32 length = str1->length + 1 + str2->length;
+    // NOTE: 2 because of os sep and \0
+    u32 length = str1->length + 2 + str2->length;
     str = string_create_from_length(arena, length);
     u32 str_offset = 0;
     u32 i = 0;
@@ -130,7 +130,7 @@ string_path_join_c_str(MemoryArena* arena, String* str, const char* c_str) {
     check(c_str != NULL, "c_str is NULL");
     
     u32 c_str_len = get_c_str_length(c_str);
-    u32 length = str->length + 1 + c_str_len;
+    u32 length = str->length + 2 + c_str_len;
     result = string_create_from_length(arena, length);
     u32 str_offset = 0;
     u32 i = 0;
