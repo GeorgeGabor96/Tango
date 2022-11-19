@@ -149,7 +149,6 @@ callback_dumper_end_sample(State* state, Callback* callback, Network* network) {
     char file_name[100] = { 0 };
     
     sprintf(file_name, "sample_%d.bin", dumper->sample_count);
-    ++(dumper->sample_count);
     
     String* output_file = string_path_join_c_str(state->transient_storage,
                                                  dumper->output_folder,
