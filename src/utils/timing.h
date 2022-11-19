@@ -53,7 +53,7 @@ internal void timing_report(MemoryArena* arena,
 #define TIMING_COUNTER_END(NAME)
 
 #define timing_counter_name(type) "TIMING NOTE COMPILED"
-#define timing_report(out_folder)
+#define timing_report(arena, out_folder)
 
 #endif
 
