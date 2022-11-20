@@ -44,9 +44,9 @@ Network* get_network(State* state) {
 int main() {
     State* state = state_create();
     
-    const char* output_folder = "D:\\repos\\Tango_outputs_arena";
+    const char* output_folder = "D:\\repos\\Tango_outputs_new_rand";
     Network* network = get_network(state);
-    DataGen* data = data_gen_create_random_spikes(state, 0.1f, 3, 100);
+    DataGen* data = data_gen_create_random_spikes(state, 0.1f, 5, 100);
     Callback* callback = callback_dumper_create(state, output_folder, network);
     Simulator* sim = simulator_create(state, network, data);
     simulator_add_callback(state, sim, callback);

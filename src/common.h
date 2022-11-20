@@ -28,6 +28,8 @@ typedef double f64;
 #define TRUE 1
 #define FALSE 0
 
+#define U32_MAX ((u32)-1)
+
 
 typedef enum { SUCCESS = 0, FAIL = 1 } Status;
 
