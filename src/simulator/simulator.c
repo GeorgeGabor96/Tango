@@ -49,6 +49,8 @@ simulator_run(State* state, Simulator* simulator)
     clock_t network_time = 0;
     f64 network_time_s = 0.0;
     
+    random_init();
+    
     total_time_start = clock();
     for (data_idx = 0; data_idx < simulator->data->length; ++data_idx) {
         sample_time_start = clock();
