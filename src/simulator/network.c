@@ -33,13 +33,20 @@ internal void
 network_show(Network* network) {
     check(network != NULL, "network is NULL");
     u32 i = 0;
+    u32 n_synapses = 0;
+    u32 n_neurons = 0;
+    Layer* layer = NULL;
     
     printf("-----------------------NETWORK---------------------\n");
     printf("Name: %s\n\n", string_to_c_str(network->name));
     
     printf("Layers:\n");
-    for (i = 0; i < network->n_layers; ++i)
-        layer_show(network->layers[i]);
+    for (i = 0; i < network->n_layers; ++i) {
+        layer = network->layers[i];
+        layer_show(layer);
+        n_synapses += layer_get_n_in_synapses(layer);
+        n_neurons += layer->n_neurons;
+    }
     printf("Number of layers: %u\n\n", network->n_layers);
     
     printf("Input Layers: ");
@@ -51,6 +58,9 @@ network_show(Network* network) {
     for (i = 0; i < network->n_out_layers; ++i)
         printf("%s, ", string_to_c_str(network->layers[i]->name));
     printf("\nNumber of output layers: %u\n\n", network->n_out_layers);
+    
+    printf("Number of neurons: %u\n", n_neurons);
+    printf("Number of synapses: %u\n", n_synapses);
     printf("-----------------------NETWORK---------------------\n");
     
     error:

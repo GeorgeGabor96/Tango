@@ -40,6 +40,7 @@ internal Layer* layer_create(State* state,
                              u32 n_neurons, NeuronCls* cls);
 
 internal void layer_show(Layer* layer);
+internal u32 layer_get_n_in_synapses(Layer* layer);
 
 internal bool layer_link(State* state, 
                          Layer* layer, Layer* input_layer,
