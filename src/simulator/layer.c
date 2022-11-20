@@ -127,14 +127,14 @@ layer_clear(Layer* layer) {
 }
 
 
-internal void
-layer_show(Layer* layer) {
-    check(layer != NULL, "layer is NULL");
-    
+internal u32
+layer_get_n_in_synapses(Layer* layer) {
+    u32 n_in_synapses = 0;
     u32 i = 0;
     u32 j = 0;
-    u32 n_in_synapses = 0;
     Neuron* neuron = NULL;
+    
+    check(layer != NULL, "Layer is NULL");
     
     for (i = 0; i < layer->n_neurons; ++i) {
         neuron = layer->neurons + i;
@@ -142,6 +142,20 @@ layer_show(Layer* layer) {
             n_in_synapses += neuron->in_synapse_arrays[j]->length;
         }
     }
+    
+    error:
+    return n_in_synapses;
+}
+
+
+internal void
+layer_show(Layer* layer) {
+    check(layer != NULL, "layer is NULL");
+    
+    u32 i = 0;
+    u32 j = 0;
+    u32 n_in_synapses = layer_get_n_in_synapses(layer);
+    
     printf("-------------------\n");
     printf("Name: %s\n", string_to_c_str(layer->name));
     printf("Type: %s\n", layer_type_get_c_str(layer->type));

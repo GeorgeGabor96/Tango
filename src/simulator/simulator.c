@@ -37,7 +37,22 @@ simulator_run(State* state, Simulator* simulator)
     u32 time = 0;
     u32 callback_i = 0;
     
+    // TIMING
+    clock_t total_time_start = 0;
+    clock_t total_time = 0;
+    
+    clock_t sample_time_start = 0;
+    clock_t sample_time = 0;
+    f64 sample_time_s = 0.0;
+    
+    clock_t network_time_start = 0;
+    clock_t network_time = 0;
+    f64 network_time_s = 0.0;
+    
+    total_time_start = clock();
     for (data_idx = 0; data_idx < simulator->data->length; ++data_idx) {
+        sample_time_start = clock();
+        
         sample = data_gen_sample_create(state->transient_storage,
                                         simulator->data, data_idx);
         
@@ -54,7 +69,10 @@ simulator_run(State* state, Simulator* simulator)
                                                 sample,
                                                 simulator->network,
                                                 time);
+            
+            network_time_start = clock();
             network_step(simulator->network, inputs, time);
+            network_time += clock() - network_time_start;
             
             for (callback_i = 0;
                  callback_i < simulator->n_callbacks;
@@ -70,7 +88,26 @@ simulator_run(State* state, Simulator* simulator)
                                 simulator->network);
         
         memory_arena_clear(state->transient_storage);
+        
+        sample_time = clock() - sample_time_start;
+        
+        // NOTE: Timing logging
+        network_time_s = (f64)network_time / CLOCKS_PER_SEC;
+        printf("\n");
+        log_info("Network time %lfs", network_time_s);
+        log_info("Network step time %lfs",
+                 network_time_s / (f64)sample->duration); 
+        network_time = 0;
+        
+        sample_time_s = (f64)sample_time / CLOCKS_PER_SEC;
+        log_info("Sample time %lfs", sample_time_s);
+        log_info("Non NETWORK time %lfs", sample_time_s - network_time_s);
+        sample_time = 0;
+        
+        printf("\n");
     }
+    total_time = clock() - total_time_start;
+    log_info("Total simulation time %lfs\n", (f64)total_time / CLOCKS_PER_SEC);
     
     TIMING_COUNTER_END(SIMULATOR_RUN);
     
