@@ -11,6 +11,7 @@ typedef struct ThreadWorkOrder {
     void* layer;
     u32 neuron_idx_start;
     u32 neuron_idx_end;
+    u32 time;
 } ThreadWorkOrder;
 
 
@@ -22,6 +23,7 @@ typedef struct ThreadPool {
 } ThreadPool;
 
 
+typedef u32 (*THREAD_FUNCTION)(void* parameter);
 
 
 #endif //THREAD_H

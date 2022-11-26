@@ -46,9 +46,9 @@ int main() {
     
     const char* output_folder = "D:\\repos\\Tango_threads";
     Network* network = get_network(state);
-    DataGen* data = data_gen_create_random_spikes(state, 0.1f, 1, 10);
+    DataGen* data = data_gen_create_random_spikes(state, 0.1f, 1, 500);
     Callback* callback = callback_dumper_create(state, output_folder, network);
-    Simulator* sim = simulator_create(state, network, data, 4);
+    Simulator* sim = simulator_create(state, network, data, 2);
     simulator_add_callback(state, sim, callback);
     
     simulator_run(state, sim);

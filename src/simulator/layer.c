@@ -50,6 +50,31 @@ layer_create(State* state, const char* name, LayerType type, u32 n_neurons, Neur
 }
 
 
+inline internal bool
+process_neurons(ThreadPool* work_queue) {
+    u32 work_order_idx = thread_lock_add_return_orig_value_u32(&(work_queue->c_order_idx), 1);
+    if (work_order_idx >= work_queue->n_orders) {
+        return FALSE;
+    }
+    
+    ThreadWorkOrder* order = work_queue->orders + work_order_idx;
+    Layer* layer = (Layer*)(order->layer);
+    for (u32 neuron_i = order->neuron_idx_start;
+         neuron_i < order->neuron_idx_end;
+         ++neuron_i)
+        neuron_step(layer->neurons + neuron_i, order->time);
+    return TRUE;
+}
+
+
+internal u32
+process_order(void* parameter) {
+    ThreadPool* work_queue = (ThreadPool*) parameter;
+    while (process_neurons(work_queue) == TRUE) {}
+    return 0;
+}
+
+
 internal void
 layer_step(Layer* layer, u32 time,
            MemoryArena* transient_storage, u32 n_cpus) {
@@ -78,20 +103,16 @@ layer_step(Layer* layer, u32 time,
         order->neuron_idx_end = order->neuron_idx_start + n_neurons_per_order;
         if (order->neuron_idx_end > layer->n_neurons)
             order->neuron_idx_end = layer->n_neurons;
+        order->time = time;
     }
     
-    while (pool.c_order_idx < pool.n_orders) {
-        // TODO: move this into a process order???
-        ThreadWorkOrder* order = pool.orders + pool.c_order_idx;
-        ++(pool.c_order_idx);
-        log_info("Order %u: start %u, end %u, layer->n_neurons %u",
-                 pool.c_order_idx, order->neuron_idx_start,
-                 order->neuron_idx_end, layer->n_neurons);
-        for (u32 neuron_i = order->neuron_idx_start;
-             neuron_i < order->neuron_idx_end;
-             ++neuron_i)
-            neuron_step(layer->neurons + neuron_i, time);
-    }
+    // NOTE: Memory Fence, don't fully understand it yet but yea
+    thread_lock_add_return_orig_value_u32(&(pool.c_order_idx), 0);
+    
+    for (u32 i = 1; i < n_cpus; ++i)
+        create_worker_thread(process_order, &pool);
+    
+    while (process_neurons(&pool) == TRUE) {}
     
     TIMING_COUNTER_END(LAYER_STEP);
     
