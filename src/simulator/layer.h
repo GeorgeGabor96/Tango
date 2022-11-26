@@ -47,7 +47,8 @@ internal bool layer_link(State* state,
                          SynapseCls* cls, f32 weight); 
 
 // NOTE: to set inputs
-internal void layer_step(Layer* layer, u32 time);
+internal void layer_step(Layer* layer, u32 time,
+                         MemoryArena* transient_storage, u32 n_cpus);
 internal void layer_step_inject_current(Layer* layer, u32 time, f32* currents, u32 n_currents);
 internal void layer_step_force_spike(Layer* layer, u32 time, bool* spikes, u32 n_spikes);
 

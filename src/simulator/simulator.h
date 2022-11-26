@@ -19,10 +19,11 @@ typedef struct Simulator {
     DataGen* data;
     Callback* callbacks[SIMULATOR_N_MAX_CALLBACKS];
     u32 n_callbacks;
+    u32 n_cpus;
 } Simulator;
 
 
-internal Simulator* simulator_create(State* state, Network* network, DataGen* data);
+internal Simulator* simulator_create(State* state, Network* network, DataGen* data, u32 n_cpus);
 
 internal void simulator_run(State* state, Simulator* simulator);
 internal void simulator_add_callback(State* state, Simulator* simulator, Callback* callback);

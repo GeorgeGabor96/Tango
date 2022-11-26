@@ -97,13 +97,15 @@ network_add_layer(Network* network, Layer* layer,
 
 
 internal void
-network_step(Network* network, NetworkInputs* inputs, u32 time) {
+network_step(Network* network, NetworkInputs* inputs, u32 time,
+             MemoryArena* arena, u32 n_cpus) {
     TIMING_COUNTER_START(NETWORK_STEP);
     
     check(network != NULL, "network is NULL");
     check(network->n_in_layers == inputs->n_inputs,
           "network->n_in_layers is %u, inputs->n_inputs is %u, should be equal",
           network->n_in_layers, inputs->n_inputs);
+    check(n_cpus != 0, "n_cpus is 0");
     
     Layer* layer = NULL;
     NetworkInput* input = NULL;
@@ -127,7 +129,7 @@ network_step(Network* network, NetworkInputs* inputs, u32 time) {
     for (i = 0; i < network->n_layers; ++i) {
         layer = network->layers[i];
         if (layer->it_ran == FALSE)
-            layer_step(layer, time);
+            layer_step(layer, time, arena, n_cpus);
     }
     
     TIMING_COUNTER_END(NETWORK_STEP);

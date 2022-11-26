@@ -2,12 +2,14 @@
 
 
 internal Simulator*
-simulator_create(State* state, Network* network, DataGen* data) {
+simulator_create(State* state, Network* network, DataGen* data,
+                 u32 n_cpus) {
     Simulator* simulator = NULL;
     
     check(state != NULL, "state is NULL");
     check(network != NULL, "network is NULL");
     check(data != NULL, "data is NULL");
+    check(n_cpus != 0, "n_cpus is 0");
     
     simulator = (Simulator*) memory_arena_push(state->permanent_storage, sizeof(*simulator));
     check_memory(simulator);
@@ -15,6 +17,8 @@ simulator_create(State* state, Network* network, DataGen* data) {
     simulator->network = network;
     simulator->data = data;
     simulator->n_callbacks = 0;
+    simulator->n_cpus = n_cpus;
+    // TODO: Should the simulator create the pool of threads?
     
     return simulator;
     
@@ -73,7 +77,8 @@ simulator_run(State* state, Simulator* simulator)
                                                 time);
             
             network_time_start = clock();
-            network_step(simulator->network, inputs, time);
+            network_step(simulator->network, inputs, time,
+                         state->transient_storage, simulator->n_cpus);
             network_time += clock() - network_time_start;
             
             for (callback_i = 0;

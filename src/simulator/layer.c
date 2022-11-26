@@ -51,13 +51,47 @@ layer_create(State* state, const char* name, LayerType type, u32 n_neurons, Neur
 
 
 internal void
-layer_step(Layer* layer, u32 time) {
+layer_step(Layer* layer, u32 time,
+           MemoryArena* transient_storage, u32 n_cpus) {
     TIMING_COUNTER_START(LAYER_STEP);
     
     check(layer != NULL, "layer is NULL");
+    check(n_cpus != 0, "n_cpus is 0");
     
-    for (u32 i = 0; i < layer->n_neurons; ++i)
-        neuron_step(layer->neurons + i, time);
+    // NOTE: this I think can be allocated in the create so that no need to pass arena
+    ThreadPool pool;
+    pool.orders = (ThreadWorkOrder*)
+        memory_arena_push(transient_storage, n_cpus * sizeof(ThreadWorkOrder)); 
+    pool.n_orders = n_cpus;
+    pool.c_order_idx = 0;
+    
+    // TODO: Its ugly that in this way I will create the threads here every time
+    // TODO: can't I create the threads in the layer create and keep them and 
+    // TODO: give them work from time to time???
+    
+    // NOTE: Create n_cpus orders that need to be ran in threads
+    u32 n_neurons_per_order = (layer->n_neurons + n_cpus - 1) / n_cpus;
+    for (u32 order_i = 0; order_i < n_cpus; ++order_i) {
+        ThreadWorkOrder* order = pool.orders + order_i;
+        order->layer = layer;
+        order->neuron_idx_start = order_i * n_neurons_per_order;
+        order->neuron_idx_end = order->neuron_idx_start + n_neurons_per_order;
+        if (order->neuron_idx_end > layer->n_neurons)
+            order->neuron_idx_end = layer->n_neurons;
+    }
+    
+    while (pool.c_order_idx < pool.n_orders) {
+        // TODO: move this into a process order???
+        ThreadWorkOrder* order = pool.orders + pool.c_order_idx;
+        ++(pool.c_order_idx);
+        log_info("Order %u: start %u, end %u, layer->n_neurons %u",
+                 pool.c_order_idx, order->neuron_idx_start,
+                 order->neuron_idx_end, layer->n_neurons);
+        for (u32 neuron_i = order->neuron_idx_start;
+             neuron_i < order->neuron_idx_end;
+             ++neuron_i)
+            neuron_step(layer->neurons + neuron_i, time);
+    }
     
     TIMING_COUNTER_END(LAYER_STEP);
     
@@ -72,6 +106,8 @@ layer_step_inject_current(Layer* layer, u32 time, f32* currents, u32 n_currents)
     
     check(layer != NULL, "layer is NULL");
     check(currents != NULL, "currents is NULL");
+    
+    // TODO: Do I need like an order type for this also?
     
     u32 n_inputs = math_min_u32(layer->n_neurons, n_currents);
     u32 i = 0;
@@ -94,6 +130,8 @@ layer_step_force_spike(Layer* layer, u32 time, bool* spikes, u32 n_spikes) {
     
     check(layer != NULL, "layer is NULL");
     check(spikes != NULL, "spikes is NULL");
+    
+    // TODO: Do I need like an order type for this also?
     
     u32 n_inputs = math_min_u32(layer->n_neurons, n_spikes);
     u32 i = 0;
