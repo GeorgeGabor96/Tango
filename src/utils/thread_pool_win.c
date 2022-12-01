@@ -82,6 +82,9 @@ internal ThreadPool*
 thread_pool_create(u32 n_threads,
                    THREAD_POOL_TASK_EXECUTE execute,
                    MemoryArena* arena) {
+    check(execute != NULL, "execute is NULL");
+    check(arena != NULL, "arena is NULL");
+    
     u32 i = 0;
 	DWORD thread_id = 0;
 	ThreadPoolQueue* queue = NULL;
@@ -107,11 +110,15 @@ thread_pool_create(u32 n_threads,
     
 	pool->stop = FALSE;
 	pool->execute = execute;
-	pool->threads = (HANDLE*)memory_arena_push(arena, sizeof(HANDLE) * n_threads);
-	if (pool->threads == NULL) {
-		LeaveCriticalSection(&(pool->lock));
-		return NULL;
-	}
+	if (n_threads == 0) {
+        pool->threads = NULL;
+    } else {
+        pool->threads = (HANDLE*)memory_arena_push(arena, sizeof(HANDLE) * n_threads);
+        if (pool->threads == NULL) {
+            LeaveCriticalSection(&(pool->lock));
+            return NULL;
+        }
+    }
 	
 	LeaveCriticalSection(&(pool->lock));
     
@@ -122,24 +129,35 @@ thread_pool_create(u32 n_threads,
 	pool->n_threads = i;
     
 	return pool;
+    
+    error:
+    return NULL;
 }
 
 
 internal void
 thread_pool_reset(ThreadPool* pool) {
-	EnterCriticalSection(&(pool->lock));
+	check(pool != NULL, "pool is NULL");
+    
+    EnterCriticalSection(&(pool->lock));
     
 	pool->queue->n_tasks = 0;
 	pool->queue->task_i = 0;
     pool->queue->empty = TRUE;
 	
 	LeaveCriticalSection(&(pool->lock));
+    
+    error:
+    return;
 }
 
 
 internal void
 thread_pool_add_task(ThreadPool* pool, void* task) {
-	EnterCriticalSection(&(pool->lock));
+	check(pool != NULL, "pool is NULL");
+    check(task != NULL, "task is NULL");
+    
+    EnterCriticalSection(&(pool->lock));
     
 	if (pool->queue->n_tasks == MAX_N_TASKS) {
 		log_warning("Increase queue size");
@@ -151,21 +169,32 @@ thread_pool_add_task(ThreadPool* pool, void* task) {
 	++(pool->queue->n_tasks);
     
 	LeaveCriticalSection(&(pool->lock));
+    
+    error:
+    return;
 }
+
 
 internal void
 thread_pool_execute_tasks(ThreadPool* pool) {
-	EnterCriticalSection(&(pool->lock));
+	check(pool != NULL, "pool is NULL");
+    
+    EnterCriticalSection(&(pool->lock));
 	pool->queue->empty = FALSE;
 	LeaveCriticalSection(&(pool->lock));
 	WakeAllConditionVariable(&(pool->signal));
 	while (process_order(pool) == TRUE) {}
+    
+    error:
+    return;
 }
 
 
 internal void
 thread_pool_stop(ThreadPool* pool) {
-	EnterCriticalSection(&(pool->lock));
+	check(pool != NULL, "pool is NULL");
+    
+    EnterCriticalSection(&(pool->lock));
 	pool->stop = TRUE;
 	LeaveCriticalSection(&(pool->lock));
     
@@ -176,4 +205,7 @@ thread_pool_stop(ThreadPool* pool) {
 		WaitForSingleObject(pool->threads[i], INFINITE);
 		CloseHandle(pool->threads[i]);
 	}
+    
+    error:
+    return;
 }

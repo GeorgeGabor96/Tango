@@ -8,7 +8,7 @@
 #include "containers/memory_arena.h"
 
 
-#define MAX_N_TASKS 64
+#define MAX_N_TASKS 256
 
 
 typedef struct _ThreadPool ThreadPool;

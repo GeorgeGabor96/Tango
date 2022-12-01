@@ -44,14 +44,19 @@ Network* get_network(State* state) {
 int main() {
     State* state = state_create();
     
-    const char* output_folder = "D:\\repos\\Tango_outputs_new_rand";
+    const char* output_folder = "D:\\repos\\Tango_outputs\\with_0_thread";
     Network* network = get_network(state);
     DataGen* data = data_gen_create_random_spikes(state, 0.1f, 5, 100);
     Callback* callback = callback_dumper_create(state, output_folder, network);
-    Simulator* sim = simulator_create(state, network, data);
+    
+    ThreadPool* pool = thread_pool_create(8, layer_process_neurons, state->permanent_storage);
+    
+    Simulator* sim = simulator_create(state, pool, network, data);
     simulator_add_callback(state, sim, callback);
     
     simulator_run(state, sim);
+    
+    simulator_destroy(sim);
     
     timing_report(state->transient_storage, output_folder);
     
