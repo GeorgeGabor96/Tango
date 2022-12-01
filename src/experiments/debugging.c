@@ -49,7 +49,7 @@ int main() {
     DataGen* data = data_gen_create_random_spikes(state, 0.1f, 5, 100);
     Callback* callback = callback_dumper_create(state, output_folder, network);
     
-    ThreadPool* pool = thread_pool_create(8, layer_process_neurons, state->permanent_storage);
+    ThreadPool* pool = thread_pool_create(7, layer_process_neurons, state->permanent_storage);
     
     Simulator* sim = simulator_create(state, pool, network, data);
     simulator_add_callback(state, sim, callback);

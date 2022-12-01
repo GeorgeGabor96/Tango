@@ -66,9 +66,9 @@ layer_process_neurons(void* task) {
         f32* currents = layer_task->task_inject_current.currents;
         u32 injects_idx = 0;
         
-        if (n_inputs > layer_task->neuron_end_i) {
+        if (n_inputs >= layer_task->neuron_end_i) {
             injects_idx = layer_task->neuron_end_i;
-        } else if (n_inputs < layer_task->neuron_start_i) {
+        } else if (n_inputs <= layer_task->neuron_start_i) {
             injects_idx = layer_task->neuron_start_i;
         }
         
@@ -82,9 +82,9 @@ layer_process_neurons(void* task) {
         bool* spikes = layer_task->task_force_spike.spikes;
         u32 spikes_idx = 0;
         
-        if (n_inputs > layer_task->neuron_end_i)
+        if (n_inputs >= layer_task->neuron_end_i)
             spikes_idx = layer_task->neuron_end_i;
-        else if (n_inputs < layer_task->neuron_start_i)
+        else if (n_inputs <= layer_task->neuron_start_i)
             spikes_idx = layer_task->neuron_start_i;
         
         for (i = layer_task->neuron_start_i; i < spikes_idx; ++i) {
