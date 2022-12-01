@@ -8,6 +8,7 @@
 #include "utils/os.c"
 #include "utils/timing.c"
 #include "utils/random.c"
+#include "utils/thread_pool.c"
 #include "containers/string.c"
 #include "containers/array.c"
 #include "containers/memory_arena.c"
