@@ -51,12 +51,11 @@ int main() {
     
     ThreadPool* pool = thread_pool_create(4, layer_process_neurons, state->permanent_storage);
     
-    Simulator* sim = simulator_create(state, pool, network, data);
-    simulator_add_callback(state, sim, callback);
+    Simulator* sim = simulator_create(state, network, data);
+    simulator_add_callback(sim, state, callback);
     
-    simulator_run(state, sim);
-    
-    simulator_destroy(sim);
+    simulator_run(sim, state, pool);
+    thread_pool_stop(pool);
     
     timing_report(state->transient_storage, output_folder);
     

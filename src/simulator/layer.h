@@ -40,6 +40,7 @@ typedef enum {
     LAYER_TASK_STEP_FORCE_SPIKE
 } LayerTaskType;
 
+
 typedef struct LayerTask {
     LayerTaskType type;
     Layer* layer;

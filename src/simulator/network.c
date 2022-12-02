@@ -106,6 +106,7 @@ network_step(Network* network, NetworkInputs* inputs, u32 time,
           "network->n_in_layers is %u, inputs->n_inputs is %u, should be equal",
           network->n_in_layers, inputs->n_inputs);
     check(storage != NULL, "storage is NULL");
+    check(pool != NULL, "pool is NULL");
     
     Layer* layer = NULL;
     NetworkInput* input = NULL;

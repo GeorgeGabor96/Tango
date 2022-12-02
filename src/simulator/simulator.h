@@ -15,7 +15,6 @@
 #define SIMULATOR_N_MAX_CALLBACKS 5u
 
 typedef struct Simulator {
-    ThreadPool* pool;
     Network* network;
     DataGen* data;
     Callback* callbacks[SIMULATOR_N_MAX_CALLBACKS];
@@ -23,11 +22,8 @@ typedef struct Simulator {
 } Simulator;
 
 
-internal Simulator* simulator_create(State* state, ThreadPool* pool,
-                                     Network* network, DataGen* data);
-
-internal void simulator_run(State* state, Simulator* simulator);
-internal void simulator_add_callback(State* state, Simulator* simulator, Callback* callback);
-internal void simulator_destroy(Simulator* simulator);
+internal Simulator* simulator_create(State* state, Network* network, DataGen* data);
+internal void simulator_run(Simulator* simulator, State* state, ThreadPool* pool);
+internal void simulator_add_callback(Simulator* simulator, State* state, Callback* callback);
 
 #endif //SIMULATOR_H

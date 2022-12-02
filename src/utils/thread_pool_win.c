@@ -42,13 +42,15 @@ process_task(ThreadPool* pool) {
 		return FALSE;
 	}
     
+    // NOTE: the queue should be empty, set it and return
 	if (task_i >= n_tasks) {
 		pool->queue->empty = TRUE;
 		LeaveCriticalSection(&(pool->lock));
 		return FALSE;
 	}
     
-	(pool->queue->task_i)++;
+	++(pool->queue->task_i);
+    // NOTE: increment the number of thread that work, so that we wait for them to finish
 	++(pool->n_working_threads);
     LeaveCriticalSection(&(pool->lock));
     
@@ -59,6 +61,7 @@ process_task(ThreadPool* pool) {
     EnterCriticalSection(&(pool->lock));
     --(pool->n_working_threads);
     LeaveCriticalSection(&(pool->lock));
+    // NOTE: this may be the last thread that was working, signal this so that we can continue
     WakeConditionVariable(&(pool->end_work_signal));
     
 	return TRUE;
@@ -71,7 +74,8 @@ pool_execute(LPVOID lpParameter) {
     
 	while (TRUE) {
 		EnterCriticalSection(&(pool->lock));
-		while (pool->queue->empty == TRUE && pool->stop == FALSE) {
+		// NOTE: wait for the start of processing to signalled
+        while (pool->queue->empty == TRUE && pool->stop == FALSE) {
 			SleepConditionVariableCS(&(pool->start_work_signal), &(pool->lock), INFINITE);
 		}
 		if (pool->stop == TRUE) {
@@ -138,8 +142,6 @@ thread_pool_create(u32 n_threads,
 		if (pool->threads[i] == NULL) return NULL;
 	}
 	pool->n_threads = i;
-    
-    
 	return pool;
     
     error:
@@ -192,13 +194,16 @@ internal void
 thread_pool_execute_tasks(ThreadPool* pool) {
 	check(pool != NULL, "pool is NULL");
     
+    // NOTE: queue is not empty signal the workers to start
     EnterCriticalSection(&(pool->lock));
 	pool->queue->empty = FALSE;
 	LeaveCriticalSection(&(pool->lock));
 	WakeAllConditionVariable(&(pool->start_work_signal));
-	while (process_task(pool) == TRUE) {}
     
-    // NOTE: make sure all the threads finished their work
+    // NOTE: the main thread is also working
+    while (process_task(pool) == TRUE) {}
+    
+    // NOTE: make sure all the threads finished their work before continuing
     EnterCriticalSection(&(pool->lock));
     while (pool->n_working_threads > 0)
         SleepConditionVariableCS(&(pool->end_work_signal), &(pool->lock), INFINITE);
@@ -213,11 +218,10 @@ internal void
 thread_pool_stop(ThreadPool* pool) {
 	check(pool != NULL, "pool is NULL");
     
+    // NOTE: signal the workers that they should finish the execution and wait for them
     EnterCriticalSection(&(pool->lock));
 	pool->stop = TRUE;
 	LeaveCriticalSection(&(pool->lock));
-    
-	// WAKE all threads so that they finish the execution
 	WakeAllConditionVariable(&(pool->start_work_signal));
     
 	for (u32 i = 0; i < pool->n_threads; ++i) {
