@@ -12,6 +12,7 @@ typedef struct ThreadPoolQueue {
 struct _ThreadPool {
 	HANDLE* threads;
     u32 n_threads;
+    u32 n_working_threads;
     
 	ThreadPoolQueue* queue;
     bool stop;
@@ -19,12 +20,13 @@ struct _ThreadPool {
 	THREAD_POOL_TASK_EXECUTE execute;
     
 	CRITICAL_SECTION lock;
-	CONDITION_VARIABLE signal;
+	CONDITION_VARIABLE start_work_signal;
+    CONDITION_VARIABLE end_work_signal;
 } _ThreadPool;
 
 
 inline internal bool
-process_order(ThreadPool* pool) {
+process_task(ThreadPool* pool) {
     u32 task_i = 0;
     u32 n_tasks = 0;
     bool empty = FALSE;
@@ -47,10 +49,17 @@ process_order(ThreadPool* pool) {
 	}
     
 	(pool->queue->task_i)++;
-	LeaveCriticalSection(&(pool->lock));
+	++(pool->n_working_threads);
+    LeaveCriticalSection(&(pool->lock));
     
 	task = pool->queue->tasks[task_i];
 	pool->execute(task);
+    
+    // NOTE: decrement the number of threads that work and signal that the work may be finish
+    EnterCriticalSection(&(pool->lock));
+    --(pool->n_working_threads);
+    LeaveCriticalSection(&(pool->lock));
+    WakeConditionVariable(&(pool->end_work_signal));
     
 	return TRUE;
 }
@@ -63,7 +72,7 @@ pool_execute(LPVOID lpParameter) {
 	while (TRUE) {
 		EnterCriticalSection(&(pool->lock));
 		while (pool->queue->empty == TRUE && pool->stop == FALSE) {
-			SleepConditionVariableCS(&(pool->signal), &(pool->lock), INFINITE);
+			SleepConditionVariableCS(&(pool->start_work_signal), &(pool->lock), INFINITE);
 		}
 		if (pool->stop == TRUE) {
 			LeaveCriticalSection(&(pool->lock));
@@ -72,7 +81,7 @@ pool_execute(LPVOID lpParameter) {
         
 		LeaveCriticalSection(&(pool->lock));
         
-		while (process_order(pool) == TRUE) {}
+		while (process_task(pool) == TRUE) {}
 	}
 	return 0;
 }
@@ -93,7 +102,8 @@ thread_pool_create(u32 n_threads,
 	if (pool == NULL) return NULL;
     
 	InitializeCriticalSection(&(pool->lock));
-	InitializeConditionVariable(&(pool->signal));
+	InitializeConditionVariable(&(pool->start_work_signal));
+    InitializeConditionVariable(&(pool->end_work_signal));
     
 	// NOTE: Like a memory fence, to make sure the instructions are not rearange and the threads start before everything is initialized
 	EnterCriticalSection(&(pool->lock));
@@ -103,7 +113,8 @@ thread_pool_create(u32 n_threads,
 		LeaveCriticalSection(&(pool->lock));
 		return NULL;
 	}
-	queue->n_tasks = 0;
+	pool->n_working_threads = 0;
+    queue->n_tasks = 0;
 	queue->task_i = 0;
 	queue->empty = TRUE;
 	pool->queue = queue;
@@ -128,6 +139,7 @@ thread_pool_create(u32 n_threads,
 	}
 	pool->n_threads = i;
     
+    
 	return pool;
     
     error:
@@ -141,6 +153,7 @@ thread_pool_reset(ThreadPool* pool) {
     
     EnterCriticalSection(&(pool->lock));
     
+    pool->n_working_threads = 0;
 	pool->queue->n_tasks = 0;
 	pool->queue->task_i = 0;
     pool->queue->empty = TRUE;
@@ -182,8 +195,14 @@ thread_pool_execute_tasks(ThreadPool* pool) {
     EnterCriticalSection(&(pool->lock));
 	pool->queue->empty = FALSE;
 	LeaveCriticalSection(&(pool->lock));
-	WakeAllConditionVariable(&(pool->signal));
-	while (process_order(pool) == TRUE) {}
+	WakeAllConditionVariable(&(pool->start_work_signal));
+	while (process_task(pool) == TRUE) {}
+    
+    // NOTE: make sure all the threads finished their work
+    EnterCriticalSection(&(pool->lock));
+    while (pool->n_working_threads > 0)
+        SleepConditionVariableCS(&(pool->end_work_signal), &(pool->lock), INFINITE);
+    LeaveCriticalSection(&(pool->lock));
     
     error:
     return;
@@ -199,7 +218,7 @@ thread_pool_stop(ThreadPool* pool) {
 	LeaveCriticalSection(&(pool->lock));
     
 	// WAKE all threads so that they finish the execution
-	WakeAllConditionVariable(&(pool->signal));
+	WakeAllConditionVariable(&(pool->start_work_signal));
     
 	for (u32 i = 0; i < pool->n_threads; ++i) {
 		WaitForSingleObject(pool->threads[i], INFINITE);

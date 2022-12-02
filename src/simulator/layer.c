@@ -111,6 +111,7 @@ layer_step(Layer* layer, u32 time, MemoryArena* storage, ThreadPool* pool) {
     
     u32 n_tasks = pool->n_threads + 1; // consider also the main thread
     u32 neurons_per_task = (layer->n_neurons + n_tasks - 1) / n_tasks;
+    
     for (u32 task_i = 0; task_i < n_tasks; ++task_i) {
         LayerTask* task = (LayerTask*) memory_arena_push(storage, sizeof(*task));
         check(task != NULL, "task is NULL");
@@ -127,9 +128,6 @@ layer_step(Layer* layer, u32 time, MemoryArena* storage, ThreadPool* pool) {
     }
     
     thread_pool_execute_tasks(pool);
-    
-    //for (u32 i = 0; i < layer->n_neurons; ++i)
-    //neuron_step(layer->neurons + i, time);
     
     TIMING_COUNTER_END(LAYER_STEP);
     
@@ -152,8 +150,9 @@ layer_step_inject_current(Layer* layer, u32 time, f32* currents, u32 n_currents,
     
     u32 n_inputs = math_min_u32(layer->n_neurons, n_currents);
     
-    u32 n_tasks = pool->n_threads + 1;
+    u32 n_tasks = pool->n_threads + 1; // consider also the main thread
     u32 neurons_per_task = (layer->n_neurons + n_tasks - 1) / n_tasks;
+    
     for (u32 task_i = 0; task_i < n_tasks; ++task_i) {
         LayerTask* task = (LayerTask*) memory_arena_push(storage, sizeof(*task));
         check(task != NULL, "task is NULL");
@@ -195,8 +194,9 @@ layer_step_force_spike(Layer* layer, u32 time, bool* spikes, u32 n_spikes,
     
     u32 n_inputs = math_min_u32(layer->n_neurons, n_spikes);
     
-    u32 n_tasks = pool->n_threads + 1;
+    u32 n_tasks = pool->n_threads + 1; // consider also the main thread
     u32 neurons_per_task = (layer->n_neurons + n_tasks - 1) / n_tasks;
+    
     for (u32 task_i = 0; task_i < n_tasks; ++task_i) {
         LayerTask* task = (LayerTask*) memory_arena_push(storage, sizeof(*task));
         check(task != NULL, "task is NULL");
