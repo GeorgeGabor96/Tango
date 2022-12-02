@@ -28,4 +28,15 @@ math_max_u32(u32 a, u32 b) {
 }
 
 
+inline internal u32
+math_clip_u32(u32 value, u32 min, u32 max) {
+    u32 result = value;
+    
+    if (result > max) result = max;
+    else if (result < min) result = min;
+    
+    return result;
+}
+
+
 #endif //MATH_OPS_H

@@ -5,7 +5,7 @@
 
 
 #include "common.h"
-#include "utils/memory.h"
+#include "utils/thread_pool.h"
 #include "containers/array.h"
 #include "simulator/network.h"
 #include "simulator/data_gen.h"
@@ -23,9 +23,7 @@ typedef struct Simulator {
 
 
 internal Simulator* simulator_create(State* state, Network* network, DataGen* data);
-
-internal void simulator_run(State* state, Simulator* simulator);
-internal void simulator_add_callback(State* state, Simulator* simulator, Callback* callback);
-
+internal void simulator_run(Simulator* simulator, State* state, ThreadPool* pool);
+internal void simulator_add_callback(Simulator* simulator, State* state, Callback* callback);
 
 #endif //SIMULATOR_H

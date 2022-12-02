@@ -97,13 +97,16 @@ network_add_layer(Network* network, Layer* layer,
 
 
 internal void
-network_step(Network* network, NetworkInputs* inputs, u32 time) {
+network_step(Network* network, NetworkInputs* inputs, u32 time,
+             MemoryArena* storage, ThreadPool* pool) {
     TIMING_COUNTER_START(NETWORK_STEP);
     
     check(network != NULL, "network is NULL");
     check(network->n_in_layers == inputs->n_inputs,
           "network->n_in_layers is %u, inputs->n_inputs is %u, should be equal",
           network->n_in_layers, inputs->n_inputs);
+    check(storage != NULL, "storage is NULL");
+    check(pool != NULL, "pool is NULL");
     
     Layer* layer = NULL;
     NetworkInput* input = NULL;
@@ -116,9 +119,11 @@ network_step(Network* network, NetworkInputs* inputs, u32 time) {
         layer = network->layers[i];
         
         if (input->type == NETWORK_INPUT_SPIKES)
-            layer_step_force_spike(layer, time, input->data, input->n_neurons);
+            layer_step_force_spike(layer, time, input->data, input->n_neurons,
+                                   storage, pool);
         else if (input->type == NETWORK_INPUT_CURRENT)
-            layer_step_inject_current(layer, time, input->data, input->n_neurons);
+            layer_step_inject_current(layer, time, input->data, input->n_neurons,
+                                      storage, pool);
         else
             log_error("Unknown network input type %d", input->type);
         layer->it_ran = TRUE;
@@ -127,7 +132,7 @@ network_step(Network* network, NetworkInputs* inputs, u32 time) {
     for (i = 0; i < network->n_layers; ++i) {
         layer = network->layers[i];
         if (layer->it_ran == FALSE)
-            layer_step(layer, time);
+            layer_step(layer, time, storage, pool);
     }
     
     TIMING_COUNTER_END(NETWORK_STEP);

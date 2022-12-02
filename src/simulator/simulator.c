@@ -24,12 +24,13 @@ simulator_create(State* state, Network* network, DataGen* data) {
 
 
 internal void
-simulator_run(State* state, Simulator* simulator)
+simulator_run(Simulator* simulator, State* state, ThreadPool* pool)
 {
     TIMING_COUNTER_START(SIMULATOR_RUN);
     
-    check(state != NULL, "state is NULL");
     check(simulator != NULL, "simulator is NULL");
+    check(state != NULL, "state is NULL");
+    check(pool != NULL, "pool is NULL");
     
     DataSample* sample = NULL;
     NetworkInputs* inputs = NULL;
@@ -73,7 +74,7 @@ simulator_run(State* state, Simulator* simulator)
                                                 time);
             
             network_time_start = clock();
-            network_step(simulator->network, inputs, time);
+            network_step(simulator->network, inputs, time, state->transient_storage, pool);
             network_time += clock() - network_time_start;
             
             for (callback_i = 0;
@@ -119,9 +120,9 @@ simulator_run(State* state, Simulator* simulator)
 
 
 internal void
-simulator_add_callback(State* state, Simulator* simulator, Callback* callback) {
-    check(state != NULL, "state is NULL");
+simulator_add_callback(Simulator* simulator, State* state, Callback* callback) {
     check(simulator != NULL, "simulator is NULL");
+    check(state != NULL, "state is NULL");
     check(callback != NULL, "callback is NULL");
     check(simulator->n_callbacks <= SIMULATOR_N_MAX_CALLBACKS,
           "Cannot add more callbacks: simulator->n_callbacks %u, SIMULATOR_N_MAX_CALLBACKS %u",

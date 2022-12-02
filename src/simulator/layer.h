@@ -34,6 +34,33 @@ typedef struct Layer {
 } Layer;
 
 
+typedef enum {
+    LAYER_TASK_STEP,
+    LAYER_TASK_STEP_INJECT_CURRENT,
+    LAYER_TASK_STEP_FORCE_SPIKE
+} LayerTaskType;
+
+
+typedef struct LayerTask {
+    LayerTaskType type;
+    Layer* layer;
+    u32 time;
+    u32 neuron_start_i;
+    u32 neuron_end_i;
+    
+    union {
+        struct {
+            f32* currents;
+            u32 n_currents;
+        } task_inject_current;
+        
+        struct {
+            bool* spikes;
+            u32 n_spikes;
+        } task_force_spike;
+    };
+} LayerTask;
+
 // NOTE: The layer takes ownership of the name
 internal Layer* layer_create(State* state, 
                              const char* name, LayerType type,
@@ -46,10 +73,15 @@ internal bool layer_link(State* state,
                          Layer* layer, Layer* input_layer,
                          SynapseCls* cls, f32 weight); 
 
-// NOTE: to set inputs
-internal void layer_step(Layer* layer, u32 time);
-internal void layer_step_inject_current(Layer* layer, u32 time, f32* currents, u32 n_currents);
-internal void layer_step_force_spike(Layer* layer, u32 time, bool* spikes, u32 n_spikes);
+internal void layer_process_neurons(void* task); 
+
+internal void layer_step(Layer* layer, u32 time,
+                         MemoryArena* storage, ThreadPool* pool);
+internal void layer_step_inject_current(Layer* layer, u32 time,
+                                        f32* currents, u32 n_currents,
+                                        MemoryArena* storage, ThreadPool* pool);
+internal void layer_step_force_spike(Layer* layer, u32 time, bool* spikes, u32 n_spikes,
+                                     MemoryArena* storage, ThreadPool* pool);
 
 internal void layer_clear(Layer* layer);
 
