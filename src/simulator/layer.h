@@ -71,7 +71,7 @@ internal u32 layer_get_n_in_synapses(Layer* layer);
 
 internal bool layer_link(State* state, 
                          Layer* layer, Layer* input_layer,
-                         SynapseCls* cls, f32 weight); 
+                         SynapseCls* cls, f32 weight, f32 chance); 
 
 internal void layer_process_neurons(void* task); 
 

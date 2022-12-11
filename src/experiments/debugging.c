@@ -2,37 +2,64 @@
 
 
 Network* get_network(State* state) {
+    f32 connect_chance = 0.25;
+    
     Network* network = network_create(state, "Dummy network");
     
-    // Add 5 layers, 2 inputs, 1 hidden and 2 outputs to test that all work
     NeuronCls* neuron_cls = neuron_cls_create_lif_refract(state,
                                                           "LIF refract cls", 5);
-    SynapseCls* synapse_cls = synapse_cls_create(state,
-                                                 "synapse cls",
-                                                 SYNAPSE_VOLTAGE,
-                                                 0, 1, 20, 1);
+    SynapseCls* synapse_cls_exci = synapse_cls_create(state,
+                                                      "AMPA",
+                                                      SYNAPSE_VOLTAGE,
+                                                      0.0f, 0.1f, 1, 10);
+    SynapseCls* synapse_cls_inhi = synapse_cls_create(state,
+                                                      "GABA_A",
+                                                      SYNAPSE_VOLTAGE,
+                                                      -90.0f, 0.1f, 6, 10);
+    Layer* layer_in_exci = layer_create(state, "input_exci", LAYER_DENSE,
+                                        90, neuron_cls);
+    Layer* layer_in_inhi = layer_create(state, "input_inhi", LAYER_DENSE,
+                                        10, neuron_cls);
     
-    Layer* layer_in_1 = layer_create(state, 
-                                     "input 1", LAYER_DENSE, 100, neuron_cls);
-    Layer* layer_in_2 = layer_create(state,
-                                     "input 2", LAYER_DENSE, 400, neuron_cls);
-    Layer* layer_hidden = layer_create(state,
-                                       "hidden", LAYER_DENSE, 1000, neuron_cls);
-    Layer* layer_out_1 = layer_create(state,
-                                      "output 1", LAYER_DENSE, 100, neuron_cls);
-    Layer* layer_out_2 = layer_create(state,
-                                      "output 2", LAYER_DENSE, 10, neuron_cls);
+    network_add_layer(network, layer_in_exci, TRUE, FALSE);
+    network_add_layer(network, layer_in_inhi, TRUE, FALSE);
     
-    layer_link(state, layer_hidden, layer_in_1, synapse_cls, 1);
-    layer_link(state, layer_hidden, layer_in_2, synapse_cls, 1);
-    layer_link(state, layer_out_1, layer_hidden, synapse_cls, 1);
-    layer_link(state, layer_out_2, layer_hidden, synapse_cls, 1);
+    Layer* last_layer_exci = layer_in_exci;
+    Layer* last_layer_inhi = layer_in_inhi;
     
-    network_add_layer(network, layer_in_1, TRUE, FALSE);
-    network_add_layer(network, layer_in_2, TRUE, FALSE);
-    network_add_layer(network, layer_hidden, FALSE, FALSE);
-    network_add_layer(network, layer_out_1, FALSE, TRUE);
-    network_add_layer(network, layer_out_2, FALSE, TRUE);
+    for (u32 i = 1; i < 10; ++i) {
+        char name_buffer[100] = { 0 };
+        sprintf(name_buffer, "layer_%d_exci", i);
+        Layer* cur_layer_exci = layer_create(state, name_buffer, LAYER_DENSE,
+                                             90, neuron_cls);
+        sprintf(name_buffer, "layer_%d_inhi", i);
+        Layer* cur_layer_inhi = layer_create(state, name_buffer, LAYER_DENSE,
+                                             10, neuron_cls);
+        
+        layer_link(state, cur_layer_exci, last_layer_exci,
+                   synapse_cls_exci, 1, connect_chance);
+        layer_link(state, cur_layer_exci, last_layer_inhi,
+                   synapse_cls_inhi, 1, connect_chance);
+        layer_link(state, cur_layer_inhi, last_layer_exci,
+                   synapse_cls_exci, 1, connect_chance);
+        layer_link(state, cur_layer_inhi, last_layer_inhi,
+                   synapse_cls_inhi, 1, connect_chance);
+        
+        network_add_layer(network, cur_layer_exci, FALSE, FALSE);
+        network_add_layer(network, cur_layer_inhi, FALSE, FALSE);
+        
+        last_layer_exci = cur_layer_exci;
+        last_layer_inhi = cur_layer_inhi;
+    }
+    
+    Layer* layer_out_exci = layer_create(state, "output_exci", LAYER_DENSE,
+                                         100, neuron_cls);
+    layer_link(state, layer_out_exci, last_layer_exci, synapse_cls_exci,
+               1, connect_chance);
+    layer_link(state, layer_out_exci, last_layer_inhi, synapse_cls_inhi,
+               1, connect_chance);
+    
+    network_add_layer(network, layer_out_exci, FALSE, TRUE);
     
     network_show(network);
     
@@ -43,10 +70,11 @@ Network* get_network(State* state) {
 
 int main() {
     State* state = state_create();
+    random_init();
     
-    const char* output_folder = "D:\\repos\\Tango_outputs\\Threads\\debug";
+    const char* output_folder = "D:\\repos\\Tango_outputs\\synfire_chain";
     Network* network = get_network(state);
-    DataGen* data = data_gen_create_random_spikes(state, 0.1f, 2, 100);
+    DataGen* data = data_gen_create_random_spikes(state, 0.01f, 1, 1000);
     Callback* callback = callback_dumper_create(state, output_folder, network);
     
     ThreadPool* pool = thread_pool_create(4, layer_process_neurons, state->permanent_storage);
@@ -65,7 +93,6 @@ int main() {
     check(memory_is_empty() == TRUE, "We have memory leaks");
     
     error:
-    
     
     return 0;
 }

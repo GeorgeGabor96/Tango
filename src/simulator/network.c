@@ -51,12 +51,12 @@ network_show(Network* network) {
     
     printf("Input Layers: ");
     for (i = 0; i < network->n_in_layers; ++i)
-        printf("%s, ", string_to_c_str(network->layers[i]->name));
+        printf("%s, ", string_to_c_str(network->in_layers[i]->name));
     printf("\nNumber of input layers: %u\n\n", network->n_in_layers);
     
     printf("Output Layers: ");
     for (i = 0; i < network->n_out_layers; ++i)
-        printf("%s, ", string_to_c_str(network->layers[i]->name));
+        printf("%s, ", string_to_c_str(network->out_layers[i]->name));
     printf("\nNumber of output layers: %u\n\n", network->n_out_layers);
     
     printf("Number of neurons: %u\n", n_neurons);
