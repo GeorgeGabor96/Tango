@@ -34,7 +34,7 @@ simulator_run(Simulator* simulator, State* state, ThreadPool* pool)
     
     DataSample* sample = NULL;
     NetworkInputs* inputs = NULL;
-    u32 data_idx = 0;
+    u32 sample_idx = 0;
     u32 time = 0;
     u32 callback_i = 0;
     
@@ -53,11 +53,11 @@ simulator_run(Simulator* simulator, State* state, ThreadPool* pool)
     random_init();
     
     total_time_start = clock();
-    for (data_idx = 0; data_idx < simulator->data->length; ++data_idx) {
+    for (sample_idx = 0; sample_idx < simulator->data->n_samples; ++sample_idx) {
         sample_time_start = clock();
         
         sample = data_gen_sample_create(state->transient_storage,
-                                        simulator->data, data_idx);
+                                        simulator->data, sample_idx);
         
         network_clear(simulator->network);
         
