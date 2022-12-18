@@ -71,6 +71,9 @@ typedef struct DataSample {
     DataSampleType type;
     u32 duration;
     
+    // TODO: Should I just keep a pointer to the data gen?
+    // TODO: for the current ones I just copy values most of the time
+    
     union {
         struct {
             f32 chance;
@@ -78,6 +81,15 @@ typedef struct DataSample {
         struct {
             f32 value;
         } sample_const_current;
+        struct {
+            bool in_pulse;
+            u32 next_pulse_time;
+            u32 next_between_pulses_time;
+            u32 pulse_duration;
+            u32 between_pulses_duration;
+            f32 pulse_spike_chance;
+            f32 between_pulses_spike_chance;
+        } sample_spike_pulses;
     };
 } DataSample;
 

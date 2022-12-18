@@ -108,6 +108,22 @@ data_gen_sample_create(MemoryArena* arena, DataGen* data, u32 idx) {
         sample->type = DATA_SAMPLE_RANDOM_SPIKES;
         sample->duration = data->sample_duration;
         sample->sample_random_spikes.chance = data->gen_random_spikes.chance;
+    } else if (data->type == DATA_GEN_SPIKE_PULSES) {
+        sample->type = DATA_SAMPLE_SPIKE_PULSES;
+        sample->duration = data->sample_duration;
+        
+        if (data->gen_spike_pulses.first_pulse_time == 0) {
+            sample->sample_spike_pulses.in_pulse = TRUE;
+        } else {
+            sample->sample_spike_pulses.in_pulse = FALSE;
+        }
+        sample->sample_spike_pulses.next_pulse_time = data->gen_spike_pulses.first_pulse_time;
+        sample->sample_spike_pulses.next_between_pulses_time = data->gen_spike_pulses.first_pulse_time + 
+            data->gen_spike_pulses.pulse_duration;
+        sample->sample_spike_pulses.pulse_duration = data->gen_spike_pulses.pulse_duration;
+        sample->sample_spike_pulses.between_pulses_duration = data->gen_spike_pulses.between_pulses_duration;
+        sample->sample_spike_pulses.pulse_spike_chance = data->gen_spike_pulses.pulse_spike_chance;
+        sample->sample_spike_pulses.between_pulses_spike_chance = data->gen_spike_pulses.between_pulses_spike_chance;
     } else {
         log_error("Unknown Generator type %u", data->type);
     }
@@ -173,7 +189,42 @@ data_network_inputs_create(MemoryArena* arena, DataSample* sample,
             input->n_neurons = layer->n_neurons;
             
         }
-    } else {
+    } else if (sample->type == DATA_SAMPLE_SPIKE_PULSES) {
+        bool* spikes = NULL;
+        
+        for (i = 0; i < inputs->n_inputs; ++i) {
+            input = inputs->inputs + i;
+            layer = network->in_layers[i];
+            
+            spikes = (bool*) memory_arena_push(arena, layer->n_neurons * sizeof(bool));
+            check_memory(spikes);
+            
+            for (j = 0; j < layer->n_neurons; ++j) {
+                if (time == sample->sample_spike_pulses.next_pulse_time) {
+                    sample->sample_spike_pulses.in_pulse = TRUE;
+                    sample->sample_spike_pulses.next_pulse_time = time +
+                        sample->sample_spike_pulses.pulse_duration + 
+                        sample->sample_spike_pulses.between_pulses_duration;
+                } else if (time == sample->sample_spike_pulses.next_between_pulses_time) {
+                    sample->sample_spike_pulses.in_pulse = FALSE;
+                    sample->sample_spike_pulses.next_between_pulses_time = time + 
+                        sample->sample_spike_pulses.between_pulses_duration +
+                        sample->sample_spike_pulses.pulse_duration;
+                }
+                
+                if (sample->sample_spike_pulses.in_pulse == TRUE) {
+                    spikes[j] = random_get_bool(sample->sample_spike_pulses.pulse_spike_chance);
+                } else {
+                    spikes[j] = 
+                        random_get_bool(sample->sample_spike_pulses.between_pulses_spike_chance);
+                }
+                
+            }
+            input->type = NETWORK_INPUT_SPIKES;
+            input->data = spikes;
+            input->n_neurons = layer->n_neurons;
+        }
+    }else {
         log_error("Unknown data sample type %u", sample->type);
     }
     

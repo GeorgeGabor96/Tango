@@ -74,7 +74,7 @@ int main() {
     
     const char* output_folder = "D:\\repos\\Tango_outputs\\synfire_chain";
     Network* network = get_network(state);
-    DataGen* data = data_gen_create_random_spikes(state, 0.01f, 1, 1000);
+    DataGen* data = data_gen_create_spike_pulses(state, 2, 1000, 100, 20, 50, 0.1f, 0.01f);
     Callback* callback = callback_dumper_create(state, output_folder, network);
     
     ThreadPool* pool = thread_pool_create(4, layer_process_neurons, state->permanent_storage);
