@@ -32,7 +32,20 @@ random_init() {
 
 internal bool
 random_get_bool(f32 chance) {
-    bool result = ((f64)xor_shift_32(&random_state_global) / (f64)U32_MAX)
-        <= (f64)chance ? TRUE: FALSE;
+    bool result = random_get_chance_f64() <= (f64)chance ? TRUE: FALSE;
     return result;
+}
+
+
+internal f64
+random_get_chance_f64() {
+    f64 chance = ((f64)xor_shift_32(&random_state_global) / (f64)U32_MAX);
+    return chance;
+}
+
+
+internal f32
+random_get_chance_f32() {
+    f32 chance = (f32)random_get_chance_f64();
+    return chance;
 }

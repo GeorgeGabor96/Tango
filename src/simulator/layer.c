@@ -80,8 +80,9 @@ layer_process_neurons(void* task) {
                                        layer_task->neuron_end_i);
         
         for (i = layer_task->neuron_start_i; i < spikes_idx; ++i) {
-            if (spikes[i] == TRUE) 
+            if (spikes[i] == TRUE) { 
                 neuron_step_force_spike(layer->neurons + i, layer_task->time);
+            }
             else
                 neuron_step(layer->neurons + i, layer_task->time);
         }
@@ -287,10 +288,11 @@ layer_show(Layer* layer) {
 inline internal bool
 layer_link_dense(State* state,
                  Layer* layer, Layer* in_layer,
-                 SynapseCls* cls, f32 weight) {
+                 SynapseCls* cls, f32 weight, f32 chance) {
     u32 neuron_i = 0;
     u32 in_neuron_i = 0;
     u32 synapse_i = 0;
+    u32 in_synapses_init = 0;
     Neuron* neuron = NULL;
     Neuron* in_neuron = NULL;
     Synapse* synapse = NULL;
@@ -325,12 +327,19 @@ layer_link_dense(State* state,
         in_synapses->synapse_size = synapse_size;
         in_synapses->synapses = (Synapse*)(in_synapses + 1);
         
+        in_synapses_init = 0;
+        
         for (in_neuron_i = 0;
              in_neuron_i < in_layer->n_neurons; 
              ++in_neuron_i) {
+            
+            if (random_get_chance_f32() > chance)
+                continue;
+            
             in_neuron = in_layer->neurons + in_neuron_i;
             
-            synapse = in_synapse_array_get(in_synapses, in_neuron_i);
+            synapse = in_synapse_array_get(in_synapses, in_synapses_init);
+            ++(in_synapses_init);
             
             synapse_init(synapse, cls, weight);
             
@@ -343,6 +352,7 @@ layer_link_dense(State* state,
             check(out_synapses->length <= layer->n_neurons,
                   "out_synapses->length > layer->n_neurons");
         }
+        in_synapses->length = in_synapses_init;
         neuron_add_in_synapse_array(neuron, in_synapses);
     }
     
@@ -359,15 +369,17 @@ layer_link_dense(State* state,
 
 
 internal bool
-layer_link(State* state, Layer* layer, Layer* input_layer, SynapseCls* cls, f32 weight) {
+layer_link(State* state, Layer* layer, Layer* input_layer, SynapseCls* cls, f32 weight, f32 chance) {
     bool status = FALSE;
     check(state != NULL, "state is NULL");
     check(layer != NULL, "layer is NULL");
     check(input_layer != NULL, "input_layer is NULL");
     check(cls != NULL, "cls is NULL");
+    check(chance >= 0.0f && chance <= 1.0f, "chance should be in [0, 1]");
     
     if (layer->type == LAYER_DENSE) {
-        status = layer_link_dense(state, layer, input_layer, cls, weight);
+        status = layer_link_dense(state, layer, input_layer, cls,
+                                  weight, chance);
         check(status == TRUE, "couldn't link layers %s and %s",
               string_to_c_str(layer->name), string_to_c_str(input_layer->name));
     } else {
