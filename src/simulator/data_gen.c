@@ -16,7 +16,7 @@ data_gen_create_constant_current(State* state, f32 value, u32 n_samples, u32 sam
     data->type = DATA_GEN_CONSTANT_CURRENT;
     data->n_samples = n_samples;
     data->sample_duration = sample_duration;
-    data->gen_const_current.value = value;
+    data->const_current.value = value;
     
     return data;
     
@@ -39,7 +39,7 @@ data_gen_create_random_spikes(State* state, f32 chance, u32 n_samples, u32 sampl
     data->type = DATA_GEN_RANDOM_SPIKES;
     data->n_samples = n_samples;
     data->sample_duration = sample_duration;
-    data->gen_random_spikes.chance = chance;
+    data->random_spikes.chance = chance;
     
     return data;
     
@@ -75,11 +75,13 @@ data_gen_create_spike_pulses(State* state,
     data->type = DATA_GEN_SPIKE_PULSES;
     data->n_samples = n_samples;
     data->sample_duration = sample_duration;
-    data->gen_spike_pulses.first_pulse_time = first_pulse_time;
-    data->gen_spike_pulses.pulse_duration = pulse_duration;
-    data->gen_spike_pulses.between_pulses_duration = between_pulses_duration;
-    data->gen_spike_pulses.pulse_spike_chance = pulse_spike_chance;
-    data->gen_spike_pulses.between_pulses_spike_chance = between_pulses_spike_chance;
+    
+    DataGenSpikePulses* pulses = &(data->spike_pulses);
+    pulses->first_pulse_time = first_pulse_time;
+    pulses->pulse_duration = pulse_duration;
+    pulses->between_pulses_duration = between_pulses_duration;
+    pulses->pulse_spike_chance = pulse_spike_chance;
+    pulses->between_pulses_spike_chance = between_pulses_spike_chance;
     
     return data;
     
@@ -100,30 +102,26 @@ data_gen_sample_create(MemoryArena* arena, DataGen* data, u32 idx) {
     DataSample* sample = (DataSample*) memory_arena_push(arena, sizeof(*sample));
     check_memory(sample);
     
+    sample->duration = data->sample_duration;
+    sample->data_gen = data;
+    
     if (data->type == DATA_GEN_CONSTANT_CURRENT) {
         sample->type = DATA_SAMPLE_CONSTANT_CURRENT;
-        sample->duration = data->sample_duration;
-        sample->sample_const_current.value = data->gen_const_current.value;
     } else if (data->type == DATA_GEN_RANDOM_SPIKES) {
         sample->type = DATA_SAMPLE_RANDOM_SPIKES;
-        sample->duration = data->sample_duration;
-        sample->sample_random_spikes.chance = data->gen_random_spikes.chance;
     } else if (data->type == DATA_GEN_SPIKE_PULSES) {
         sample->type = DATA_SAMPLE_SPIKE_PULSES;
-        sample->duration = data->sample_duration;
         
-        if (data->gen_spike_pulses.first_pulse_time == 0) {
-            sample->sample_spike_pulses.in_pulse = TRUE;
+        DataGenSpikePulses* data_pulses = &(data->spike_pulses);
+        DataSampleSpikePulses* sample_pulses = &(sample->spike_pulses);
+        
+        if (data_pulses->first_pulse_time == 0) {
+            sample_pulses->in_pulse = TRUE;
         } else {
-            sample->sample_spike_pulses.in_pulse = FALSE;
+            sample_pulses->in_pulse = FALSE;
         }
-        sample->sample_spike_pulses.next_pulse_time = data->gen_spike_pulses.first_pulse_time;
-        sample->sample_spike_pulses.next_between_pulses_time = data->gen_spike_pulses.first_pulse_time + 
-            data->gen_spike_pulses.pulse_duration;
-        sample->sample_spike_pulses.pulse_duration = data->gen_spike_pulses.pulse_duration;
-        sample->sample_spike_pulses.between_pulses_duration = data->gen_spike_pulses.between_pulses_duration;
-        sample->sample_spike_pulses.pulse_spike_chance = data->gen_spike_pulses.pulse_spike_chance;
-        sample->sample_spike_pulses.between_pulses_spike_chance = data->gen_spike_pulses.between_pulses_spike_chance;
+        sample_pulses->next_pulse_time = data_pulses->first_pulse_time;
+        sample_pulses->next_between_pulses_time = data_pulses->first_pulse_time + data_pulses->pulse_duration;
     } else {
         log_error("Unknown Generator type %u", data->type);
     }
@@ -166,7 +164,7 @@ data_network_inputs_create(MemoryArena* arena, DataSample* sample,
                 memory_arena_push(arena, layer->n_neurons * sizeof(bool));
             check_memory(spikes);
             for (j = 0; j < layer->n_neurons; ++j) {
-                spikes[j] = random_get_bool(sample->sample_random_spikes.chance);
+                spikes[j] = random_get_bool(sample->data_gen->random_spikes.chance);
             }
             input->type = NETWORK_INPUT_SPIKES;
             input->data = spikes;
@@ -182,7 +180,7 @@ data_network_inputs_create(MemoryArena* arena, DataSample* sample,
                 memory_arena_push(arena, sizeof(f32) * layer->n_neurons);
             check_memory(currents);
             for (j = 0; j < layer->n_neurons; ++j) {
-                currents[j] = sample->sample_const_current.value;
+                currents[j] = sample->data_gen->const_current.value;
             }
             input->type = NETWORK_INPUT_CURRENT;
             input->data = currents;
@@ -199,27 +197,30 @@ data_network_inputs_create(MemoryArena* arena, DataSample* sample,
             spikes = (bool*) memory_arena_push(arena, layer->n_neurons * sizeof(bool));
             check_memory(spikes);
             
+            DataGenSpikePulses* data_pulses = &(sample->data_gen->spike_pulses);
+            DataSampleSpikePulses* sample_pulses = &(sample->spike_pulses);
+            
             for (j = 0; j < layer->n_neurons; ++j) {
-                if (time == sample->sample_spike_pulses.next_pulse_time) {
-                    sample->sample_spike_pulses.in_pulse = TRUE;
-                    sample->sample_spike_pulses.next_pulse_time = time +
-                        sample->sample_spike_pulses.pulse_duration + 
-                        sample->sample_spike_pulses.between_pulses_duration;
-                } else if (time == sample->sample_spike_pulses.next_between_pulses_time) {
-                    sample->sample_spike_pulses.in_pulse = FALSE;
-                    sample->sample_spike_pulses.next_between_pulses_time = time + 
-                        sample->sample_spike_pulses.between_pulses_duration +
-                        sample->sample_spike_pulses.pulse_duration;
+                if (time == sample_pulses->next_pulse_time) {
+                    sample_pulses->in_pulse = TRUE;
+                    sample_pulses->next_pulse_time = time + 
+                        data_pulses->pulse_duration + 
+                        data_pulses->between_pulses_duration;
+                } else if (time == sample_pulses->next_between_pulses_time) {
+                    sample_pulses->in_pulse = FALSE;
+                    sample_pulses->next_between_pulses_time = time + 
+                        data_pulses->between_pulses_duration +
+                        data_pulses->pulse_duration;
                 }
                 
-                if (sample->sample_spike_pulses.in_pulse == TRUE) {
-                    spikes[j] = random_get_bool(sample->sample_spike_pulses.pulse_spike_chance);
+                if (sample_pulses->in_pulse == TRUE) {
+                    spikes[j] = random_get_bool(data_pulses->pulse_spike_chance);
                 } else {
                     spikes[j] = 
-                        random_get_bool(sample->sample_spike_pulses.between_pulses_spike_chance);
+                        random_get_bool(data_pulses->between_pulses_spike_chance);
                 }
-                
             }
+            
             input->type = NETWORK_INPUT_SPIKES;
             input->data = spikes;
             input->n_neurons = layer->n_neurons;

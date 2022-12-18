@@ -18,6 +18,23 @@ typedef enum {
 } DataGenType;
 
 
+typedef struct DataGenConstCurrent {
+    f32 value;
+} DataGenConstCurrent;
+
+typedef struct DataGenRandomSpikes {
+    f32 chance;
+} DataGenRandomSpikes;
+
+typedef struct DataGenSpikePulses {
+    u32 first_pulse_time;
+    u32 pulse_duration;
+    u32 between_pulses_duration;
+    f32 pulse_spike_chance;
+    f32 between_pulses_spike_chance;
+} DataGenSpikePulses;
+
+
 typedef struct DataGen {
     DataGenType type;
     u32 n_samples;
@@ -25,19 +42,9 @@ typedef struct DataGen {
     u32 sample_duration;
     
     union {
-        struct {
-            f32 value;
-        } gen_const_current;
-        struct {
-            f32 chance;
-        } gen_random_spikes;
-        struct {
-            u32 first_pulse_time;
-            u32 pulse_duration;
-            u32 between_pulses_duration;
-            f32 pulse_spike_chance;
-            f32 between_pulses_spike_chance;
-        } gen_spike_pulses;
+        DataGenConstCurrent const_current;
+        DataGenRandomSpikes random_spikes;
+        DataGenSpikePulses spike_pulses;
     };
 } DataGen;
 
@@ -67,29 +74,22 @@ typedef enum {
 } DataSampleType;
 
 
+typedef struct DataSampleSpikePulses {
+    bool in_pulse;
+    u32 next_pulse_time;
+    u32 next_between_pulses_time;
+} DataSampleSpikePulses;
+
+
 typedef struct DataSample {
     DataSampleType type;
     u32 duration;
-    
-    // TODO: Should I just keep a pointer to the data gen?
-    // TODO: for the current ones I just copy values most of the time
+    DataGen* data_gen;
     
     union {
-        struct {
-            f32 chance;
-        } sample_random_spikes;
-        struct {
-            f32 value;
-        } sample_const_current;
-        struct {
-            bool in_pulse;
-            u32 next_pulse_time;
-            u32 next_between_pulses_time;
-            u32 pulse_duration;
-            u32 between_pulses_duration;
-            f32 pulse_spike_chance;
-            f32 between_pulses_spike_chance;
-        } sample_spike_pulses;
+        void* random_spikes;
+        void* const_current;
+        DataSampleSpikePulses spike_pulses;
     };
 } DataSample;
 
