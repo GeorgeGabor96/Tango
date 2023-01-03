@@ -1,11 +1,9 @@
 package main
 
 import (
-	"fmt"
 	"tango/go/network"
 )
 
 func main() {
-	network.BuildNetworkSample("123")
-	fmt.Println("123")
+	network.BuildNetworkSample("d:/repos/Tango_outputs/Threads/debug/sample_1.bin")
 }
