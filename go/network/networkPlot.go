@@ -42,14 +42,13 @@ func (t NetXTicks) Ticks(min, max float64) []plot.Tick {
 	if value > t.duration {
 		value = t.duration
 	}
-	fmt.Println(i, value)
-
 	ticks[i].Value = float64(value)
 	ticks[i].Label = fmt.Sprint(value)
 	return ticks
 }
 
 func (netSample *NetworkSample) ActivityPlot(outFolder string) {
+	fmt.Printf("[INFO] Begin ActivityPlot for %v\n", netSample.File)
 	fileName := utils.FileNameFromPath(netSample.File)
 
 	if outFolder == "" {
@@ -127,7 +126,7 @@ func (netSample *NetworkSample) ActivityPlot(outFolder string) {
 	}
 
 	// General plot settings
-	p.Title.Text = "Activity Plot Try"
+	p.Title.Text = fileName
 	p.Title.TextStyle.Font.Size = 50
 	p.X.Label.Text = "time"
 	p.X.Label.TextStyle.Font.Size = 40
@@ -141,4 +140,5 @@ func (netSample *NetworkSample) ActivityPlot(outFolder string) {
 	if err := p.Save(20*vg.Inch, 20*vg.Inch, imgPath); err != nil {
 		panic(err)
 	}
+	fmt.Printf("[INFO] Saved activity plot in %v\n", imgPath)
 }

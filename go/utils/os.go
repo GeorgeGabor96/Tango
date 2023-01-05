@@ -2,6 +2,7 @@ package utils
 
 import (
 	"errors"
+	"io/ioutil"
 	"log"
 	"path/filepath"
 	"strings"
@@ -9,6 +10,26 @@ import (
 
 func Join(p1 string, p2 string) string {
 	return p1 + string(filepath.Separator) + p2
+}
+
+func FileNamesWithExtension(dir string, ext string) []string {
+	var fileNames []string
+	items, err := ioutil.ReadDir(dir)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	for _, item := range items {
+		if item.IsDir() == true {
+			continue
+		}
+		itemName := item.Name()
+		if GetExtension(itemName) != ext {
+			continue
+		}
+		fileNames = append(fileNames, itemName)
+	}
+	return fileNames
 }
 
 func FileNameFromPath(path string) string {
@@ -33,4 +54,13 @@ func RemoveExtension(fileName string) string {
 	}
 	fileName = tokens[0]
 	return fileName
+}
+
+func GetExtension(fileName string) string {
+	tokens := strings.Split(fileName, ".")
+	if len(tokens) != 2 {
+		log.Fatal(errors.New("Multiple . in filename. Need to extend function"))
+	}
+	extension := tokens[1]
+	return extension
 }

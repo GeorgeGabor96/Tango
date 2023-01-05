@@ -25,14 +25,6 @@ type LayerData struct {
 	IPSC     []float32
 }
 
-func buildNetworkSample(duration uint32, nLayers uint32) *NetworkSample {
-	netSample := new(NetworkSample)
-	netSample.Duration = duration
-	netSample.NLayers = nLayers
-	netSample.Layers = make([]LayerData, nLayers)
-	return netSample
-}
-
 func (layer *LayerData) GetIdx(step uint32, neuron uint32) uint32 {
 	idx := step*layer.NNeurons + neuron
 	return idx
@@ -83,7 +75,7 @@ func (layer *LayerData) GetIPSC(step uint32, neuron uint32) float32 {
 	return ipsc
 }
 
-func BuildNetworkSample(sampleFile string) (*NetworkSample, error) {
+func NewNetworkSample(sampleFile string) (*NetworkSample, error) {
 	fmt.Printf("[INFO] Parsing file %v\n", sampleFile)
 	netParser, err := parser.BuildSampleParser(sampleFile)
 	if err != nil {
@@ -93,7 +85,10 @@ func BuildNetworkSample(sampleFile string) (*NetworkSample, error) {
 	sampleDuration := netParser.Uint32()
 	nLayers := netParser.Uint32()
 
-	netSample := buildNetworkSample(sampleDuration, nLayers)
+	netSample := new(NetworkSample)
+	netSample.Duration = sampleDuration
+	netSample.NLayers = nLayers
+	netSample.Layers = make([]LayerData, nLayers)
 	netSample.File = sampleFile
 
 	var layerI uint32
@@ -133,5 +128,6 @@ func BuildNetworkSample(sampleFile string) (*NetworkSample, error) {
 		layerData.NSpikes = nSpikes
 	}
 
+	fmt.Printf("[INFO] Parsing succesfull for file %v\n", sampleFile)
 	return netSample, nil
 }
