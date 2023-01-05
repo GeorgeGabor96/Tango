@@ -17,6 +17,7 @@ type NetworkSample struct {
 type LayerData struct {
 	Name     string
 	NNeurons uint32
+	NSpikes  uint32
 	Voltages []float32
 	Spikes   []bool
 	PSC      []float32
@@ -112,17 +113,24 @@ func BuildNetworkSample(sampleFile string) (*NetworkSample, error) {
 		layerData.PSC = make([]float32, nValues)
 		layerData.EPSC = make([]float32, nValues)
 		layerData.IPSC = make([]float32, nValues)
+		var nSpikes uint32 = 0
 
 		for stepI = 0; stepI < sampleDuration; stepI++ {
 
 			for neuronI = 0; neuronI < nNeurons; neuronI++ {
+				// NOTE: in the file the values are in this order do not change order of calls for netParser
 				layerData.SetVoltage(stepI, neuronI, netParser.Float32())
-				layerData.SetSpike(stepI, neuronI, netParser.Bool())
+				spike := netParser.Bool()
 				layerData.SetPSC(stepI, neuronI, netParser.Float32())
 				layerData.SetEPSC(stepI, neuronI, netParser.Float32())
 				layerData.SetIPSC(stepI, neuronI, netParser.Float32())
+				if spike == true {
+					nSpikes++
+				}
+				layerData.SetSpike(stepI, neuronI, spike)
 			}
 		}
+		layerData.NSpikes = nSpikes
 	}
 
 	return netSample, nil

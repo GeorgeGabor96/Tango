@@ -2,11 +2,52 @@ package network
 
 import (
 	"fmt"
-	"image/color"
-	"log"
-	"tango/go/plotting"
 	"tango/go/utils"
+
+	"gonum.org/v1/plot"
+	"gonum.org/v1/plot/plotter"
+	"gonum.org/v1/plot/vg"
+	"gonum.org/v1/plot/vg/draw"
 )
+
+type NetYTicks struct {
+	layerTicks []plot.Tick
+}
+
+func (t NetYTicks) Ticks(min, max float64) []plot.Tick {
+	return t.layerTicks
+}
+
+type NetXTicks struct {
+	duration uint32
+	nTicks   uint32
+}
+
+func (t NetXTicks) Ticks(min, max float64) []plot.Tick {
+	ticks := make([]plot.Tick, t.nTicks+1)
+	modValue := t.duration % t.nTicks
+	var tickInc uint32 = 0
+	if modValue == 0 {
+		tickInc = uint32(t.duration / t.nTicks)
+	} else {
+		tickInc = uint32(t.duration/t.nTicks) + 1
+	}
+
+	var i uint32 = 0
+	for i = 0; i < t.nTicks; i++ {
+		ticks[i].Value = float64(tickInc * i)
+		ticks[i].Label = fmt.Sprint(tickInc * i)
+	}
+	value := tickInc * i
+	if value > t.duration {
+		value = t.duration
+	}
+	fmt.Println(i, value)
+
+	ticks[i].Value = float64(value)
+	ticks[i].Label = fmt.Sprint(value)
+	return ticks
+}
 
 func (netSample *NetworkSample) ActivityPlot(outFolder string) {
 	fileName := utils.FileNameFromPath(netSample.File)
@@ -17,70 +58,87 @@ func (netSample *NetworkSample) ActivityPlot(outFolder string) {
 	imgName := utils.RemoveExtension(fileName) + "_aux.png"
 
 	imgPath := utils.Join(outFolder, imgName)
+	var yPad uint32 = 5
 
-	var rowPadding uint32 = 20
-	var colPadding uint32 = 20
+	p := plot.New()
 
-	// Find the dimension of the image and build it
-	var i uint32
-	var nRows uint32
-	var nCols uint32
-	var xAxisThickness uint32 = 1
-	var yAxisThickness uint32 = 1
-	var lineThickness uint32 = 1
+	var yOffset uint32 = yPad
+	var neuron uint32 = 0
+	var step uint32 = 0
 
-	nRows = rowPadding
-	for i = 0; i < netSample.NLayers; i++ {
-		nRows += netSample.Layers[i].NNeurons + lineThickness
+	linePts := make(plotter.XYs, 2)
+	linePts[0].X = float64(0)
+	linePts[0].Y = float64(yOffset)
+	linePts[1].X = float64(netSample.Duration)
+	linePts[1].Y = float64(yOffset)
+
+	l, err := plotter.NewLine(linePts)
+	if err != nil {
+		panic(err)
 	}
-	nRows += xAxisThickness + rowPadding
+	p.Add(l)
+	yOffset += yPad
+	ticks := make([]plot.Tick, netSample.NLayers)
 
-	nCols = colPadding + yAxisThickness + netSample.Duration + colPadding
-	fmt.Println(nRows, nCols)
-	img := plotting.BuildImage(nRows, nCols)
-
-	plotting.FillImage(img, color.NRGBA{R: 255, G: 0, B: 0, A: 255})
-
-	// add the axis
-	plotting.PlotHLine(img, colPadding, nCols-colPadding, nRows-rowPadding-1, color.Black)
-	plotting.PlotVLine(img, rowPadding, nRows-rowPadding, colPadding, color.Black)
-
-	// add the lines on top of the layers
-	var lineRow uint32 = rowPadding
-	var step uint32
-	var neuron uint32
-	var step_offset uint32
-	var neuron_offset uint32
-	for i := 0; i < len(netSample.Layers); i++ {
-		plotting.PlotHLine(img, colPadding+yAxisThickness, colPadding+yAxisThickness+netSample.Duration, lineRow, color.Black)
+	for i := len(netSample.Layers) - 1; i >= 0; i-- { //, layer := range netSample.Layers {
 		layer := netSample.Layers[i]
 
-		step_offset = colPadding + yAxisThickness
-		neuron_offset = lineRow + lineThickness
+		// build the y tick
+		ticks[i].Value = float64(yOffset + layer.NNeurons/2)
+		ticks[i].Label = layer.Name
+
+		// add the points
+		spikePts := make(plotter.XYs, layer.NSpikes)
+		spikePtI := 0
 
 		for step = 0; step < netSample.Duration; step++ {
-
 			for neuron = 0; neuron < layer.NNeurons; neuron++ {
-
 				spike := layer.GetSpike(step, neuron)
 				if spike == true {
-					plotting.PlotPoint(img, neuron_offset+neuron, step_offset+step, color.NRGBA{R: 0, G: 255, B: 0, A: 255})
+					spikePts[spikePtI].X = float64(step)
+					spikePts[spikePtI].Y = float64(yOffset + neuron)
+					spikePtI++
 				}
 			}
 		}
-		plotting.PlotText(img, layer.Name, lineRow, colPadding, color.NRGBA{R: 0, G: 0, B: 255, A: 255})
-		lineRow += lineThickness + netSample.Layers[i].NNeurons
+		s, err := plotter.NewScatter(spikePts)
+		if err != nil {
+			panic(err)
+		}
+		s.GlyphStyle.Shape = draw.BoxGlyph{}
+		s.GlyphStyle.Radius = 1
+		p.Add(s)
 
+		// add the layer line
+		yOffset += layer.NNeurons + yPad
+		linePts := make(plotter.XYs, 2)
+		linePts[0].X = float64(0)
+		linePts[0].Y = float64(yOffset)
+		linePts[1].X = float64(netSample.Duration)
+		linePts[1].Y = float64(yOffset)
+
+		l, err := plotter.NewLine(linePts)
+		if err != nil {
+			panic(err)
+		}
+		yOffset += yPad
+
+		p.Add(l)
 	}
 
-	img = plotting.ResizeImage(img, nRows, nRows)
-	if err := plotting.SaveImage(imgPath, img); err != nil {
-		log.Fatal(err)
-	} else {
-		fmt.Printf("[INFO] Wrote file %v\n", imgPath)
+	// General plot settings
+	p.Title.Text = "Activity Plot Try"
+	p.Title.TextStyle.Font.Size = 50
+	p.X.Label.Text = "time"
+	p.X.Label.TextStyle.Font.Size = 40
+	p.X.Tick.Marker = &NetXTicks{duration: netSample.Duration, nTicks: 10}
+	p.X.Tick.Label.Font.Size = 20
+	p.Y.Label.Text = "layers"
+	p.Y.Label.TextStyle.Font.Size = 40
+	p.Y.Tick.Marker = &NetYTicks{layerTicks: ticks}
+	p.Y.Tick.Label.Font.Size = 20
+
+	if err := p.Save(20*vg.Inch, 20*vg.Inch, imgPath); err != nil {
+		panic(err)
 	}
-
-	// Build the lines of plot
-	// First the x and y Axes
-
 }
