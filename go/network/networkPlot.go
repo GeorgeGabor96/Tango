@@ -61,10 +61,12 @@ func (netSample *NetworkSample) ActivityPlot(outFolder string) {
 
 	p := plot.New()
 
-	var yOffset uint32 = yPad
+	// NOTE: yPad is space between the line and the neurons so that they do not intersect
+	var yOffset uint32 = yPad + 1
 	var neuron uint32 = 0
 	var step uint32 = 0
 
+	// NOTE: for the layer that ends up at the bottom it needs a line below its neurons. Normally the X axis could do it but its ugly
 	linePts := make(plotter.XYs, 2)
 	linePts[0].X = float64(0)
 	linePts[0].Y = float64(yOffset)
@@ -109,7 +111,7 @@ func (netSample *NetworkSample) ActivityPlot(outFolder string) {
 		p.Add(s)
 
 		// add the layer line
-		yOffset += layer.NNeurons + yPad
+		yOffset += layer.NNeurons + yPad + 1
 		linePts := make(plotter.XYs, 2)
 		linePts[0].X = float64(0)
 		linePts[0].Y = float64(yOffset)

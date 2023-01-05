@@ -13,7 +13,7 @@ type SampleParser struct {
 	Offset uint32
 }
 
-func BuildSampleParser(binaryFile string) (*SampleParser, error) {
+func NewSampleParser(binaryFile string) (*SampleParser, error) {
 	bytes, err := os.ReadFile(binaryFile)
 	if err != nil {
 		log.Fatal(err)

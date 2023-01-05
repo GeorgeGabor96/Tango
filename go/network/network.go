@@ -77,7 +77,7 @@ func (layer *LayerData) GetIPSC(step uint32, neuron uint32) float32 {
 
 func NewNetworkSample(sampleFile string) (*NetworkSample, error) {
 	fmt.Printf("[INFO] Parsing file %v\n", sampleFile)
-	netParser, err := parser.BuildSampleParser(sampleFile)
+	netParser, err := parser.NewSampleParser(sampleFile)
 	if err != nil {
 		log.Fatal(err)
 		return nil, errors.New("Coudn't create net parser")
