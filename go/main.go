@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"sync"
 	"tango/go/network"
 	"tango/go/utils"
 )
@@ -34,11 +35,24 @@ func main() {
 		panic(err)
 	}
 	sampleNames := utils.FileNamesWithExtension(args.binFolder, "bin")
+
+	var wg sync.WaitGroup
 	for _, sampleName := range sampleNames {
-		net, err := network.NewNetworkSample(utils.Join(args.binFolder, sampleName))
-		if err != nil {
-			log.Fatal(err)
-		}
-		net.ActivityPlot("")
+		sampleFile := utils.Join(args.binFolder, sampleName)
+		wg.Add(1)
+
+		go func() {
+			CreateActivityPlot(sampleFile)
+			wg.Done()
+		}()
 	}
+	wg.Wait()
+}
+
+func CreateActivityPlot(sampleFile string) {
+	net, err := network.NewNetworkSample(sampleFile)
+	if err != nil {
+		log.Fatal(err)
+	}
+	net.ActivityPlot("")
 }
