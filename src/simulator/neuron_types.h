@@ -1,14 +1,5 @@
-/* date = September 15th 2022 8:05 pm */
-
-#ifndef NEURON_H
-#define NEURON_H
-
-#include "common.h"
-#include "utils/memory.h"
-#include "containers/string.h"
-#include "containers/memory_arena.h"
-#include "containers/array.h"
-#include "simulator/synapse.h"
+#ifndef NEURON_TYPES
+#define NEURON_TYPES
 
 
 typedef enum { 
@@ -17,7 +8,6 @@ typedef enum {
     NEURON_LIF_REFRACT 
 } NeuronType; 
 
-internal char* neuron_type_get_c_str(NeuronType type);
 
 // NOTE: LIF constants
 // TODO: This change very rarely for now, only when we have a config file of some sort we
@@ -43,18 +33,12 @@ typedef struct NeuronCls {
 } NeuronCls;
 
 
-internal NeuronCls* neuron_cls_create_lif(State* state, const char* name);
-internal NeuronCls* neuron_cls_create_lif_refract(State* state, 
-                                                  const char* name,
-                                                  u32 refract_time);
-
 typedef struct InSynapseArray {
     u32 length;
     sz synapse_size;
     Synapse* synapses;
 } InSynapseArray;
 
-internal Synapse* in_synapse_array_get(InSynapseArray* synapses, u32 i);
 
 
 typedef struct OutSynapseArray {
@@ -65,6 +49,7 @@ typedef struct OutSynapseArray {
 
 #define NEURON_N_MAX_INPUTS 5u
 #define NEURON_N_MAX_OUTPUTS 5u
+#define NEURON_INVALID_SPIKE_TIME -1
 
 
 typedef struct Neuron {
@@ -73,6 +58,7 @@ typedef struct Neuron {
     f32 epsc;
     f32 ipsc;
     bool spike;
+    u32 last_spike_time;
     
     // NOTE: the neuron owns its input synapses
     InSynapseArray* in_synapse_arrays[NEURON_N_MAX_INPUTS];
@@ -89,20 +75,5 @@ typedef struct Neuron {
 } Neuron;
 
 
-internal Neuron* neuron_create(State* state,  NeuronCls* cls);
-internal void neuron_init(Neuron* neuron, NeuronCls* cls);
+#endif // NEURON_TYPES
 
-// NOTE: the neuron takes ownership over the synapses array
-internal void neuron_add_in_synapse_array(Neuron* neuron,
-                                          InSynapseArray* synapses);
-internal void neuron_add_out_synapse_array(Neuron* neuron, OutSynapseArray* synapses);
-
-internal void neuron_step(Neuron* neuron, u32 time);
-
-// NOTE: use to set inputs
-internal void neuron_step_force_spike(Neuron* neuron, u32 time);
-internal void neuron_step_inject_current(Neuron* neuron, f32 psc, u32 time);
-
-internal void neuron_clear(Neuron* neuron);
-
-#endif //NEURON_H

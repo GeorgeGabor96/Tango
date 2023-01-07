@@ -217,3 +217,40 @@ synapse_clear(Synapse* synapse) {
     error:
     return;
 }
+
+
+internal void
+synapse_stdp_potentiation_update(Synapse* synapse) {
+    check(synapse != NULL, "synapse is NULL");
+
+    u32 interval_value = synapse->out_neuron->last_spike_time - synapse->in_neuron->last_spike_time;
+    if (interval_value > SYNAPSE_POTENTIATION_INTERVAL) return;
+
+    synapse->weight += STDP_POTENTIATION_VALUES[interval_value];
+        
+    // TODO: add an STDP Structure that the synapse class points to in the future
+    if (synapse->weight > SYNAPSE_WEIGHT_MAX) {
+        synapse->weight = SYNAPSE_WEIGHT_MAX;
+    }
+
+    error:
+    return;
+}
+
+
+internal void
+synapse_stdp_depression_update(Synapse* synapse) {
+    check(synapse != NULL, "synapse is NULL");
+
+    u32 interval_value = synapse->in_neuron->last_spike_time - synapse->out_neuron->last_spike_time;
+    if (interval_value > SYNAPSE_DEPRESSION_INTERVAL) return;
+
+    synapse->weight += SYNAPSE_STDP_DEPRESSION_TABLE[interval_value];
+    if (synapse->weight > SYNAPSE_WEIGHT_MAX) {
+        synapse->weight = SYNAPSE_WEIGHT_MAX;
+    }
+
+    error:
+    return;
+
+}
