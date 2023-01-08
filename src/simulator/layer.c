@@ -89,6 +89,39 @@ layer_process_neurons(void* task) {
         for (i = spikes_idx; i < layer_task->neuron_end_i; ++i)
             neuron_step(layer->neurons + i, layer_task->time);
     }
+    // LEARNING TODO: a lot of duplicate code, a lot
+    else if (layer_task->type == LAYER_TASK_LEARNING_STEP) {
+        for (i = layer_task->neuron_start_i; i < layer_task->neuron_end_i; ++i)
+            neuron_learning_step(layer->neurons + i, layer_task->time);
+    } 
+    else if (layer_task->type == LAYER_TASK_LEARNING_STEP_INJECT_CURRENT) {
+        f32* currents = layer_task->task_inject_current.currents;
+        u32 injects_idx = math_clip_u32(layer_task->task_inject_current.n_currents,
+                                        layer_task->neuron_start_i,
+                                        layer_task->neuron_end_i);
+        
+        for (i = layer_task->neuron_start_i; i < injects_idx; ++i)
+            neuron_learning_step_inject_current(layer->neurons + i, currents[i], layer_task->time);
+        for (i = injects_idx; i < layer_task->neuron_end_i; ++i)
+            neuron_learning_step(layer->neurons + i, layer_task->time);
+    }
+    else if (layer_task->type == LAYER_TASK_LEARNING_STEP_FORCE_SPIKE) {
+        u32 n_inputs = layer_task->task_force_spike.n_spikes;
+        bool* spikes = layer_task->task_force_spike.spikes;
+        u32 spikes_idx = math_clip_u32(layer_task->task_force_spike.n_spikes,
+                                       layer_task->neuron_start_i,
+                                       layer_task->neuron_end_i);
+        
+        for (i = layer_task->neuron_start_i; i < spikes_idx; ++i) {
+            if (spikes[i] == TRUE) { 
+                neuron_learning_step_force_spike(layer->neurons + i, layer_task->time);
+            }
+            else
+                neuron_learning_step(layer->neurons + i, layer_task->time);
+        }
+        for (i = spikes_idx; i < layer_task->neuron_end_i; ++i)
+            neuron_learning_step(layer->neurons + i, layer_task->time);
+    }
 }
 
 
@@ -122,6 +155,7 @@ layer_get_n_neurons_per_task(Layer* layer, u32 n_tasks) {
     u32 result = (layer->n_neurons + n_tasks - 1) / n_tasks;
     return result;
 }
+
 
 internal void
 layer_step(Layer* layer, u32 time, MemoryArena* storage, ThreadPool* pool) {
@@ -342,6 +376,8 @@ layer_link_dense(State* state,
             ++(in_synapses_init);
             
             synapse_init(synapse, cls, weight);
+            synapse->in_neuron = in_neuron;
+            synapse->out_neuron =  neuron;
             
             // NOTE: save the synapse in the output synapses of the input neuron
             out_synapses = out_synapses_in_layer[in_neuron_i];
@@ -488,4 +524,107 @@ layer_get_spikes(MemoryArena* arena, Layer* layer) {
     
     error:
     return NULL;
+}
+
+
+// TODO: a lot of duplication, can we add a parameter that just changes the type of task? we can check that its only 
+internal void
+layer_learning_step(Layer* layer, u32 time, MemoryArena* storage, ThreadPool* pool) {
+    TIMING_COUNTER_START(LAYER_LEARNING_STEP);
+    
+    check(layer != NULL, "layer is NULL");
+    check(storage != NULL, "storage is NULL");
+    check(pool != NULL, "pool is NULL");
+    
+    thread_pool_reset(pool);
+    
+    u32 n_tasks = layer_get_n_tasks(pool);
+    u32 n_neurons_per_task = layer_get_n_neurons_per_task(layer, n_tasks);
+    LayerTask* task = NULL;
+    
+    for (u32 task_i = 0; task_i < n_tasks; ++task_i) {
+        task = layer_task_create(layer, storage, time, task_i, n_neurons_per_task); 
+        task->type = LAYER_TASK_LEARNING_STEP;
+        
+        thread_pool_add_task(pool, task);
+    }
+    
+    thread_pool_execute_tasks(pool);
+    
+    TIMING_COUNTER_END(LAYER_LEARNING_STEP);
+    
+    error:
+    return;
+}
+
+
+internal void
+layer_learning_step_inject_current(Layer* layer, u32 time, f32* currents, u32 n_currents,
+                          MemoryArena* storage, ThreadPool* pool) {
+    TIMING_COUNTER_START(LAYER_LEARNING_STEP_INJECT_CURRENT);
+    
+    check(layer != NULL, "layer is NULL");
+    check(currents != NULL, "currents is NULL");
+    check(storage != NULL, "storage is NULL");
+    check(pool != NULL, "pool is NULL");
+    
+    thread_pool_reset(pool);
+    
+    u32 n_inputs = math_min_u32(layer->n_neurons, n_currents);
+    
+    u32 n_tasks = layer_get_n_tasks(pool);
+    u32 n_neurons_per_task = layer_get_n_neurons_per_task(layer, n_tasks);
+    LayerTask* task = NULL;
+    
+    for (u32 task_i = 0; task_i < n_tasks; ++task_i) {
+        task = layer_task_create(layer, storage, time, task_i, n_neurons_per_task);
+        task->type = LAYER_TASK_LEARNING_STEP_INJECT_CURRENT;
+        task->task_inject_current.currents = currents;
+        task->task_inject_current.n_currents = n_inputs;
+        
+        thread_pool_add_task(pool, task);
+    }
+    
+    thread_pool_execute_tasks(pool);
+    
+    TIMING_COUNTER_END(LAYER_LEARNING_STEP_INJECT_CURRENT);
+    
+    error:
+    return;
+}
+
+
+internal void
+layer_learning_step_force_spike(Layer* layer, u32 time, bool* spikes, u32 n_spikes,
+                       MemoryArena* storage, ThreadPool* pool) {
+    TIMING_COUNTER_START(LAYER_LEARNING_STEP_FORCE_SPIKE);
+    
+    check(layer != NULL, "layer is NULL");
+    check(spikes != NULL, "spikes is NULL");
+    check(storage != NULL, "storage is NULL");
+    check(pool != NULL, "pool is NULL");
+    
+    thread_pool_reset(pool);
+    
+    u32 n_inputs = math_min_u32(layer->n_neurons, n_spikes);
+    
+    u32 n_tasks = layer_get_n_tasks(pool);
+    u32 n_neurons_per_task = layer_get_n_neurons_per_task(layer, n_tasks);
+    LayerTask* task = NULL;
+    
+    for (u32 task_i = 0; task_i < n_tasks; ++task_i) {
+        task = layer_task_create(layer, storage, time, task_i, n_neurons_per_task);
+        task->type = LAYER_TASK_LEARNING_STEP_FORCE_SPIKE;
+        task->task_force_spike.spikes = spikes;
+        task->task_force_spike.n_spikes = n_spikes;
+        
+        thread_pool_add_task(pool, task);
+    }
+    
+    thread_pool_execute_tasks(pool);
+    
+    TIMING_COUNTER_END(LAYER_LEARNING_STEP_FORCE_SPIKE);
+    
+    error:
+    return;
 }

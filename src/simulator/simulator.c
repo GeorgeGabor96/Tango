@@ -23,6 +23,8 @@ simulator_create(State* state, Network* network, DataGen* data) {
 }
 
 
+
+
 internal void
 simulator_run(Simulator* simulator, State* state, ThreadPool* pool)
 {
@@ -74,7 +76,16 @@ simulator_run(Simulator* simulator, State* state, ThreadPool* pool)
                                                 time);
             
             network_time_start = clock();
-            network_step(simulator->network, inputs, time, state->transient_storage, pool);
+            // change this            
+            if (simulator->mode == SIMULATOR_INFER)
+                network_step(simulator->network, inputs, time, state->transient_storage, pool);
+            else if (simulator->mode == SIMULATOR_LEARNING) 
+                network_learning_step(simulator->network, inputs, time, state->transient_storage, pool);
+            else
+                log_error("Unknown simulator mode %u (%s)",
+                          simulator->mode,
+                          simulator_mode_get_c_str(simulator->mode));
+
             network_time += clock() - network_time_start;
             
             for (callback_i = 0;

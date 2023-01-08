@@ -117,7 +117,6 @@ neuron_init(Neuron* neuron, NeuronCls* cls) {
         neuron->voltage = NEURON_LIF_VOLTAGE_REST;
     } else if (neuron->cls->type == NEURON_LIF_REFRACT) {
         neuron->voltage = NEURON_LIF_VOLTAGE_REST;
-        neuron->lif_refract.last_spike_time = 0;
     }
     
     error:
@@ -210,14 +209,13 @@ neuron_update(Neuron* neuron, u32 time, f32 psc) {
         }
     } else if (neuron->cls->type == NEURON_LIF_REFRACT) {
         // NOTE: Only update after refractory period
-        if (time - neuron->lif_refract.last_spike_time <= cls->lif_refract_cls.refract_time) {
+        if (time - neuron->last_spike_time <= cls->lif_refract_cls.refract_time) {
             neuron->voltage = NEURON_LIF_VOLTAGE_REST;
             spike = FALSE;
         } else {
             neuron_lif_voltage_update(neuron, psc);
             if (neuron->voltage >= NEURON_LIF_VOLTAGE_TH) {
                 neuron->voltage = NEURON_LIF_VOLTAGE_REST;
-                neuron->lif_refract.last_spike_time = time;
                 spike = TRUE;
                 neuron->last_spike_time = time;
             }
@@ -291,12 +289,12 @@ neuron_step_force_spike(Neuron* neuron, u32 time) {
     
     neuron_update_in_synapses(neuron, time);
     neuron->spike = TRUE;
-    
+    neuron->last_spike_time = time;   
+ 
     if (neuron->cls->type == NEURON_LIF) {
         neuron->voltage = NEURON_LIF_VOLTAGE_REST;
     } else if (neuron->cls->type == NEURON_LIF_REFRACT) {
         neuron->voltage = NEURON_LIF_VOLTAGE_REST;
-        neuron->lif_refract.last_spike_time = time;
     } else {
         log_error("INVALID neuron type %u", neuron->cls->type);
     }
@@ -369,8 +367,8 @@ neuron_learning_update_synapses(Neuron* neuron, u32 time) {
     if (neuron->spike == FALSE) return;
 
     // Backpropagating signal to input synapses
-    for (i = 0; i < neuron->n_in_synapses_arrays; ++i) {
-        in_synapses = neuron->in_synapses_arrays[i];
+    for (i = 0; i < neuron->n_in_synapse_arrays; ++i) {
+        in_synapses = neuron->in_synapse_arrays[i];
     
         for (synapse_i = 0; synapse_i < in_synapses->length; ++synapse_i) {
             synapse = in_synapse_array_get(in_synapses, synapse_i);
@@ -379,11 +377,11 @@ neuron_learning_update_synapses(Neuron* neuron, u32 time) {
     }
 
     // Backpropagating signal to output synapses
-    for (i = 0; i < neuron->n_out_synapses_arrays; ++i) {
-        out_synapses = neuron->out_synapses_arrays[i];
+    for (i = 0; i < neuron->n_out_synapse_arrays; ++i) {
+        out_synapses = neuron->out_synapse_arrays[i];
 
         for (synapse_i = 0; synapse_i < out_synapses->length; ++synapse_i) {
-            synapse = synapses->synapses[synapse_i];
+            synapse = out_synapses->synapses[synapse_i];
             synapse_stdp_depression_update(synapse);
         }
     }
@@ -394,11 +392,14 @@ internal void
 neuron_learning_step(Neuron* neuron, u32 time) {
     TIMING_COUNTER_START(NEURON_LEARNING_STEP);
     
-    check(neuron 1= NULL, "nueorn is NULL");
+    check(neuron != NULL, "nueorn is NULL");
     neuron_step(neuron, time);
     neuron_learning_update_synapses(neuron, time);
 
     TIMING_COUNTER_END(NEURON_LEARNING_STEP);
+
+    error:
+    return;
 }
 
 

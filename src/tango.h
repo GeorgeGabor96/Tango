@@ -13,6 +13,8 @@
 #include "containers/array.c"
 #include "containers/memory_arena.c"
 #include "simulator/state.c"
+#include "simulator/synapse.h"
+#include "simulator/neuron.h"
 #include "simulator/synapse.c"
 #include "simulator/neuron.c"
 #include "simulator/layer.c"
