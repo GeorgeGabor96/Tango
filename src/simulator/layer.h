@@ -45,6 +45,16 @@ typedef enum {
 } LayerTaskType;
 
 
+typedef struct LayerTaskInjectCurrent {
+    f32* currents;
+    u32 n_currents;
+} LayerTaskInjectCurrent;
+
+typedef struct LayerTaskForceSpike {
+    bool* spikes;
+    u32 n_spikes;
+} LayerTaskForceSpike;
+
 typedef struct LayerTask {
     LayerTaskType type;
     Layer* layer;
@@ -53,17 +63,20 @@ typedef struct LayerTask {
     u32 neuron_end_i;
     
     union {
-        struct {
-            f32* currents;
-            u32 n_currents;
-        } task_inject_current;
-        
-        struct {
-            bool* spikes;
-            u32 n_spikes;
-        } task_force_spike;
+        LayerTaskInjectCurrent inject_current; 
+        LayerTaskForceSpike force_spike;
     };
 } LayerTask;
+
+typedef struct LayerStepData {
+    LayerTaskType type;
+    
+    union {
+        LayerTaskInjectCurrent inject_current; 
+        LayerTaskForceSpike force_spike;
+    };
+} LayerStepData;
+
 
 // NOTE: The layer takes ownership of the name
 internal Layer* layer_create(State* state, 
