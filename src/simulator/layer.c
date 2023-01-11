@@ -53,74 +53,74 @@ layer_create(State* state, const char* name, LayerType type, u32 n_neurons, Neur
 internal void
 layer_process_neurons(void* task) {
     LayerTask* layer_task = (LayerTask*)task;
-    
-    Layer* layer = layer_task->layer;
+   
+    // NOTE: UNWRAP the task structure
+    u32 time = layer_task->time;
+    Neuron* neurons = layer_task->layer->neurons;
+    u32 neuron_start_i = layer_task->neuron_start_i;
+    u32 neuron_end_i = layer_task->neuron_end_i;
+   
+    // NOTE: here we will use only one set of variables to remove a lot of duplicate code
+    f32* currents = layer_task->inject_current.currents;
+    u32 n_currents = layer_task->inject_current.n_currents;
+    u32 currents_idx = math_clip_u32(n_currents, neuron_start_i, neuron_end_i);
+
+    bool* spikes = layer_task->force_spike.spikes;
+    u32 n_spikes = layer_task->force_spike.n_spikes;
+    u32 spikes_idx = math_clip_u32(n_spikes, neuron_start_i, neuron_end_i);
+
     u32 i = 0;
     
-    if (layer_task->type == LAYER_TASK_STEP) {
-        for (i = layer_task->neuron_start_i; i < layer_task->neuron_end_i; ++i)
-            neuron_step(layer->neurons + i, layer_task->time);
-    } 
-    else if (layer_task->type == LAYER_TASK_STEP_INJECT_CURRENT) {
-        f32* currents = layer_task->task_inject_current.currents;
-        u32 injects_idx = math_clip_u32(layer_task->task_inject_current.n_currents,
-                                        layer_task->neuron_start_i,
-                                        layer_task->neuron_end_i);
-        
-        for (i = layer_task->neuron_start_i; i < injects_idx; ++i)
-            neuron_step_inject_current(layer->neurons + i, currents[i], layer_task->time);
-        for (i = injects_idx; i < layer_task->neuron_end_i; ++i)
-            neuron_step(layer->neurons + i, layer_task->time);
-    }
-    else if (layer_task->type == LAYER_TASK_STEP_FORCE_SPIKE) {
-        u32 n_inputs = layer_task->task_force_spike.n_spikes;
-        bool* spikes = layer_task->task_force_spike.spikes;
-        u32 spikes_idx = math_clip_u32(layer_task->task_force_spike.n_spikes,
-                                       layer_task->neuron_start_i,
-                                       layer_task->neuron_end_i);
-        
-        for (i = layer_task->neuron_start_i; i < spikes_idx; ++i) {
-            if (spikes[i] == TRUE) { 
-                neuron_step_force_spike(layer->neurons + i, layer_task->time);
+    switch (layer_task->type) {
+        case LAYER_TASK_STEP:
+            for (i = neuron_start_i; i < neuron_end_i; ++i)
+                neuron_step(neurons + i, time);
+            break;
+    
+        case LAYER_TASK_STEP_INJECT_CURRENT:
+            for (i = neuron_start_i; i < currents_idx; ++i)
+                neuron_step_inject_current(neurons + i, currents[i], time);
+            for (i = currents_idx; i < neuron_end_i; ++i)
+                neuron_step(neurons + i, time);
+            break;
+
+        case LAYER_TASK_STEP_FORCE_SPIKE:
+            for (i = neuron_start_i; i < spikes_idx; ++i) {
+                if (spikes[i] == TRUE) 
+                    neuron_step_force_spike(neurons + i, time);
+                else
+                    neuron_step(neurons + i, time);
             }
-            else
-                neuron_step(layer->neurons + i, layer_task->time);
-        }
-        for (i = spikes_idx; i < layer_task->neuron_end_i; ++i)
-            neuron_step(layer->neurons + i, layer_task->time);
-    }
-    // LEARNING TODO: a lot of duplicate code, a lot
-    else if (layer_task->type == LAYER_TASK_LEARNING_STEP) {
-        for (i = layer_task->neuron_start_i; i < layer_task->neuron_end_i; ++i)
-            neuron_learning_step(layer->neurons + i, layer_task->time);
-    } 
-    else if (layer_task->type == LAYER_TASK_LEARNING_STEP_INJECT_CURRENT) {
-        f32* currents = layer_task->task_inject_current.currents;
-        u32 injects_idx = math_clip_u32(layer_task->task_inject_current.n_currents,
-                                        layer_task->neuron_start_i,
-                                        layer_task->neuron_end_i);
-        
-        for (i = layer_task->neuron_start_i; i < injects_idx; ++i)
-            neuron_learning_step_inject_current(layer->neurons + i, currents[i], layer_task->time);
-        for (i = injects_idx; i < layer_task->neuron_end_i; ++i)
-            neuron_learning_step(layer->neurons + i, layer_task->time);
-    }
-    else if (layer_task->type == LAYER_TASK_LEARNING_STEP_FORCE_SPIKE) {
-        u32 n_inputs = layer_task->task_force_spike.n_spikes;
-        bool* spikes = layer_task->task_force_spike.spikes;
-        u32 spikes_idx = math_clip_u32(layer_task->task_force_spike.n_spikes,
-                                       layer_task->neuron_start_i,
-                                       layer_task->neuron_end_i);
-        
-        for (i = layer_task->neuron_start_i; i < spikes_idx; ++i) {
-            if (spikes[i] == TRUE) { 
-                neuron_learning_step_force_spike(layer->neurons + i, layer_task->time);
+            for (i = spikes_idx; i < neuron_end_i; ++i)
+                neuron_step(neurons + i, time);
+            break;
+
+        // LEARNING 
+        case LAYER_TASK_LEARNING_STEP:
+            for (i = neuron_start_i; i < neuron_end_i; ++i)
+                neuron_learning_step(neurons + i, time);
+    
+        case LAYER_TASK_LEARNING_STEP_INJECT_CURRENT:
+            for (i = neuron_start_i; i < currents_idx; ++i)
+                neuron_learning_step_inject_current(neurons + i, currents[i], time);
+            for (i = currents_idx; i < neuron_end_i; ++i)
+                neuron_learning_step(neurons + i, time);
+            break;
+
+        case LAYER_TASK_LEARNING_STEP_FORCE_SPIKE:
+            for (i = neuron_start_i; i < spikes_idx; ++i) {
+                if (spikes[i] == TRUE) 
+                    neuron_learning_step_force_spike(neurons + i, time);
+                else
+                    neuron_learning_step(neurons + i, time);
             }
-            else
-                neuron_learning_step(layer->neurons + i, layer_task->time);
-        }
-        for (i = spikes_idx; i < layer_task->neuron_end_i; ++i)
-            neuron_learning_step(layer->neurons + i, layer_task->time);
+            for (i = spikes_idx; i < neuron_end_i; ++i)
+                neuron_learning_step(neurons + i, time);
+            break;
+
+        default:
+            log_error("Unknown LAYER_TASK_TYPE: %u", layer_task->type);
+            break;
     }
 }
 
@@ -158,6 +158,41 @@ layer_get_n_neurons_per_task(Layer* layer, u32 n_tasks) {
 
 
 internal void
+_layer_run(Layer* layer, u32 time, MemoryArena* storage, ThreadPool* pool, LayerStepData* data) {
+    check(layer != NULL, "layer is NULL");
+    check(storage != NULL, "storage is NULL");
+    check(pool != NULL, "pool is NULL");
+    check(data != NULL, "data is NULL");
+
+    thread_pool_reset(pool);
+    
+    u32 n_tasks = layer_get_n_tasks(pool);
+    u32 n_neurons_per_task = layer_get_n_neurons_per_task(layer, n_tasks);
+    LayerTaskType type = data->type;
+    LayerTask* task = NULL;
+
+    for (u32 task_i = 0; task_i < n_tasks; ++task_i) {
+        task = layer_task_create(layer, storage, time, task_i, n_neurons_per_task);
+        
+        if (type == LAYER_TASK_STEP_INJECT_CURRENT || 
+                 type == LAYER_TASK_LEARNING_STEP_INJECT_CURRENT)
+            task->inject_current = data->inject_current;
+        else if (type == LAYER_TASK_STEP_FORCE_SPIKE ||
+                 type == LAYER_TASK_LEARNING_STEP_FORCE_SPIKE)
+            task->force_spike = data->force_spike;
+        
+        task->type = data->type;
+        thread_pool_add_task(pool, task);
+    }
+    
+    thread_pool_execute_tasks(pool);
+
+    error:
+    return;
+}
+
+
+internal void
 layer_step(Layer* layer, u32 time, MemoryArena* storage, ThreadPool* pool) {
     TIMING_COUNTER_START(LAYER_STEP);
    
@@ -174,40 +209,6 @@ layer_step(Layer* layer, u32 time, MemoryArena* storage, ThreadPool* pool) {
 
 
 internal void
-_layer_run(Layer* layer, u32 time, MemoryArena* storage, ThreadPool* pool, LayerStepData* data) {
-    check(layer != NULL, "layer is NULL");
-    check(storage != NULL, "storage is NULL");
-    check(pool != NULL, "pool is NULL");
-    check(data != NULL, "data is NULL");
-
-    thread_pool_reset(pool);
-    
-    u32 n_tasks = layer_get_n_tasks(pool);
-    u32 n_neurons_per_task = layer_get_n_neurons_per_task(layer, n_tasks);
-    LayerTaskType type = data->type;
-
-    for (u32 task_i = 0; task_i < n_tasks; ++task_i) {
-        task = layer_task_create(layer, storage, time, task_i, n_neurons_per_task);
-        
-        if (type == LAYER_TASK_STEP_INJECT_CURRENT || 
-                 type == LAYER_TASK_LEARNING_STEP_INJECT_CURRENT)
-            task->inject_current = data->inject_current;
-        else if (type == LAYER_TASK_STEP_FORCE_SPIKE ||
-                 type == LAYER_TASK_LEARNING_STEP_FORCE_SPIKE)
-            task->force_spike = data->force_spike;
-        
-        task->type = data->type
-        thread_pool_add_task(pool, task);
-    }
-    
-    thread_pool_execute_tasks(pool);
-
-    error:
-    return;
-}
-
-
-internal void
 layer_step_inject_current(Layer* layer, u32 time, f32* currents, u32 n_currents,
                           MemoryArena* storage, ThreadPool* pool) {
     TIMING_COUNTER_START(LAYER_STEP_INJECT_CURRENT);
@@ -217,7 +218,7 @@ layer_step_inject_current(Layer* layer, u32 time, f32* currents, u32 n_currents,
     data.inject_current.currents = currents;
     data.inject_current.n_currents = n_currents;
     
-    _layer_run(layer, time, storage, pool, data);
+    _layer_run(layer, time, storage, pool, &data);
     
     TIMING_COUNTER_END(LAYER_STEP_INJECT_CURRENT);
     
@@ -557,8 +558,8 @@ layer_learning_step_force_spike(Layer* layer, u32 time, bool* spikes, u32 n_spik
    
     LayerStepData data;
     data.type = LAYER_TASK_LEARNING_STEP_FORCE_SPIKE;
-    data.force_spike = spikes;
-    data.n_spikes = n_spikes;
+    data.force_spike.spikes = spikes;
+    data.force_spike.n_spikes = n_spikes;
    
     _layer_run(layer, time, storage, pool, &data);
     

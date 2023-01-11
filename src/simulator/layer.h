@@ -44,7 +44,6 @@ typedef enum {
     LAYER_TASK_INVALID
 } LayerTaskType;
 
-
 typedef struct LayerTaskInjectCurrent {
     f32* currents;
     u32 n_currents;
