@@ -119,11 +119,9 @@ network_step(Network* network, NetworkInputs* inputs, u32 time,
         layer = network->layers[i];
         
         if (input->type == NETWORK_INPUT_SPIKES)
-            layer_step_force_spike(layer, time, input->data, input->n_neurons,
-                                   storage, pool);
+            layer_step_force_spike(layer, time, input->spikes, storage, pool);
         else if (input->type == NETWORK_INPUT_CURRENT)
-            layer_step_inject_current(layer, time, input->data, input->n_neurons,
-                                      storage, pool);
+            layer_step_inject_current(layer, time, input->currents, storage, pool);
         else
             log_error("Unknown network input type %d", input->type);
         layer->it_ran = TRUE;
@@ -208,11 +206,9 @@ network_learning_step(Network* network, NetworkInputs* inputs, u32 time,
         layer = network->layers[i];
         
         if (input->type == NETWORK_INPUT_SPIKES)
-            layer_learning_step_force_spike(layer, time, input->data, input->n_neurons,
-                                   storage, pool);
+            layer_learning_step_force_spike(layer, time, input->spikes, storage, pool);
         else if (input->type == NETWORK_INPUT_CURRENT)
-            layer_learning_step_inject_current(layer, time, input->data, input->n_neurons,
-                                      storage, pool);
+            layer_learning_step_inject_current(layer, time, input->currents, storage, pool);
         else
             log_error("Unknown network input type %d", input->type);
         layer->it_ran = TRUE;

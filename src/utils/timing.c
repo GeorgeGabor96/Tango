@@ -5,16 +5,54 @@
 
 internal const char*
 timing_counter_name(TimingCounterType type) {
-    if (type == TIMER_SIMULATOR_RUN) return "SIMULATOR_RUN";
-    if (type == TIMER_NETWORK_STEP) return "NETWORK_STEP";
-    if (type == TIMER_LAYER_STEP) return "LAYER_STEP";
-    if (type == TIMER_LAYER_STEP_INJECT_CURRENT) return "LAYER_STEP_INJECT_CURRENT";
-    if (type == TIMER_LAYER_STEP_FORCE_SPIKE) return "LAYER_STEP_FORCE_SPIKE";
-    if (type == TIMER_NEURON_STEP) return "NEURON_STEP";
-    if (type == TIMER_NEURON_STEP_FORCE_SPIKE) return "NEURON_STEP_FORCE_SPIKE";
-    if (type == TIMER_NEURON_STEP_INJECT_CURRENT) return "NEURON_STEP_INJECT_CURRENT";
-    if (type == TIMER_SYNAPSE_STEP) return "SYNAPSE_STEP";
+    switch (type) {
+        case TIMER_SIMULATOR_INFER:
+            return "SIMULATOR_INFER";
+        case TIMER_SIMULATOR_LEARN:
+            return "SIMULATOR_LEARN";
+
+        case TIMER_NETWORK_STEP:
+            return "NETWORK_STEP";
+    
+        case TIMER_LAYER_STEP:
+            return "LAYER_STEP";
+        case TIMER_LAYER_STEP_INJECT_CURRENT:
+            return "LAYER_STEP_INJECT_CURRENT";
+        case TIMER_LAYER_STEP_FORCE_SPIKE:
+            return "LAYER_STEP_FORCE_SPIKE";
+    
+        case TIMER_NEURON_STEP:
+            return "NEURON_STEP";
+        case TIMER_NEURON_STEP_FORCE_SPIKE:
+            return "NEURON_STEP_FORCE_SPIKE";
+        case TIMER_NEURON_STEP_INJECT_CURRENT:
+            return "NEURON_STEP_INJECT_CURRENT";
+    
+        case TIMER_SYNAPSE_STEP:
+            return "SYNAPSE_STEP";
+    
+        case TIMER_NETWORK_LEARNING_STEP:
+            return "NETWORK_LEARNING_STEP";
+
+        case TIMER_LAYER_LEARNING_STEP:
+            return "LAYER_LEARNING_STEP";
+        case TIMER_LAYER_LEARNING_STEP_INJECT_CURRENT:
+            return "LAYER_LEARNING_STEP_INJECT_CURRENT";
+        case TIMER_LAYER_LEARNING_STEP_FORCE_SPIKE:
+            return "LAYER_LEARNING_STEP_FORCE_SPIKE";
+        
+        case TIMER_NEURON_LEARNING_STEP:
+            return "NEURON_LEARNING_STEP";
+        case TIMER_NEURON_LEARNING_STEP_INJECT_CURRENT:
+            return "NEURON_LEARNING_STEP_INJECT_CURRENT";
+        case TIMER_NEURON_LEARNING_STEP_FORCE_SPIKE:
+            return "NEURON_LEARNING_STEP_FORCE_SPIKE";
+
+        default:
+            return "TIMER_INVALID";
+
     return "TIMER_INVALID";
+    }
 }
 
 

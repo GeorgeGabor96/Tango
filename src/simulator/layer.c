@@ -125,12 +125,13 @@ layer_process_neurons(void* task) {
 }
 
 
-inline internal LayerTask*
-layer_task_create(Layer* layer, MemoryArena* storage, u32 time,
-                  u32 task_i, u32 n_neurons_per_task) {
+internal LayerTask*
+_layer_task_create(Layer* layer, MemoryArena* storage, u32 time,
+                  u32 task_i, u32 n_neurons_per_task, LayerStepData* data) {
     LayerTask* task = (LayerTask*) memory_arena_push(storage, sizeof(*task));
     check(task != NULL, "task is NULL");
-    
+
+    task->data = data;
     task->layer = layer;
     task->time = time;
     task->neuron_start_i = task_i * n_neurons_per_task;
@@ -173,15 +174,7 @@ _layer_run(Layer* layer, u32 time, MemoryArena* storage, ThreadPool* pool, Layer
 
     for (u32 task_i = 0; task_i < n_tasks; ++task_i) {
         task = layer_task_create(layer, storage, time, task_i, n_neurons_per_task);
-        
-        if (type == LAYER_TASK_STEP_INJECT_CURRENT || 
-                 type == LAYER_TASK_LEARNING_STEP_INJECT_CURRENT)
-            task->inject_current = data->inject_current;
-        else if (type == LAYER_TASK_STEP_FORCE_SPIKE ||
-                 type == LAYER_TASK_LEARNING_STEP_FORCE_SPIKE)
-            task->force_spike = data->force_spike;
-        
-        task->type = data->type;
+        task->data = data;
         thread_pool_add_task(pool, task);
     }
     
@@ -202,48 +195,36 @@ layer_step(Layer* layer, u32 time, MemoryArena* storage, ThreadPool* pool) {
     _layer_run(layer, time, storage, pool, &data);
     
     TIMING_COUNTER_END(LAYER_STEP);
-    
-    error:
-    return;
 }
 
 
 internal void
-layer_step_inject_current(Layer* layer, u32 time, f32* currents, u32 n_currents,
+layer_step_inject_current(Layer* layer, u32 time, Currents* currents,
                           MemoryArena* storage, ThreadPool* pool) {
     TIMING_COUNTER_START(LAYER_STEP_INJECT_CURRENT);
-   
+  
     LayerStepData data;
     data.type = LAYER_TASK_STEP_INJECT_CURRENT;
-    data.inject_current.currents = currents;
-    data.inject_current.n_currents = n_currents;
+    data.currents = currents;
     
     _layer_run(layer, time, storage, pool, &data);
     
     TIMING_COUNTER_END(LAYER_STEP_INJECT_CURRENT);
-    
-    error:
-    return;
 }
 
 
 internal void
-layer_step_force_spike(Layer* layer, u32 time, bool* spikes, u32 n_spikes,
+layer_step_force_spike(Layer* layer, u32 time, Spikes* spikes,
                        MemoryArena* storage, ThreadPool* pool) {
     TIMING_COUNTER_START(LAYER_STEP_FORCE_SPIKE);
    
     LayerStepData data;
     data.type = LAYER_TASK_STEP_FORCE_SPIKE;
-    // TODO: could we directly receive this struct??
-    data.force_spike.spikes = spikes;
-    data.force_spike.n_spikes = n_spikes;
+    data.spikes = spikes;
     
     _layer_run(layer, time, storage, pool, &data);
     
     TIMING_COUNTER_END(LAYER_STEP_FORCE_SPIKE);
-    
-    error:
-    return;
 }
 
 
@@ -515,7 +496,6 @@ layer_get_spikes(MemoryArena* arena, Layer* layer) {
 }
 
 
-// TODO: a lot of duplication, can we add a parameter that just changes the type of task? we can check that its only 
 internal void
 layer_learning_step(Layer* layer, u32 time, MemoryArena* storage, ThreadPool* pool) {
     TIMING_COUNTER_START(LAYER_LEARNING_STEP);
@@ -526,45 +506,34 @@ layer_learning_step(Layer* layer, u32 time, MemoryArena* storage, ThreadPool* po
     _layer_run(layer, time, storage, pool, &data);
     
     TIMING_COUNTER_END(LAYER_LEARNING_STEP);
-    
-    error:
-    return;
 }
 
 
 internal void
-layer_learning_step_inject_current(Layer* layer, u32 time, f32* currents, u32 n_currents,
+layer_learning_step_inject_current(Layer* layer, u32 time, Currents* currents,
                           MemoryArena* storage, ThreadPool* pool) {
     TIMING_COUNTER_START(LAYER_LEARNING_STEP_INJECT_CURRENT);
-    
+   
     LayerStepData data;
     data.type = LAYER_TASK_LEARNING_STEP_INJECT_CURRENT;
-    data.inject_current.currents = currents;
-    data.inject_current.n_currents = n_currents;
+    data.currents = currents;
 
     _layer_run(layer, time, storage, pool, &data);
     
     TIMING_COUNTER_END(LAYER_LEARNING_STEP_INJECT_CURRENT);
-    
-    error:
-    return;
 }
 
 
 internal void
-layer_learning_step_force_spike(Layer* layer, u32 time, bool* spikes, u32 n_spikes,
+layer_learning_step_force_spike(Layer* layer, u32 time, Spikes* spikes,
                        MemoryArena* storage, ThreadPool* pool) {
     TIMING_COUNTER_START(LAYER_LEARNING_STEP_FORCE_SPIKE);
-   
+    
     LayerStepData data;
     data.type = LAYER_TASK_LEARNING_STEP_FORCE_SPIKE;
-    data.force_spike.spikes = spikes;
-    data.force_spike.n_spikes = n_spikes;
+    data.spikes = spikes;
    
     _layer_run(layer, time, storage, pool, &data);
     
     TIMING_COUNTER_END(LAYER_LEARNING_STEP_FORCE_SPIKE);
-    
-    error:
-    return;
 }

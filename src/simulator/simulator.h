@@ -31,7 +31,6 @@ simulator_mode_get_c_str(SimulatorMode mode) {
 #define SIMULATOR_N_MAX_CALLBACKS 5u
 
 typedef struct Simulator {
-    SimulatorMode mode; 
     Network* network;
     DataGen* data;
     Callback* callbacks[SIMULATOR_N_MAX_CALLBACKS];
@@ -40,7 +39,8 @@ typedef struct Simulator {
 
 
 internal Simulator* simulator_create(State* state, Network* network, DataGen* data);
-internal void simulator_run(Simulator* simulator, State* state, ThreadPool* pool);
+internal void simulator_infer(Simulator* simulator, State* state, ThreadPool* pool);
+internal void simulator_learn(Simulator* simulator, State* state, ThreadPool* pool);
 internal void simulator_add_callback(Simulator* simulator, State* state, Callback* callback);
 
 #endif //SIMULATOR_H
