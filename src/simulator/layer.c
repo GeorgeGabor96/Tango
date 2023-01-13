@@ -61,17 +61,17 @@ layer_process_neurons(void* task) {
     u32 neuron_end_i = layer_task->neuron_end_i;
    
     // NOTE: here we will use only one set of variables to remove a lot of duplicate code
-    f32* currents = layer_task->inject_current.currents;
-    u32 n_currents = layer_task->inject_current.n_currents;
+    f32* currents = layer_task->data->currents->currents;
+    u32 n_currents = layer_task->data->currents->n_currents;
     u32 currents_idx = math_clip_u32(n_currents, neuron_start_i, neuron_end_i);
 
-    bool* spikes = layer_task->force_spike.spikes;
-    u32 n_spikes = layer_task->force_spike.n_spikes;
+    bool* spikes = layer_task->data->spikes->spikes;
+    u32 n_spikes = layer_task->data->spikes->n_spikes;
     u32 spikes_idx = math_clip_u32(n_spikes, neuron_start_i, neuron_end_i);
 
     u32 i = 0;
     
-    switch (layer_task->type) {
+    switch (layer_task->data->type) {
         case LAYER_TASK_STEP:
             for (i = neuron_start_i; i < neuron_end_i; ++i)
                 neuron_step(neurons + i, time);
@@ -119,7 +119,7 @@ layer_process_neurons(void* task) {
             break;
 
         default:
-            log_error("Unknown LAYER_TASK_TYPE: %u", layer_task->type);
+            log_error("Unknown LAYER_TASK_TYPE: %u", layer_task->data->type);
             break;
     }
 }
@@ -169,12 +169,10 @@ _layer_run(Layer* layer, u32 time, MemoryArena* storage, ThreadPool* pool, Layer
     
     u32 n_tasks = layer_get_n_tasks(pool);
     u32 n_neurons_per_task = layer_get_n_neurons_per_task(layer, n_tasks);
-    LayerTaskType type = data->type;
     LayerTask* task = NULL;
 
     for (u32 task_i = 0; task_i < n_tasks; ++task_i) {
-        task = layer_task_create(layer, storage, time, task_i, n_neurons_per_task);
-        task->data = data;
+        task = _layer_task_create(layer, storage, time, task_i, n_neurons_per_task, data);
         thread_pool_add_task(pool, task);
     }
     

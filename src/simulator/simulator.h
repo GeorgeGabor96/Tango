@@ -17,15 +17,8 @@ typedef enum {
     SIMULATOR_LEARNING,
     SIMULATOR_INVALID_MODE
 } SimulatorMode;
-// TODO: we could use function pointers to change behaviour based on mode and maybe have a simulator_set_mode() that will change them for us
-// NOTE: for now set the mode by hand
 
-internal const char*
-simulator_mode_get_c_str(SimulatorMode mode) {
-    if (mode == SIMULATOR_INFER) return "SIMULATOR_INFER";
-    else if (mode == SIMULATOR_LEARNING) return "SIMULATOR_LEARNING";
-    else return "SIMULATOR_INVALID_MODE";
-}
+internal const char* simulator_mode_get_c_str(SimulatorMode mode);
 
 
 #define SIMULATOR_N_MAX_CALLBACKS 5u

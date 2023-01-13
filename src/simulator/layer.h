@@ -44,9 +44,17 @@ typedef enum {
     LAYER_TASK_INVALID
 } LayerTaskType;
 
+typedef struct LayerStepData {
+    LayerTaskType type;
+    union {
+        Currents* currents;
+        Spikes* spikes;
+    };
+} LayerStepData;
+
 
 typedef struct LayerTask {
-    NetworkInput* input;
+    LayerStepData* data;
     Layer* layer;
     u32 time;
     u32 neuron_start_i;

@@ -97,19 +97,19 @@ network_add_layer(Network* network, Layer* layer,
 
 
 internal void
-network_step(Network* network, NetworkInputs* inputs, u32 time,
-             MemoryArena* storage, ThreadPool* pool) {
+network_step(Network* network, Inputs* inputs, u32 time, MemoryArena* storage, ThreadPool* pool) {
     TIMING_COUNTER_START(NETWORK_STEP);
     
     check(network != NULL, "network is NULL");
+    check(inputs != NULL, "inputs is NULL");
+    check(storage != NULL, "storage is NULL");
+    check(pool != NULL, "pool is NULL");
     check(network->n_in_layers == inputs->n_inputs,
           "network->n_in_layers is %u, inputs->n_inputs is %u, should be equal",
           network->n_in_layers, inputs->n_inputs);
-    check(storage != NULL, "storage is NULL");
-    check(pool != NULL, "pool is NULL");
     
     Layer* layer = NULL;
-    NetworkInput* input = NULL;
+    Input* input = NULL;
     u32 i = 0;
     
     // NOTE: Assume that the order of inputs are the same as the order of input layers in
@@ -118,10 +118,10 @@ network_step(Network* network, NetworkInputs* inputs, u32 time,
         input = inputs->inputs + i;
         layer = network->layers[i];
         
-        if (input->type == NETWORK_INPUT_SPIKES)
-            layer_step_force_spike(layer, time, input->spikes, storage, pool);
-        else if (input->type == NETWORK_INPUT_CURRENT)
-            layer_step_inject_current(layer, time, input->currents, storage, pool);
+        if (input->type == INPUT_SPIKES)
+            layer_step_force_spike(layer, time, &(input->spikes), storage, pool);
+        else if (input->type == INPUT_CURRENT)
+            layer_step_inject_current(layer, time, &(input->currents), storage, pool);
         else
             log_error("Unknown network input type %d", input->type);
         layer->it_ran = TRUE;
@@ -182,9 +182,8 @@ network_get_layer_spikes(State* state, Network* network, u32 i) {
 
 
 // LEARNING
-// TODO: ONLY changed the calls and timers, should I add like function pointers in the network and set them based on modes? and use them instead?
 internal void
-network_learning_step(Network* network, NetworkInputs* inputs, u32 time,
+network_learning_step(Network* network, Inputs* inputs, u32 time,
                       MemoryArena* storage, ThreadPool* pool) {
     TIMING_COUNTER_START(NETWORK_LEARNING_STEP);
     
@@ -196,7 +195,7 @@ network_learning_step(Network* network, NetworkInputs* inputs, u32 time,
     check(pool != NULL, "pool is NULL");
     
     Layer* layer = NULL;
-    NetworkInput* input = NULL;
+    Input* input = NULL;
     u32 i = 0;
     
     // NOTE: Assume that the order of inputs are the same as the order of input layers in
@@ -205,10 +204,10 @@ network_learning_step(Network* network, NetworkInputs* inputs, u32 time,
         input = inputs->inputs + i;
         layer = network->layers[i];
         
-        if (input->type == NETWORK_INPUT_SPIKES)
-            layer_learning_step_force_spike(layer, time, input->spikes, storage, pool);
-        else if (input->type == NETWORK_INPUT_CURRENT)
-            layer_learning_step_inject_current(layer, time, input->currents, storage, pool);
+        if (input->type == INPUT_SPIKES)
+            layer_learning_step_force_spike(layer, time, &(input->spikes), storage, pool);
+        else if (input->type == INPUT_CURRENT)
+            layer_learning_step_inject_current(layer, time, &(input->currents), storage, pool);
         else
             log_error("Unknown network input type %d", input->type);
         layer->it_ran = TRUE;

@@ -29,9 +29,9 @@ typedef struct Spikes {
 typedef struct Input {
     InputType type;
     union {
-        Spikes* spikes;
-        Currents* current;
-    }
+        Spikes spikes;
+        Currents currents;
+    };
 } Input;
 
 typedef struct Inputs {

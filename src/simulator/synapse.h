@@ -48,7 +48,6 @@ struct Synapse {
     u32 spike_times_tail;  // add
     u32* spike_times;      // Directly after the synapse
     
-    // TODO: need for STDP - DO I really need? 
     Neuron* in_neuron;
     Neuron* out_neuron;
 };

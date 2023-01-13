@@ -232,14 +232,12 @@ synapse_stdp_potentiation_update(Synapse* synapse) {
     u32 in_neuron_spike_time = synapse->in_neuron->last_spike_time;
 
     // NOTE: the input neuron should have spiked
-    // TODO: add function that return true if the neuron ever spiked, easier to read
     if (in_neuron_spike_time == NEURON_INVALID_SPIKE_TIME) return;
 
     u32 interval_value = out_neuron_spike_time - in_neuron_spike_time;
     // NOTE: the interval between the spike should be big enough and it should not be 0
-    // TODO: should it be bigger than the synapse delay????????
     if (interval_value > SYNAPSE_POTENTIATION_INTERVAL ||
-        interval_value == 0)
+        interval_value < synapse->cls->delay)
         return;
 
     synapse->weight += synapse_stdp_potentiation_weight_update(interval_value);
@@ -266,12 +264,10 @@ synapse_stdp_depression_update(Synapse* synapse) {
     u32 in_neuron_spike_time = synapse->in_neuron->last_spike_time;
     
     // NOTE: the out neuron should have spiked
-    // TODO: add function that return true if the neuron ever spiked, easier to read
     if (out_neuron_spike_time == NEURON_INVALID_SPIKE_TIME) return;
 
     u32 interval_value = in_neuron_spike_time - out_neuron_spike_time;
     // NOTE: the interval between the spike should be big enough and it should not be 0
-    // TODO: should it be bigger than the synapse delay????????
     if (interval_value > SYNAPSE_DEPRESSION_INTERVAL ||
         interval_value == 0)
         return;

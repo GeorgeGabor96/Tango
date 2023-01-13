@@ -1,6 +1,14 @@
 #include "simulator/simulator.h"
 
 
+internal const char*
+simulator_mode_get_c_str(SimulatorMode mode) {
+    if (mode == SIMULATOR_INFER) return "SIMULATOR_INFER";
+    else if (mode == SIMULATOR_LEARNING) return "SIMULATOR_LEARNING";
+    else return "SIMULATOR_INVALID_MODE";
+}
+
+
 internal Simulator*
 simulator_create(State* state, Network* network, DataGen* data) {
     Simulator* simulator = NULL;
@@ -31,7 +39,7 @@ _simulator_run(Simulator* simulator, State* state, ThreadPool* pool, SimulatorMo
     check(pool != NULL, "pool is NULL");
     
     DataSample* sample = NULL;
-    NetworkInputs* inputs = NULL;
+    Inputs* inputs = NULL;
     u32 sample_idx = 0;
     u32 time = 0;
     u32 callback_i = 0;
