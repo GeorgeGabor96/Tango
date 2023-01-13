@@ -97,9 +97,8 @@ network_add_layer(Network* network, Layer* layer,
 
 
 internal void
-network_step(Network* network, Inputs* inputs, u32 time, MemoryArena* storage, ThreadPool* pool) {
-    TIMING_COUNTER_START(NETWORK_STEP);
-    
+_network_step(Network* network, Inputs* inputs, u32 time, MemoryArena* storage, ThreadPool* pool,
+              Mode mode) {
     check(network != NULL, "network is NULL");
     check(inputs != NULL, "inputs is NULL");
     check(storage != NULL, "storage is NULL");
@@ -107,6 +106,8 @@ network_step(Network* network, Inputs* inputs, u32 time, MemoryArena* storage, T
     check(network->n_in_layers == inputs->n_inputs,
           "network->n_in_layers is %u, inputs->n_inputs is %u, should be equal",
           network->n_in_layers, inputs->n_inputs);
+    check(mode == MODE_INFER || mode == MODE_LEARNING,
+          "Unknown mode %u (%s)", mode, mode_get_c_str(mode)); 
     
     Layer* layer = NULL;
     Input* input = NULL;
@@ -117,25 +118,52 @@ network_step(Network* network, Inputs* inputs, u32 time, MemoryArena* storage, T
     for (i = 0; i < inputs->n_inputs; ++i) {
         input = inputs->inputs + i;
         layer = network->layers[i];
-        
-        if (input->type == INPUT_SPIKES)
-            layer_step_force_spike(layer, time, &(input->spikes), storage, pool);
-        else if (input->type == INPUT_CURRENT)
-            layer_step_inject_current(layer, time, &(input->currents), storage, pool);
-        else
-            log_error("Unknown network input type %d", input->type);
+       
+        if (mode == MODE_INFER) {
+            if (input->type == INPUT_SPIKES)
+                layer_step_force_spike(layer, time, &(input->spikes), storage, pool);
+            else if (input->type == INPUT_CURRENT)
+                layer_step_inject_current(layer, time, &(input->currents), storage, pool);
+            else
+                log_error("Unknown network input type %d", input->type);
+        } else if (mode == MODE_LEARNING) {
+            if (input->type == INPUT_SPIKES)
+                layer_learning_step_force_spike(layer, time, &(input->spikes), storage, pool);
+            else if (input->type == INPUT_CURRENT)
+                layer_learning_step_inject_current(layer, time, &(input->currents), storage, pool);
+            else
+                log_error("Unknown network input type %d", input->type);
+        } 
         layer->it_ran = TRUE;
     }
     
     for (i = 0; i < network->n_layers; ++i) {
         layer = network->layers[i];
         if (layer->it_ran == FALSE)
-            layer_step(layer, time, storage, pool);
+            if (mode == MODE_INFER) 
+                layer_step(layer, time, storage, pool);
+            else if (mode == MODE_LEARNING)
+                layer_learning_step(layer, time, storage, pool);
     }
     
-    TIMING_COUNTER_END(NETWORK_STEP);
     error:
     return;
+}
+
+
+internal void
+network_infer(Network* network, Inputs* inputs, u32 time, MemoryArena* storage, ThreadPool* pool) {
+    TIMING_COUNTER_START(NETWORK_INFER);
+    _network_step(network, inputs, time, storage, pool, MODE_INFER);
+    TIMING_COUNTER_END(NETWORK_INFER);
+}
+
+
+internal void
+network_learn(Network* network, Inputs* inputs, u32 time, MemoryArena* storage, ThreadPool* pool) {
+    TIMING_COUNTER_START(NETWORK_LEARN);
+    _network_step(network, inputs, time, storage, pool, MODE_LEARNING);
+    TIMING_COUNTER_END(NETWORK_LEARN);
 }
 
 
@@ -180,46 +208,3 @@ network_get_layer_spikes(State* state, Network* network, u32 i) {
     return NULL;
 }
 
-
-// LEARNING
-internal void
-network_learning_step(Network* network, Inputs* inputs, u32 time,
-                      MemoryArena* storage, ThreadPool* pool) {
-    TIMING_COUNTER_START(NETWORK_LEARNING_STEP);
-    
-    check(network != NULL, "network is NULL");
-    check(network->n_in_layers == inputs->n_inputs,
-          "network->n_in_layers is %u, inputs->n_inputs is %u, should be equal",
-          network->n_in_layers, inputs->n_inputs);
-    check(storage != NULL, "storage is NULL");
-    check(pool != NULL, "pool is NULL");
-    
-    Layer* layer = NULL;
-    Input* input = NULL;
-    u32 i = 0;
-    
-    // NOTE: Assume that the order of inputs are the same as the order of input layers in
-    // NOTE: the network
-    for (i = 0; i < inputs->n_inputs; ++i) {
-        input = inputs->inputs + i;
-        layer = network->layers[i];
-        
-        if (input->type == INPUT_SPIKES)
-            layer_learning_step_force_spike(layer, time, &(input->spikes), storage, pool);
-        else if (input->type == INPUT_CURRENT)
-            layer_learning_step_inject_current(layer, time, &(input->currents), storage, pool);
-        else
-            log_error("Unknown network input type %d", input->type);
-        layer->it_ran = TRUE;
-    }
-    
-    for (i = 0; i < network->n_layers; ++i) {
-        layer = network->layers[i];
-        if (layer->it_ran == FALSE)
-            layer_learning_step(layer, time, storage, pool);
-    }
-    
-    TIMING_COUNTER_END(NETWORK_LEARNING_STEP);
-    error:
-    return;
-}

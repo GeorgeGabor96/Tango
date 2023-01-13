@@ -7,18 +7,10 @@
 #include "common.h"
 #include "utils/thread_pool.h"
 #include "containers/array.h"
+#include "simulator/types.h"
 #include "simulator/network.h"
 #include "simulator/data_gen.h"
 #include "simulator/callback.h"
-
-
-typedef enum {
-    SIMULATOR_INFER,
-    SIMULATOR_LEARNING,
-    SIMULATOR_INVALID_MODE
-} SimulatorMode;
-
-internal const char* simulator_mode_get_c_str(SimulatorMode mode);
 
 
 #define SIMULATOR_N_MAX_CALLBACKS 5u

@@ -33,8 +33,10 @@ internal void network_compile(Network* network);
 
 internal void network_add_layer(Network* network, Layer* layer,
                                 bool is_input, bool is_output);
-internal void network_step(Network* network, Inputs* inputs, u32 time,
+internal void network_infer(Network* network, Inputs* inputs, u32 time,
                            MemoryArena* arena, ThreadPool* pool);
+internal void network_learn(Network* network, Inputs* inputs, u32 time,
+                            MemoryArena* arena, ThreadPool* pool);
 internal void network_clear(Network* network);
 
 internal f32* network_get_layer_voltages(State* state, Network* network, u32 i);

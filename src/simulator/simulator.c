@@ -1,14 +1,6 @@
 #include "simulator/simulator.h"
 
 
-internal const char*
-simulator_mode_get_c_str(SimulatorMode mode) {
-    if (mode == SIMULATOR_INFER) return "SIMULATOR_INFER";
-    else if (mode == SIMULATOR_LEARNING) return "SIMULATOR_LEARNING";
-    else return "SIMULATOR_INVALID_MODE";
-}
-
-
 internal Simulator*
 simulator_create(State* state, Network* network, DataGen* data) {
     Simulator* simulator = NULL;
@@ -32,7 +24,7 @@ simulator_create(State* state, Network* network, DataGen* data) {
 
 
 internal void
-_simulator_run(Simulator* simulator, State* state, ThreadPool* pool, SimulatorMode mode)
+_simulator_run(Simulator* simulator, State* state, ThreadPool* pool, Mode mode)
 { 
     check(simulator != NULL, "simulator is NULL");
     check(state != NULL, "state is NULL");
@@ -81,14 +73,14 @@ _simulator_run(Simulator* simulator, State* state, ThreadPool* pool, SimulatorMo
             
             network_time_start = clock();
             
-            if (mode == SIMULATOR_INFER)
-                network_step(simulator->network, inputs, time, state->transient_storage, pool);
-            else if (mode == SIMULATOR_LEARNING) 
-                network_learning_step(simulator->network, inputs, time, state->transient_storage, pool);
+            if (mode == MODE_INFER)
+                network_infer(simulator->network, inputs, time, state->transient_storage, pool);
+            else if (mode == MODE_LEARNING)
+                network_learn(simulator->network, inputs, time, state->transient_storage, pool);
             else
                 log_error("Unknown simulator mode %u (%s)",
                           mode,
-                          simulator_mode_get_c_str(mode));
+                          mode_get_c_str(mode));
 
             network_time += clock() - network_time_start;
             
@@ -135,14 +127,14 @@ _simulator_run(Simulator* simulator, State* state, ThreadPool* pool, SimulatorMo
 internal void
 simulator_infer(Simulator* sim, State* state, ThreadPool* pool) {
     TIMING_COUNTER_START(SIMULATOR_INFER);
-    _simulator_run(sim, state, pool, SIMULATOR_INFER);
+    _simulator_run(sim, state, pool, MODE_INFER);
     TIMING_COUNTER_END(SIMULATOR_INFER);
 }
 
 internal void
 simulator_learn(Simulator* sim, State* state, ThreadPool* pool) {
     TIMING_COUNTER_START(SIMULATOR_LEARN);
-    _simulator_run(sim, state, pool, SIMULATOR_LEARNING);
+    _simulator_run(sim, state, pool, MODE_LEARNING);
     TIMING_COUNTER_END(SIMULATOR_LEARN);
 }
 
