@@ -1,14 +1,12 @@
-/* date = September 15th 2022 8:05 pm */
-
-#ifndef NEURON_H
-#define NEURON_H
+#ifndef NEURON_FN_H
+#define NEURON_FN_H
 
 #include "common.h"
 #include "utils/memory.h"
 #include "containers/string.h"
 #include "containers/memory_arena.h"
 #include "containers/array.h"
-#include "simulator/synapse.h"
+#include "simulator/types.h"
 
 
 typedef enum { 
@@ -17,7 +15,20 @@ typedef enum {
     NEURON_LIF_REFRACT 
 } NeuronType; 
 
+
 internal char* neuron_type_get_c_str(NeuronType type);
+
+
+typedef struct NeuronCls {
+    String* name;  // NOTE: take ownership of the name
+    NeuronType type;
+    union {
+        struct {
+            u32 refract_time;
+        } lif_refract_cls;
+    };
+} NeuronCls;
+
 
 // NOTE: LIF constants
 // TODO: This change very rarely for now, only when we have a config file of some sort we
@@ -32,27 +43,18 @@ internal char* neuron_type_get_c_str(NeuronType type);
 #define NEURON_LIF_FREE_FACTOR (NEURON_LIF_VOLTAGE_REST / (NEURON_LIF_TAU))
 
 
-typedef struct NeuronCls {
-    String* name;  // NOTE: take ownership of the name
-    NeuronType type;
-    union {
-        struct {
-            u32 refract_time;
-        } lif_refract_cls;
-    };
-} NeuronCls;
-
-
 internal NeuronCls* neuron_cls_create_lif(State* state, const char* name);
 internal NeuronCls* neuron_cls_create_lif_refract(State* state, 
                                                   const char* name,
                                                   u32 refract_time);
+
 
 typedef struct InSynapseArray {
     u32 length;
     sz synapse_size;
     Synapse* synapses;
 } InSynapseArray;
+
 
 internal Synapse* in_synapse_array_get(InSynapseArray* synapses, u32 i);
 
@@ -65,14 +67,16 @@ typedef struct OutSynapseArray {
 
 #define NEURON_N_MAX_INPUTS 5u
 #define NEURON_N_MAX_OUTPUTS 5u
+#define NEURON_INVALID_SPIKE_TIME (u32)-1
 
 
-typedef struct Neuron {
+struct Neuron {
     NeuronCls* cls;
     f32 voltage;
     f32 epsc;
     f32 ipsc;
     bool spike;
+    u32 last_spike_time;
     
     // NOTE: the neuron owns its input synapses
     InSynapseArray* in_synapse_arrays[NEURON_N_MAX_INPUTS];
@@ -80,13 +84,7 @@ typedef struct Neuron {
     
     u32 n_in_synapse_arrays;
     u32 n_out_synapse_arrays;
-    
-    union {
-        struct {
-            u32 last_spike_time;
-        } lif_refract;
-    };
-} Neuron;
+};
 
 
 internal Neuron* neuron_create(State* state,  NeuronCls* cls);
@@ -105,4 +103,12 @@ internal void neuron_step_inject_current(Neuron* neuron, f32 psc, u32 time);
 
 internal void neuron_clear(Neuron* neuron);
 
-#endif //NEURON_H
+// For plasticity
+internal void neuron_learning_step(Neuron* neuron, u32 time);
+internal void neuron_learning_step_force_spike(Neuron* neuron, u32 time); 
+internal void neuron_learning_step_inject_current(Neuron* neuron,
+                                                  f32 psc,
+                                                  u32 time);
+
+#endif //NEURON_FN_H
+

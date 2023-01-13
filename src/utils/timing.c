@@ -5,15 +5,34 @@
 
 internal const char*
 timing_counter_name(TimingCounterType type) {
-    if (type == TIMER_SIMULATOR_RUN) return "SIMULATOR_RUN";
-    if (type == TIMER_NETWORK_STEP) return "NETWORK_STEP";
+    if (type == TIMER_SIMULATOR_INFER) return "SIMULATOR_INFER";
+    if (type == TIMER_SIMULATOR_LEARN) return "SIMULATOR_LEARN";
+
+    if (type == TIMER_NETWORK_INFER) return "NETWORK_INFER";
+    if (type == TIMER_NETWORK_LEARN) return "NETWORK_LEARN";
+   
     if (type == TIMER_LAYER_STEP) return "LAYER_STEP";
     if (type == TIMER_LAYER_STEP_INJECT_CURRENT) return "LAYER_STEP_INJECT_CURRENT";
     if (type == TIMER_LAYER_STEP_FORCE_SPIKE) return "LAYER_STEP_FORCE_SPIKE";
+    
     if (type == TIMER_NEURON_STEP) return "NEURON_STEP";
     if (type == TIMER_NEURON_STEP_FORCE_SPIKE) return "NEURON_STEP_FORCE_SPIKE";
     if (type == TIMER_NEURON_STEP_INJECT_CURRENT) return "NEURON_STEP_INJECT_CURRENT";
+    
     if (type == TIMER_SYNAPSE_STEP) return "SYNAPSE_STEP";
+    
+    if (type == TIMER_NETWORK_LEARNING_STEP) return "NETWORK_LEARNING_STEP";
+
+    if (type == TIMER_LAYER_LEARNING_STEP) return "LAYER_LEARNING_STEP";
+    if (type == TIMER_LAYER_LEARNING_STEP_INJECT_CURRENT)
+        return "LAYER_LEARNING_STEP_INJECT_CURRENT";
+    if (type == TIMER_LAYER_LEARNING_STEP_FORCE_SPIKE) return "LAYER_LEARNING_STEP_FORCE_SPIKE";
+        
+    if (type == TIMER_NEURON_LEARNING_STEP) return "NEURON_LEARNING_STEP";
+    if (type == TIMER_NEURON_LEARNING_STEP_INJECT_CURRENT)
+        return "NEURON_LEARNING_STEP_INJECT_CURRENT";
+    if (type == TIMER_NEURON_LEARNING_STEP_FORCE_SPIKE) return "NEURON_LEARNING_STEP_FORCE_SPIKE";
+
     return "TIMER_INVALID";
 }
 

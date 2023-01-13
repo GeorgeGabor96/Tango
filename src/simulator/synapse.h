@@ -1,7 +1,5 @@
-/* date = September 16th 2022 7:26 pm */
-
-#ifndef SYNAPSE_H
-#define SYNAPSE_H
+#ifndef SYNAPSE_FN_H
+#define SYNAPSE_FN_H
 
 #include "common.h"
 #include "math_ops.h"
@@ -10,6 +8,7 @@
 #include "containers/string.h"
 #include "containers/memory_arena.h"
 #include "simulator/state.h"
+#include "simulator/types.h"
 
 
 typedef enum {
@@ -17,6 +16,7 @@ typedef enum {
     SYNAPSE_CONDUCTANCE,
     SYNAPSE_VOLTAGE,
 } SynapseType;
+
 
 internal char* synapse_type_get_c_str(SynapseType type);
 
@@ -36,7 +36,8 @@ internal SynapseCls* synapse_cls_create(State* state,
                                         f32 rev_potential, f32 amp, 
                                         f32 tau_ms, u32 delay);
 
-typedef struct Synapse {
+
+struct Synapse {
     SynapseCls* cls;
     f32 weight;
     f32 conductance;
@@ -46,7 +47,10 @@ typedef struct Synapse {
     u32 spike_times_head;  // remove
     u32 spike_times_tail;  // add
     u32* spike_times;      // Directly after the synapse
-} Synapse;
+    
+    Neuron* in_neuron;
+    Neuron* out_neuron;
+};
 
 
 internal sz synapse_size_with_cls(SynapseCls* cls);
@@ -60,4 +64,17 @@ internal void synapse_step(Synapse* synapse, u32 time);
 
 internal void synapse_clear(Synapse* synapse);
 
-#endif //SYNAPSE_H
+// NOTE: for STDP
+#define SYNAPSE_WEIGHT_MAX 2.0f
+
+#define SYNAPSE_POTENTIATION_INTERVAL (u32)20
+#define SYNAPSE_DEPRESSION_INTERVAL (u32) 30
+                                
+
+internal f32 synapse_stdp_potentiation_weight_update(u32 interval);
+internal void synapse_stdp_potentiation_update(Synapse* synapse);
+
+internal f32 synapse_stdp_depression_weight_update(u32 interval);
+internal void synapse_stdp_depression_update(Synapse* synapse);
+
+#endif //SYNAPSE_FN_H

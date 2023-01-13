@@ -111,12 +111,12 @@ neuron_init(Neuron* neuron, NeuronCls* cls) {
     neuron->epsc = 0.0f;
     neuron->ipsc = 0.0f;
     neuron->spike = FALSE;
+    neuron->last_spike_time = NEURON_INVALID_SPIKE_TIME;
     
     if (neuron->cls->type == NEURON_LIF) {
         neuron->voltage = NEURON_LIF_VOLTAGE_REST;
     } else if (neuron->cls->type == NEURON_LIF_REFRACT) {
         neuron->voltage = NEURON_LIF_VOLTAGE_REST;
-        neuron->lif_refract.last_spike_time = 0;
     }
     
     error:
@@ -205,18 +205,19 @@ neuron_update(Neuron* neuron, u32 time, f32 psc) {
         if (neuron->voltage >= NEURON_LIF_VOLTAGE_TH) {
             neuron->voltage = NEURON_LIF_VOLTAGE_REST;
             spike = TRUE;
+            neuron->last_spike_time = time;
         }
     } else if (neuron->cls->type == NEURON_LIF_REFRACT) {
         // NOTE: Only update after refractory period
-        if (time - neuron->lif_refract.last_spike_time <= cls->lif_refract_cls.refract_time) {
+        if (time - neuron->last_spike_time <= cls->lif_refract_cls.refract_time) {
             neuron->voltage = NEURON_LIF_VOLTAGE_REST;
             spike = FALSE;
         } else {
             neuron_lif_voltage_update(neuron, psc);
             if (neuron->voltage >= NEURON_LIF_VOLTAGE_TH) {
                 neuron->voltage = NEURON_LIF_VOLTAGE_REST;
-                neuron->lif_refract.last_spike_time = time;
                 spike = TRUE;
+                neuron->last_spike_time = time;
             }
         }
     } else {
@@ -288,12 +289,12 @@ neuron_step_force_spike(Neuron* neuron, u32 time) {
     
     neuron_update_in_synapses(neuron, time);
     neuron->spike = TRUE;
-    
+    neuron->last_spike_time = time;   
+ 
     if (neuron->cls->type == NEURON_LIF) {
         neuron->voltage = NEURON_LIF_VOLTAGE_REST;
     } else if (neuron->cls->type == NEURON_LIF_REFRACT) {
         neuron->voltage = NEURON_LIF_VOLTAGE_REST;
-        neuron->lif_refract.last_spike_time = time;
     } else {
         log_error("INVALID neuron type %u", neuron->cls->type);
     }
@@ -346,6 +347,86 @@ neuron_clear(Neuron* neuron) {
             synapse_clear(synapse);
         }
     }
+    
+    error:
+    return;
+}
+
+
+/***************
+*  LEARNING
+***************/
+inline internal void
+neuron_learning_update_synapses(Neuron* neuron, u32 time) {
+    u32 i = 0;
+    u32 synapse_i = 0;
+    Synapse* synapse = NULL;
+    InSynapseArray* in_synapses = NULL;
+    OutSynapseArray* out_synapses = NULL;
+
+    if (neuron->spike == FALSE) return;
+
+    // Backpropagating signal to input synapses
+    for (i = 0; i < neuron->n_in_synapse_arrays; ++i) {
+        in_synapses = neuron->in_synapse_arrays[i];
+    
+        for (synapse_i = 0; synapse_i < in_synapses->length; ++synapse_i) {
+            synapse = in_synapse_array_get(in_synapses, synapse_i);
+            synapse_stdp_potentiation_update(synapse);
+        }
+    }
+
+    // Backpropagating signal to output synapses
+    for (i = 0; i < neuron->n_out_synapse_arrays; ++i) {
+        out_synapses = neuron->out_synapse_arrays[i];
+
+        for (synapse_i = 0; synapse_i < out_synapses->length; ++synapse_i) {
+            synapse = out_synapses->synapses[synapse_i];
+            synapse_stdp_depression_update(synapse);
+        }
+    }
+}
+
+
+internal void
+neuron_learning_step(Neuron* neuron, u32 time) {
+    TIMING_COUNTER_START(NEURON_LEARNING_STEP);
+    
+    check(neuron != NULL, "nueorn is NULL");
+    neuron_step(neuron, time);
+    neuron_learning_update_synapses(neuron, time);
+
+    TIMING_COUNTER_END(NEURON_LEARNING_STEP);
+
+    error:
+    return;
+}
+
+
+internal void
+neuron_learning_step_force_spike(Neuron* neuron, u32 time) {
+    TIMING_COUNTER_START(NEURON_LEARNING_STEP_FORCE_SPIKE);
+    check(neuron != NULL, "neuron is NULL");
+   
+    neuron_step_force_spike(neuron, time);
+    neuron_learning_update_synapses(neuron, time); 
+    
+    TIMING_COUNTER_END(NEURON_LEARNING_STEP_FORCE_SPIKE);
+    
+    error:
+    return;
+}
+
+
+internal void
+neuron_learning_step_inject_current(Neuron* neuron, f32 psc, u32 time) {
+    TIMING_COUNTER_START(NEURON_LEARNING_STEP_INJECT_CURRENT);
+    check(neuron != NULL, "neuron is NULL");
+   
+    neuron_step_inject_current(neuron, psc, time);
+    neuron_learning_update_synapses(neuron, time); 
+    
+    TIMING_COUNTER_END(NEURON_LEARNING_STEP_INJECT_CURRENT);
     
     error:
     return;

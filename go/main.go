@@ -16,6 +16,7 @@ type Arguments struct {
 
 func ParseArguments() (*Arguments, error) {
 	args := new(Arguments)
+    args.binFolder = ""
 
 	for i := 1; i < len(os.Args); i++ {
 		if os.Args[i] == "--bin_folder" {
@@ -25,6 +26,10 @@ func ParseArguments() (*Arguments, error) {
 			return nil, errors.New(fmt.Sprintf("Unknown Argument %v", os.Args[i]))
 		}
 	}
+ 
+    if args.binFolder == "" {
+        return nil, errors.New(fmt.Sprintf("Must provide the --bin_folder argument"))
+    }
 
 	return args, nil
 }

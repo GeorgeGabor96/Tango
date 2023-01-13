@@ -135,7 +135,7 @@ data_gen_sample_create(MemoryArena* arena, DataGen* data, u32 idx) {
 /***********************
 * NETWORK INPUTS
 ***********************/
-internal NetworkInputs*
+internal Inputs*
 data_network_inputs_create(MemoryArena* arena, DataSample* sample,
                            Network* network, u32 time) {
     check(arena != NULL, "arena is NULL");
@@ -145,90 +145,79 @@ data_network_inputs_create(MemoryArena* arena, DataSample* sample,
     u32 i = 0;
     u32 j = 0;
     Layer* layer = NULL;
-    NetworkInput* input = NULL;
-    NetworkInputs* inputs = (NetworkInputs*)
-        memory_arena_push(arena, sizeof(*inputs));
+    Input* input = NULL;
+    Inputs* inputs = (Inputs*)memory_arena_push(arena, sizeof(*inputs));
     check_memory(inputs);
     inputs->n_inputs = network->n_in_layers;
-    inputs->inputs = (NetworkInput*)
-        memory_arena_push(arena, sizeof(*input) * inputs->n_inputs);
+    inputs->inputs = (Input*)memory_arena_push(arena, sizeof(*input) * inputs->n_inputs);
     check_memory(inputs->inputs);
     
-    if (sample->type == DATA_SAMPLE_RANDOM_SPIKES) {
-        bool* spikes = NULL;
-        for (i = 0; i < inputs->n_inputs; ++i) {
-            input = inputs->inputs + i;
-            layer = network->in_layers[i];
-            
-            spikes = (bool*)
-                memory_arena_push(arena, layer->n_neurons * sizeof(bool));
-            check_memory(spikes);
-            for (j = 0; j < layer->n_neurons; ++j) {
-                spikes[j] = random_get_bool(sample->data_gen->random_spikes.chance);
-            }
-            input->type = NETWORK_INPUT_SPIKES;
-            input->data = spikes;
-            input->n_neurons = layer->n_neurons; 
-        }
-    } else if (sample->type == DATA_SAMPLE_CONSTANT_CURRENT) {
-        f32* currents = NULL;
-        for (i = 0; i < network->n_in_layers; ++i) {
-            input = inputs->inputs + i;
-            layer = network->in_layers[i];
-            
-            currents = (f32*) 
-                memory_arena_push(arena, sizeof(f32) * layer->n_neurons);
-            check_memory(currents);
-            for (j = 0; j < layer->n_neurons; ++j) {
-                currents[j] = sample->data_gen->const_current.value;
-            }
-            input->type = NETWORK_INPUT_CURRENT;
-            input->data = currents;
-            input->n_neurons = layer->n_neurons;
-            
-        }
-    } else if (sample->type == DATA_SAMPLE_SPIKE_PULSES) {
-        bool* spikes = NULL;
-        
-        for (i = 0; i < inputs->n_inputs; ++i) {
-            input = inputs->inputs + i;
-            layer = network->in_layers[i];
-            
-            spikes = (bool*) memory_arena_push(arena, layer->n_neurons * sizeof(bool));
-            check_memory(spikes);
-            
-            DataGenSpikePulses* data_pulses = &(sample->data_gen->spike_pulses);
-            DataSampleSpikePulses* sample_pulses = &(sample->spike_pulses);
-            
-            for (j = 0; j < layer->n_neurons; ++j) {
-                if (time == sample_pulses->next_pulse_time) {
-                    sample_pulses->in_pulse = TRUE;
-                    sample_pulses->next_pulse_time = time + 
-                        data_pulses->pulse_duration + 
-                        data_pulses->between_pulses_duration;
-                } else if (time == sample_pulses->next_between_pulses_time) {
-                    sample_pulses->in_pulse = FALSE;
-                    sample_pulses->next_between_pulses_time = time + 
-                        data_pulses->between_pulses_duration +
-                        data_pulses->pulse_duration;
-                }
-                
-                if (sample_pulses->in_pulse == TRUE) {
-                    spikes[j] = random_get_bool(data_pulses->pulse_spike_chance);
-                } else {
-                    spikes[j] = 
-                        random_get_bool(data_pulses->between_pulses_spike_chance);
-                }
-            }
-            
-            input->type = NETWORK_INPUT_SPIKES;
-            input->data = spikes;
-            input->n_neurons = layer->n_neurons;
-        }
-    }else {
-        log_error("Unknown data sample type %u", sample->type);
-    }
+    bool* spikes = NULL;
+    f32* currents = NULL;
+
+
+    for (i = 0; i < inputs->n_inputs; ++i) {
+        input = inputs->inputs + i;
+        layer = network->in_layers[i];
+
+        switch (sample->type) {
     
+            case DATA_SAMPLE_RANDOM_SPIKES:
+                spikes = (bool*)memory_arena_push(arena, layer->n_neurons * sizeof(bool));
+                check_memory(spikes);
+                for (j = 0; j < layer->n_neurons; ++j)
+                    spikes[j] = random_get_bool(sample->data_gen->random_spikes.chance);
+
+                input->type = INPUT_SPIKES;
+                input->spikes.spikes = spikes;
+                input->spikes.n_spikes = layer->n_neurons;
+                break;
+
+            case DATA_SAMPLE_CONSTANT_CURRENT:
+                currents = (f32*)memory_arena_push(arena, sizeof(f32) * layer->n_neurons);
+                check_memory(currents);
+                for (j = 0; j < layer->n_neurons; ++j)
+                    currents[j] = sample->data_gen->const_current.value;
+            
+                input->type = INPUT_CURRENT;
+                input->currents.currents = currents;
+                input->currents.n_currents = layer->n_neurons;
+                break;
+
+            case DATA_SAMPLE_SPIKE_PULSES:
+                spikes = (bool*) memory_arena_push(arena, layer->n_neurons * sizeof(bool));
+                check_memory(spikes);
+            
+                DataGenSpikePulses* data_pulses = &(sample->data_gen->spike_pulses);
+                DataSampleSpikePulses* sample_pulses = &(sample->spike_pulses);
+            
+                for (j = 0; j < layer->n_neurons; ++j) {
+                    if (time == sample_pulses->next_pulse_time) {
+                        sample_pulses->in_pulse = TRUE;
+                        sample_pulses->next_pulse_time = time + data_pulses->pulse_duration + 
+                                                         data_pulses->between_pulses_duration;
+                    } else if (time == sample_pulses->next_between_pulses_time) {
+                        sample_pulses->in_pulse = FALSE;
+                        sample_pulses->next_between_pulses_time = time + 
+                                data_pulses->between_pulses_duration + data_pulses->pulse_duration;
+                    }
+                
+                    if (sample_pulses->in_pulse == TRUE) {
+                        spikes[j] = random_get_bool(data_pulses->pulse_spike_chance);
+                    } else {
+                        spikes[j] = random_get_bool(data_pulses->between_pulses_spike_chance);
+                    }
+                }
+            
+                input->type = INPUT_SPIKES;
+                input->spikes.spikes = spikes;
+                input->spikes.n_spikes = layer->n_neurons;
+                break; 
+        
+            default:
+                log_error("Unknown data sample type %u", sample->type);
+        }
+    } 
     return inputs;
     
     error:

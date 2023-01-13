@@ -6,6 +6,7 @@
 #include "common.h"
 #include "utils/memory.h"
 #include "containers/string.h"
+#include "simulator/types.h"
 #include "simulator/layer.h"
 
 
@@ -25,29 +26,6 @@ typedef struct Network {
 } Network;
 
 
-/************************
-* INPUTS FOR THE NETWORK
-************************/
-typedef enum {
-    NETWORK_INPUT_INVALID,
-    NETWORK_INPUT_SPIKES,
-    NETWORK_INPUT_CURRENT,
-} NetworkInputType;
-
-
-typedef struct NetworkInput {
-    NetworkInputType type;
-    void* data;
-    u32 n_neurons;
-} NetworkInput;
-
-
-typedef struct NetworkInputs {
-    NetworkInput* inputs;
-    u32 n_inputs;
-} NetworkInputs;
-
-
 internal Network* network_create(State* state, const char* name);
 
 internal void network_show(Network* network);
@@ -55,8 +33,10 @@ internal void network_compile(Network* network);
 
 internal void network_add_layer(Network* network, Layer* layer,
                                 bool is_input, bool is_output);
-internal void network_step(Network* network, NetworkInputs* inputs, u32 time,
+internal void network_infer(Network* network, Inputs* inputs, u32 time,
                            MemoryArena* arena, ThreadPool* pool);
+internal void network_learn(Network* network, Inputs* inputs, u32 time,
+                            MemoryArena* arena, ThreadPool* pool);
 internal void network_clear(Network* network);
 
 internal f32* network_get_layer_voltages(State* state, Network* network, u32 i);

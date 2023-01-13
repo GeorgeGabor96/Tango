@@ -98,10 +98,10 @@ internal DataSample* data_gen_sample_create(MemoryArena* arena, DataGen* data, u
 
 // NOTE: Currently the easiest thing to do is to give the network when creating inputs
 // NOTE: Probably in the future this is not enough but we will see
-internal NetworkInputs* data_network_inputs_create(MemoryArena* arena,
-                                                   DataSample* sample,
-                                                   Network* network,
-                                                   u32 time);
+internal Inputs* data_network_inputs_create(MemoryArena* arena,
+                                            DataSample* sample,
+                                            Network* network,
+                                            u32 time);
 
 
 #endif //DATA_GEN_H
