@@ -1,11 +1,8 @@
-#include "simulator/synapse.h"
-
-
 /*******************
 * Helpfull functions
 *******************/
-inline internal bool
-synapse_is_spike_arriving_at_this_time(Synapse* synapse, u32 time) {
+internal bool
+_synapse_is_spike_arriving_at_this_time(Synapse* synapse, u32 time) {
     bool result = synapse->n_spike_times != 0 &&
         synapse->spike_times[synapse->spike_times_head] == time;
     return result;
@@ -44,7 +41,7 @@ synapse_cls_create(State* state,
     check(tau_ms > 0.0f, "tau_ms needs to be > 0");
     check(delay > 0, "delay needs to be > 0");
     
-    cls = (SynapseCls*)memory_arena_push(state->permanent_storage, sizeof(*cls));
+    cls = (SynapseCls*)memory_push(state->permanent_storage, sizeof(*cls));
     check_memory(cls);
     
     cls->name = string_create(state->permanent_storage, name);
@@ -80,8 +77,7 @@ synapse_create(State* state, SynapseCls* cls, f32 weight) {
     check(cls != NULL, "cls is NULL");
     
     // Alloc also the queue after the synapse for max cache
-    synapse = (Synapse*)memory_arena_push(state->permanent_storage,
-                                          synapse_size_with_cls(cls));
+    synapse = (Synapse*)memory_push(state->permanent_storage, synapse_size_with_cls(cls));
     check_memory(synapse);
     
     synapse_init(synapse, cls, weight);
@@ -182,7 +178,7 @@ synapse_step(Synapse* synapse, u32 time) {
     
     check(synapse != NULL, "synapse is NULL");
     
-    if (synapse_is_spike_arriving_at_this_time(synapse, time)) {
+    if (_synapse_is_spike_arriving_at_this_time(synapse, time)) {
         synapse->conductance += 1.0f;
         --(synapse->n_spike_times);
         ++(synapse->spike_times_head);

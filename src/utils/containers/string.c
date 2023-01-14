@@ -1,8 +1,5 @@
-#include "containers/string.h"
-
-
-inline internal u32
-get_c_str_length(const char* c_str) {
+internal u32
+_string_get_c_str_length(const char* c_str) {
     u32 length = 0;
     while (*c_str) {
         ++length;
@@ -15,13 +12,13 @@ get_c_str_length(const char* c_str) {
 #define str_size(str) str_size_from_length((str)->length)
 
 
-inline internal String*
-string_create_from_length(MemoryArena* arena, u32 length) {
+internal String*
+_string_create_from_length(Memory* memory, u32 length) {
     String* str = NULL;
-    check(arena != NULL, "arena is NULL");
+    check(memory != NULL, "memory is NULL");
     check(length > 0, "length is 0");
     
-    str = (String*) memory_arena_push(arena, str_size_from_length(length));
+    str = (String*) memory_push(memory, str_size_from_length(length));
     check_memory(str);
     str->length = length;
     str->data = (char*)(str + 1);
@@ -31,13 +28,13 @@ string_create_from_length(MemoryArena* arena, u32 length) {
 
 
 internal String*
-string_create(MemoryArena* arena, const char* c_str) {
+string_create(Memory* memory, const char* c_str) {
     String* str = NULL;
-    check(arena != NULL, "arena is NULL");
+    check(memory != NULL, "memory is NULL");
     check(c_str != NULL, "c_str is NULL");
     
-    u32 length = get_c_str_length(c_str);
-    str = string_create_from_length(arena, length);
+    u32 length = _string_get_c_str_length(c_str);
+    str = _string_create_from_length(memory, length);
     check_memory(str);
     memcpy(str->data, c_str, str->length + 1);
     
@@ -97,15 +94,15 @@ string_equal_c_str(String* str, const char* c_str) {
 
 
 internal String*
-string_path_join(MemoryArena* arena, String* str1, String* str2) {
+string_path_join(Memory* memory, String* str1, String* str2) {
     String* str = NULL;
-    check(arena != NULL, "arena is NULL");
+    check(memory != NULL, "memory is NULL");
     check(str1 != NULL, "str1 is NULL");
     check(str2 != NULL, "str2 is NULL");
     
     // NOTE: 2 because of os sep and \0
     u32 length = str1->length + 2 + str2->length;
-    str = string_create_from_length(arena, length);
+    str = _string_create_from_length(memory, length);
     u32 str_offset = 0;
     u32 i = 0;
     for (i = 0; i < str1->length; ++i, ++str_offset) {
@@ -123,15 +120,15 @@ string_path_join(MemoryArena* arena, String* str1, String* str2) {
 
 
 internal String*
-string_path_join_c_str(MemoryArena* arena, String* str, const char* c_str) {
+string_path_join_c_str(Memory* memory, String* str, const char* c_str) {
     String* result = NULL;
-    check(arena != NULL, "arena is NULL");
+    check(memory != NULL, "memory is NULL");
     check(str != NULL, "str1 is NULL");
     check(c_str != NULL, "c_str is NULL");
     
-    u32 c_str_len = get_c_str_length(c_str);
+    u32 c_str_len = _string_get_c_str_length(c_str);
     u32 length = str->length + 2 + c_str_len;
-    result = string_create_from_length(arena, length);
+    result = _string_create_from_length(memory, length);
     u32 str_offset = 0;
     u32 i = 0;
     for (i = 0; i < str->length; ++i, ++str_offset)

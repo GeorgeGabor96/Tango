@@ -1,6 +1,3 @@
-#include "containers/array.h"
-
-
 internal void*
 array_resize(void* array, sz el_size, u32 current_len, u32 new_len) {
     check(array != NULL, "array is NULL");

@@ -1,7 +1,6 @@
-#ifndef __TYPES_H__
-#define __TYPES_H__
+#ifndef __ENGINE_TYPES_H__
+#define __ENGINE_TYPES_H__
 
-#include "common.h"
 
 typedef struct Neuron Neuron;
 typedef struct Synapse Synapse;
@@ -53,4 +52,4 @@ typedef struct Inputs {
 } Inputs;
 
 
-#endif // __TYPES_H__ 
+#endif // __ENGINE_TYPES_H__ 

@@ -1,6 +1,3 @@
-#include "utils/timing.h"
-
-
 #ifdef TIMING
 
 internal const char*
@@ -38,14 +35,14 @@ timing_counter_name(TimingCounterType type) {
 
 
 internal void
-timing_report(MemoryArena* arena, const char* output_folder_c_str) {
+timing_report(Memory* memory, const char* output_folder_c_str) {
     u32 i = 0;
     TimingCounter* timer = NULL;
     String* out_folder = NULL;
     String* out_file = NULL;
     FILE* fp = NULL;
     
-    out_folder = string_create(arena, output_folder_c_str);
+    out_folder = string_create(memory, output_folder_c_str);
     
     if (out_folder != NULL) {
         char buffer[256] = { 0 };
@@ -59,7 +56,7 @@ timing_report(MemoryArena* arena, const char* output_folder_c_str) {
                 time_info->tm_hour,
                 time_info->tm_min,
                 time_info->tm_sec);
-        out_file = string_path_join_c_str(arena, out_folder, buffer);
+        out_file = string_path_join_c_str(memory, out_folder, buffer);
     }
     if (out_file == NULL) fp = stdout;
     else {

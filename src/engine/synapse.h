@@ -1,14 +1,5 @@
-#ifndef SYNAPSE_FN_H
-#define SYNAPSE_FN_H
-
-#include "common.h"
-#include "math_ops.h"
-#include "utils/memory.h"
-#include "utils/timing.h"
-#include "containers/string.h"
-#include "containers/memory_arena.h"
-#include "simulator/state.h"
-#include "simulator/types.h"
+#ifndef __ENGINE_SYNAPSE_H__
+#define __ENGINE_SYNAPSE_H__
 
 
 typedef enum {
@@ -77,4 +68,4 @@ internal void synapse_stdp_potentiation_update(Synapse* synapse);
 internal f32 synapse_stdp_depression_weight_update(u32 interval);
 internal void synapse_stdp_depression_update(Synapse* synapse);
 
-#endif //SYNAPSE_FN_H
+#endif // __SYNAPSE_H__

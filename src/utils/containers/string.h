@@ -1,10 +1,5 @@
-/* date = July 23rd 2022 11:09 pm */
-
-#ifndef STRING_H
-#define STRING_H
-
-#include "common.h"
-#include "containers/memory_arena.h"
+#ifndef __UTILS_CONTAINERS_STRING_H__
+#define __UTILS_CONTAINERS_STRING_H__
 
 
 #ifdef _WIN32
@@ -18,17 +13,17 @@ typedef struct String {
 } String;
 
 
-internal String* string_create(MemoryArena* arena, const char* c_str);
+internal String* string_create(Memory* memory, const char* c_str);
 internal char string_char_at_idx(String* str, u32 idx);
 
 internal bool string_equal(String* str1, String* str2);
 internal bool string_eqaul_c_str(String* str, const char* c_str);
-internal String* string_path_join(MemoryArena* arena,
+internal String* string_path_join(Memory* memory,
                                   String* str1,
                                   String* str2);
-internal String* string_path_join_c_str(MemoryArena* arena,
+internal String* string_path_join_c_str(Memory* memory,
                                         String* str1,
                                         const char* c_str);
 internal const char* string_to_c_str(String* str);
 
-#endif //STRING_H
+#endif // __UTILS_CONTAINERS_STRING_H__

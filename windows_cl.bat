@@ -32,5 +32,5 @@ set linker_params=-subsystem:console -opt:ref
 call windows_cl_setup.bat x64
 
 pushd %output_dir%
-call cl %common_flags% ..\..\src\experiments\debugging.c %compiler_params% /link %linker_params%
+call cl %common_flags% ..\..\src\experiments\header_check.c %compiler_params% /link %linker_params%
 popd

@@ -1,11 +1,5 @@
-/* date = December 1st 2022 2:56 pm */
-
-#ifndef THREAD_POOL_H
-#define THREAD_POOL_H
-
-
-#include "common.h"
-#include "containers/memory_arena.h"
+#ifndef __UTILS_THREAD_POOL_H
+#define __UTILS_THREAD_POOL_H
 
 
 #define MAX_N_TASKS 256
@@ -18,7 +12,7 @@ typedef void (*THREAD_POOL_TASK_EXECUTE) (void*);
 
 internal ThreadPool* thread_pool_create(u32 n_threads,
                                         THREAD_POOL_TASK_EXECUTE execute,
-                                        MemoryArena* arena);
+                                        Memory* memory);
 
 // CALL before adding the set of tasks
 internal void thread_pool_reset(ThreadPool* pool);
@@ -31,4 +25,4 @@ internal void thread_pool_execute_tasks(ThreadPool* pool);
 internal void thread_pool_stop(ThreadPool* pool);
 
 
-#endif //THREAD_POOL_H
+#endif // __UTILS_THREAD_POOL_H__
