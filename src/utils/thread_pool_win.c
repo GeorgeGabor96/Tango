@@ -94,15 +94,15 @@ pool_execute(LPVOID lpParameter) {
 internal ThreadPool*
 thread_pool_create(u32 n_threads,
                    THREAD_POOL_TASK_EXECUTE execute,
-                   MemoryArena* arena) {
+                   Memory* memory) {
     check(execute != NULL, "execute is NULL");
-    check(arena != NULL, "arena is NULL");
+    check(memory != NULL, "memory is NULL");
     
     u32 i = 0;
 	DWORD thread_id = 0;
 	ThreadPoolQueue* queue = NULL;
     
-	ThreadPool* pool = (ThreadPool*)memory_arena_push(arena, sizeof(*pool));
+	ThreadPool* pool = (ThreadPool*)memory_push(memory, sizeof(*pool));
 	if (pool == NULL) return NULL;
     
 	InitializeCriticalSection(&(pool->lock));
@@ -112,7 +112,7 @@ thread_pool_create(u32 n_threads,
 	// NOTE: Like a memory fence, to make sure the instructions are not rearange and the threads start before everything is initialized
 	EnterCriticalSection(&(pool->lock));
     
-	queue = (ThreadPoolQueue*)memory_arena_push(arena, sizeof(ThreadPoolQueue));
+	queue = (ThreadPoolQueue*)memory_push(memory, sizeof(ThreadPoolQueue));
 	if (queue == NULL) {
 		LeaveCriticalSection(&(pool->lock));
 		return NULL;
@@ -128,7 +128,7 @@ thread_pool_create(u32 n_threads,
 	if (n_threads == 0) {
         pool->threads = NULL;
     } else {
-        pool->threads = (HANDLE*)memory_arena_push(arena, sizeof(HANDLE) * n_threads);
+        pool->threads = (HANDLE*)memory_push(memory, sizeof(HANDLE) * n_threads);
         if (pool->threads == NULL) {
             LeaveCriticalSection(&(pool->lock));
             return NULL;

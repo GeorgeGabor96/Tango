@@ -1,6 +1,3 @@
-#include "simulator/callback.h"
-
-
 internal Callback*
 callback_dumper_create(State* state, const char* output_folder, Network* network) {
     String* output_folder_s = NULL;
@@ -16,16 +13,17 @@ callback_dumper_create(State* state, const char* output_folder, Network* network
     output_folder_s = string_create(state->permanent_storage, output_folder);
     check_memory(output_folder_s);
     
-    callback = (Callback*) memory_arena_push(state->permanent_storage, sizeof(*callback));
+    callback = (Callback*)memory_push(state->permanent_storage, sizeof(*callback));
     check_memory(callback);
-    
+
     callback->type = CALLBACK_NETWORK_DUMPER;
     
     callback->dumper.output_folder = output_folder_s;
     callback->dumper.sample_count = (u32)-1;
     callback->dumper.sample_duration = 0;
     callback->dumper.n_layers = network->n_layers;
-    callback->dumper.layers_data = (DumperLayerData*) memory_arena_push(state->permanent_storage, sizeof(DumperLayerData) * network->n_layers);
+    callback->dumper.layers_data = (DumperLayerData*)memory_push(state->permanent_storage,
+                                                sizeof(DumperLayerData) * network->n_layers);
     check_memory(callback->dumper.layers_data);
     
     for (i = 0; i < network->n_layers; ++i) {
@@ -35,7 +33,8 @@ callback_dumper_create(State* state, const char* output_folder, Network* network
         layer_data->name = layer->name;
     }
     bool result = os_folder_create_str(callback->dumper.output_folder);
-    check(result == TRUE, "couldn't create folder %s", string_to_c_str(callback->dumper.output_folder));
+    check(result == TRUE, "couldn't create folder %s",
+          string_to_c_str(callback->dumper.output_folder));
     return callback;
     
     error:
@@ -71,7 +70,8 @@ callback_dumper_begin_sample(State* state,
     
     for (i = 0; i < dumper->n_layers; ++i) {
         layer_data = dumper->layers_data + i;
-        layer_data->neurons_data = (DumperNeuronData*) memory_arena_push(state->transient_storage, dumper->sample_duration * layer_data->n_neurons * sizeof(DumperNeuronData));
+        layer_data->neurons_data = (DumperNeuronData*)memory_push(state->transient_storage,
+            dumper->sample_duration * layer_data->n_neurons * sizeof(DumperNeuronData));
         check_memory(layer_data->neurons_data);
     } 
     
@@ -107,7 +107,8 @@ callback_dumper_update(State* state, Callback* callback, Network* network) {
     for (layer_i = 0; layer_i < network->n_layers; ++layer_i) {
         layer = network->layers[layer_i];
         layer_data = dumper->layers_data + layer_i;
-        check(layer->n_neurons == layer_data->n_neurons, "layer->n_neurons != layer_data->n_neurons");
+        check(layer->n_neurons == layer_data->n_neurons,
+              "layer->n_neurons != layer_data->n_neurons");
         
         // NOTE: Go to the current step
         neuron_data = layer_data->neurons_data + step * layer_data->n_neurons;

@@ -1,10 +1,5 @@
-/* date = August 7th 2022 3:00 pm */
-
-#ifndef __MEMORY_H__
-#define __MEMORY_H__
-
-#include "common.h"
-
+#ifndef __UTILS_MEMORY_H__
+#define __UTILS_MEMORY_H__
 
 #ifdef MEMORY_MANAGE
 // overide the normal memory management function to save aditional information
@@ -43,5 +38,5 @@ internal void memory_report();
 
 #endif // MEMORY_MANAGE
 
-#endif // __MEMORY_H__
+#endif // __UTILS_MEMORY_H__
 

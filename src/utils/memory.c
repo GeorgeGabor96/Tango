@@ -1,6 +1,4 @@
 #ifdef MEMORY_MANAGE
-#include "utils/memory.h"
-
 
 /********************************************************************************
 * This will keep nodes in Hash Table, where the key is the memory adress of the 

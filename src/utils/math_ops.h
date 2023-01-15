@@ -1,10 +1,7 @@
-/* date = September 16th 2022 11:12 pm */
-
-#ifndef MATH_OPS_H
-#define MATH_OPS_H
+#ifndef __UTILS_MATH_OPS_H__
+#define __UTILS_MATH_OPS_H__
 
 #include <math.h>
-#include "common.h"
 
 
 inline internal f64
@@ -39,4 +36,4 @@ math_clip_u32(u32 value, u32 min, u32 max) {
 }
 
 
-#endif //MATH_OPS_H
+#endif // __UTILS_MATH_OPS_H__

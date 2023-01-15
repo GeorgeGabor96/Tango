@@ -1,7 +1,4 @@
-#include "simulator/callback.h"
-
-// NOTE: Consider that this file adds all the other callbacks
-#include "simulator/callbacks/dumper.c"
+#include "engine/callbacks/dumper.c"
 
 
 internal char*

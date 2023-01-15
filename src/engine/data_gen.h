@@ -1,13 +1,5 @@
-/* date = October 13th 2022 8:19 pm */
-
-#ifndef DATA_GEN_H
-#define DATA_GEN_H
-
-
-#include "common.h"
-#include "utils/memory.h"
-#include "utils/random.h"
-#include "simulator/network.h"
+#ifndef __ENGINE_DATA_GEN_H__
+#define __DATA_GEN_H__
 
 
 typedef enum {
@@ -94,14 +86,14 @@ typedef struct DataSample {
 } DataSample;
 
 
-internal DataSample* data_gen_sample_create(MemoryArena* arena, DataGen* data, u32 idx);
+internal DataSample* data_gen_sample_create(Memory* memory, DataGen* data, u32 idx);
 
 // NOTE: Currently the easiest thing to do is to give the network when creating inputs
 // NOTE: Probably in the future this is not enough but we will see
-internal Inputs* data_network_inputs_create(MemoryArena* arena,
+internal Inputs* data_network_inputs_create(Memory* memory,
                                             DataSample* sample,
                                             Network* network,
                                             u32 time);
 
 
-#endif //DATA_GEN_H
+#endif // __ENGINE_DATA_GEN_H__

@@ -1,13 +1,5 @@
-/* date = October 2nd 2022 9:18 pm */
-
-#ifndef LAYER_H
-#define LAYER_H
-
-#include "common.h"
-#include "utils/memory.h"
-#include "containers/string.h"
-#include "containers/array.h"
-#include "simulator/neuron.h"
+#ifndef __ENGINE_LAYER_H__
+#define __ENGINE_LAYER_H__
 
 
 typedef enum {
@@ -76,25 +68,25 @@ internal bool layer_link(State* state,
 
 internal void layer_process_neurons(void* task); 
 
-internal void layer_step(Layer* layer, u32 time, MemoryArena* storage, ThreadPool* pool);
+internal void layer_step(Layer* layer, u32 time, Memory* memory, ThreadPool* pool);
 internal void layer_step_inject_current(Layer* layer, u32 time, Currents* currents,
-                                        MemoryArena* storage, ThreadPool* pool);
+                                        Memory* memory, ThreadPool* pool);
 internal void layer_step_force_spike(Layer* layer, u32 time, Spikes* spikes,
-                                     MemoryArena* storage, ThreadPool* pool);
+                                     Memory* memory, ThreadPool* pool);
 
 internal void layer_clear(Layer* layer);
 
-internal f32* layer_get_voltages(MemoryArena* arena, Layer* layer);
-internal f32* layer_get_pscs(MemoryArena* arena, Layer* layer);
-internal f32* layer_get_epscs(MemoryArena* arena, Layer* layer);
-internal f32* layer_get_ipscs(MemoryArena* arena, Layer* layer);
-internal bool* layer_get_spikes(MemoryArena* arena, Layer* layer);
+internal f32* layer_get_voltages(Memory* memory, Layer* layer);
+internal f32* layer_get_pscs(Memory* memory, Layer* layer);
+internal f32* layer_get_epscs(Memory* memory, Layer* layer);
+internal f32* layer_get_ipscs(Memory* memory, Layer* layer);
+internal bool* layer_get_spikes(Memory* memory, Layer* layer);
 
 // LEARNING
-internal void layer_learning_step(Layer* layer, u32 time, MemoryArena* storage, ThreadPool* pool);
+internal void layer_learning_step(Layer* layer, u32 time, Memory* memory, ThreadPool* pool);
 internal void layer_learning_step_inject_current(Layer* layer, u32 time, Currents* currents,
-                                                 MemoryArena* storage, ThreadPool* pool);
+                                                 Memory* memory, ThreadPool* pool);
 internal void layer_learning_step_force_spike(Layer* layer, u32 time, Spikes* spikes,
-                                              MemoryArena* storage, ThreadPool* pool);
+                                              Memory* memory, ThreadPool* pool);
 
-#endif //LAYER_H
+#endif // __ENGINE_LAYER_H__

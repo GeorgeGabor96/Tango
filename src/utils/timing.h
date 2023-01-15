@@ -1,11 +1,5 @@
-/* date = November 3rd 2022 8:27 pm */
-
-#ifndef TIMING_H
-#define TIMING_H
-
-#include "common.h"
-#include "time.h"
-#include "containers/memory_arena.h"
+#ifndef __UTILS_TIMING_H__
+#define __UTILS_TIMING_H__
 
 
 #ifdef TIMING
@@ -62,7 +56,7 @@ TimingCounter timing_counters[128];
 ++(timing_counters[TIMER_##NAME].hit_count);
 
 internal const char* timing_counter_name(TimingCounterType type);
-internal void timing_report(MemoryArena* arena,
+internal void timing_report(Memory* memory,
                             const char* output_folder_c_str);
 
 #else
@@ -71,8 +65,8 @@ internal void timing_report(MemoryArena* arena,
 #define TIMING_COUNTER_END(NAME)
 
 #define timing_counter_name(type) "TIMING NOTE COMPILED"
-#define timing_report(arena, out_folder)
+#define timing_report(memory, out_folder)
 
 #endif
 
-#endif //TIMING_H
+#endif // __UTILS_TIMING_H__

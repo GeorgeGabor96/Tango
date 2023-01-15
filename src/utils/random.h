@@ -1,10 +1,6 @@
-/* date = November 6th 2022 3:23 pm */
+#ifndef __UTILS_RANDOM_H__
+#define __UTILS_RANDOM_H__
 
-#ifndef RANDOM_H
-#define RANDOM_H
-
-
-#include "common.h"
 #include "time.h"
 
 
@@ -14,4 +10,4 @@ internal f32 random_get_chance_f32();
 internal f64 random_get_chance_f64();
 
 
-#endif //RANDOM_H
+#endif // __UTILS_RANDOM_H__

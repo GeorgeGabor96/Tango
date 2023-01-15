@@ -1,12 +1,5 @@
-#ifndef NEURON_FN_H
-#define NEURON_FN_H
-
-#include "common.h"
-#include "utils/memory.h"
-#include "containers/string.h"
-#include "containers/memory_arena.h"
-#include "containers/array.h"
-#include "simulator/types.h"
+#ifndef __ENGINE_NEURON_H__
+#define __ENGINE_NEURON_H__
 
 
 typedef enum { 
@@ -110,5 +103,5 @@ internal void neuron_learning_step_inject_current(Neuron* neuron,
                                                   f32 psc,
                                                   u32 time);
 
-#endif //NEURON_FN_H
+#endif // __ENGINE_NEURON_H__
 

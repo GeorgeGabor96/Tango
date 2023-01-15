@@ -1,6 +1,3 @@
-#include "simulator/neuron.h"
-
-
 /********************
 *   NEURON TYPE
 ********************/
@@ -21,7 +18,7 @@ neuron_cls_create_lif(State* state, const char* name) {
     
     check(state != NULL, "state is NULL");
     check(name != NULL, "name is NULL");
-    neuron_cls = (NeuronCls*)memory_arena_push(state->permanent_storage, sizeof(*neuron_cls));
+    neuron_cls = (NeuronCls*)memory_push(state->permanent_storage, sizeof(*neuron_cls));
     check_memory(neuron_cls);
     
     neuron_cls->name = string_create(state->permanent_storage, name);
@@ -41,7 +38,7 @@ neuron_cls_create_lif_refract(State* state, const char* name, u32 refract_time) 
     
     check(state != NULL, "state is NULL");
     check(name != NULL, "name is NULL");
-    neuron_cls = (NeuronCls*)memory_arena_push(state->permanent_storage, sizeof(NeuronCls));
+    neuron_cls = (NeuronCls*)memory_push(state->permanent_storage, sizeof(NeuronCls));
     check_memory(neuron_cls);
     
     neuron_cls->name = string_create(state->permanent_storage, name);
@@ -84,7 +81,7 @@ neuron_create(State* state, NeuronCls* cls) {
     
     check(state != NULL, "state is NULL");
     check(cls != NULL, "cls is NULL");
-    neuron = (Neuron*)memory_arena_push(state->permanent_storage, sizeof(Neuron));
+    neuron = (Neuron*)memory_push(state->permanent_storage, sizeof(Neuron));
     check_memory(neuron);
     
     neuron_init(neuron, cls);
@@ -156,8 +153,8 @@ neuron_add_out_synapse_array(Neuron* neuron, OutSynapseArray* synapses) {
 }
 
 
-inline internal f32
-neuron_compute_psc(Neuron* neuron, u32 time) {
+internal f32
+_neuron_compute_psc(Neuron* neuron, u32 time) {
     f32 epsc = 0.0f;
     f32 ipsc = 0.0f;
     f32 current = 0.0f;
@@ -186,22 +183,22 @@ neuron_compute_psc(Neuron* neuron, u32 time) {
 }
 
 
-inline internal void
-neuron_lif_voltage_update(Neuron* neuron, f32 psc) {
+internal void
+_neuron_lif_voltage_update(Neuron* neuron, f32 psc) {
     neuron->voltage = NEURON_LIF_VOLTAGE_FACTOR * neuron->voltage + 
         NEURON_LIF_I_FACTOR * psc + 
         NEURON_LIF_FREE_FACTOR;
 }
 
 
-inline internal void
-neuron_update(Neuron* neuron, u32 time, f32 psc) {
+internal void
+_neuron_update(Neuron* neuron, u32 time, f32 psc) {
     bool spike = FALSE;
     
     NeuronCls* cls = neuron->cls;
     
     if (neuron->cls->type == NEURON_LIF) {
-        neuron_lif_voltage_update(neuron, psc);
+        _neuron_lif_voltage_update(neuron, psc);
         if (neuron->voltage >= NEURON_LIF_VOLTAGE_TH) {
             neuron->voltage = NEURON_LIF_VOLTAGE_REST;
             spike = TRUE;
@@ -213,7 +210,7 @@ neuron_update(Neuron* neuron, u32 time, f32 psc) {
             neuron->voltage = NEURON_LIF_VOLTAGE_REST;
             spike = FALSE;
         } else {
-            neuron_lif_voltage_update(neuron, psc);
+            _neuron_lif_voltage_update(neuron, psc);
             if (neuron->voltage >= NEURON_LIF_VOLTAGE_TH) {
                 neuron->voltage = NEURON_LIF_VOLTAGE_REST;
                 spike = TRUE;
@@ -227,8 +224,8 @@ neuron_update(Neuron* neuron, u32 time, f32 psc) {
 }
 
 
-inline internal void
-neuron_update_in_synapses(Neuron* neuron, u32 time) {
+internal void
+_neuron_update_in_synapses(Neuron* neuron, u32 time) {
     u32 i = 0;
     u32 synapse_i = 0;
     Synapse* synapse = NULL;
@@ -244,8 +241,8 @@ neuron_update_in_synapses(Neuron* neuron, u32 time) {
 }
 
 
-inline internal void
-neuron_update_out_synapses(Neuron* neuron, u32 time) {
+internal void
+_neuron_update_out_synapses(Neuron* neuron, u32 time) {
     u32 i = 0;
     u32 synapse_i = 0;
     Synapse* synapse = NULL;
@@ -270,9 +267,9 @@ neuron_step(Neuron* neuron, u32 time) {
     
     check(neuron != NULL, "neuron is NULL");
     
-    f32 psc = neuron_compute_psc(neuron, time);
-    neuron_update(neuron, time, psc);
-    neuron_update_out_synapses(neuron, time);
+    f32 psc = _neuron_compute_psc(neuron, time);
+    _neuron_update(neuron, time, psc);
+    _neuron_update_out_synapses(neuron, time);
     
     TIMING_COUNTER_END(NEURON_STEP);
     
@@ -287,7 +284,7 @@ neuron_step_force_spike(Neuron* neuron, u32 time) {
     
     check(neuron != NULL, "neuron is NULL");
     
-    neuron_update_in_synapses(neuron, time);
+    _neuron_update_in_synapses(neuron, time);
     neuron->spike = TRUE;
     neuron->last_spike_time = time;   
  
@@ -298,7 +295,7 @@ neuron_step_force_spike(Neuron* neuron, u32 time) {
     } else {
         log_error("INVALID neuron type %u", neuron->cls->type);
     }
-    neuron_update_out_synapses(neuron, time);
+    _neuron_update_out_synapses(neuron, time);
     
     TIMING_COUNTER_END(NEURON_STEP_FORCE_SPIKE);
     
@@ -313,9 +310,9 @@ neuron_step_inject_current(Neuron* neuron, f32 psc, u32 time) {
     
     check(neuron != NULL, "neuron is NULL");
     
-    psc = neuron_compute_psc(neuron, time) + psc;
-    neuron_update(neuron, time, psc);
-    neuron_update_out_synapses(neuron, time);
+    psc = _neuron_compute_psc(neuron, time) + psc;
+    _neuron_update(neuron, time, psc);
+    _neuron_update_out_synapses(neuron, time);
     
     TIMING_COUNTER_END(NEURON_STEP_INJECT_CURRENT);
     
@@ -356,8 +353,8 @@ neuron_clear(Neuron* neuron) {
 /***************
 *  LEARNING
 ***************/
-inline internal void
-neuron_learning_update_synapses(Neuron* neuron, u32 time) {
+internal void
+_neuron_learning_update_synapses(Neuron* neuron, u32 time) {
     u32 i = 0;
     u32 synapse_i = 0;
     Synapse* synapse = NULL;
@@ -394,7 +391,7 @@ neuron_learning_step(Neuron* neuron, u32 time) {
     
     check(neuron != NULL, "nueorn is NULL");
     neuron_step(neuron, time);
-    neuron_learning_update_synapses(neuron, time);
+    _neuron_learning_update_synapses(neuron, time);
 
     TIMING_COUNTER_END(NEURON_LEARNING_STEP);
 
@@ -409,7 +406,7 @@ neuron_learning_step_force_spike(Neuron* neuron, u32 time) {
     check(neuron != NULL, "neuron is NULL");
    
     neuron_step_force_spike(neuron, time);
-    neuron_learning_update_synapses(neuron, time); 
+    _neuron_learning_update_synapses(neuron, time); 
     
     TIMING_COUNTER_END(NEURON_LEARNING_STEP_FORCE_SPIKE);
     
@@ -424,7 +421,7 @@ neuron_learning_step_inject_current(Neuron* neuron, f32 psc, u32 time) {
     check(neuron != NULL, "neuron is NULL");
    
     neuron_step_inject_current(neuron, psc, time);
-    neuron_learning_update_synapses(neuron, time); 
+    _neuron_learning_update_synapses(neuron, time); 
     
     TIMING_COUNTER_END(NEURON_LEARNING_STEP_INJECT_CURRENT);
     
