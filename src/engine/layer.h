@@ -88,5 +88,6 @@ internal void layer_learning_step_inject_current(Layer* layer, u32 time, Current
                                                  Memory* memory, ThreadPool* pool);
 internal void layer_learning_step_force_spike(Layer* layer, u32 time, Spikes* spikes,
                                               Memory* memory, ThreadPool* pool);
+internal u32 layer_get_neuron_idx(Layer* layer, Neuron* neuron);
 
 #endif // __ENGINE_LAYER_H__

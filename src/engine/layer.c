@@ -524,3 +524,18 @@ layer_learning_step_force_spike(Layer* layer, u32 time, Spikes* spikes,
     
     TIMING_COUNTER_END(LAYER_LEARNING_STEP_FORCE_SPIKE);
 }
+
+
+internal u32
+layer_get_neuron_idx(Layer* layer, Neuron* neuron) {
+    check(layer != NULL, "layer is NULL");
+    check(neuron != NULL, "neuron is NULL");
+    check(neuron >= layer->neurons && neuron < layer->neurons + layer->n_neurons,
+          "neuron doesn't belong to this layer");
+
+    u32 idx = (neuron - layer->neurons) / sizeof(*neuron);
+    return idx;
+
+    error:
+    return (u32)-1;
+}
