@@ -1,6 +1,3 @@
-#include "simulator/simulator.h"
-
-
 internal Simulator*
 simulator_create(State* state, Network* network, DataGen* data) {
     Simulator* simulator = NULL;
@@ -9,7 +6,7 @@ simulator_create(State* state, Network* network, DataGen* data) {
     check(network != NULL, "network is NULL");
     check(data != NULL, "data is NULL");
     
-    simulator = (Simulator*) memory_arena_push(state->permanent_storage, sizeof(*simulator));
+    simulator = (Simulator*)memory_push(state->permanent_storage, sizeof(*simulator));
     check_memory(simulator);
     
     simulator->network = network;
@@ -97,7 +94,7 @@ _simulator_run(Simulator* simulator, State* state, ThreadPool* pool, Mode mode)
                                 simulator->callbacks[callback_i],
                                 simulator->network);
         
-        memory_arena_clear(state->transient_storage);
+        memory_clear(state->transient_storage);
         
         sample_time = clock() - sample_time_start;
         

@@ -1,15 +1,5 @@
-/* date = October 13th 2022 7:38 pm */
-
-#ifndef CALLBACK_H
-#define CALLBACK_H
-
-
-#include "common.h"
-#include "utils/memory.h"
-#include "utils/os.h"
-#include "containers/string.h"
-#include "containers/memory_arena.h"
-#include "simulator/network.h"
+#ifndef __ENGINE_CALLBACK_H__
+#define __ENGINE_CALLBACK_H__
 
 
 /*****************************
@@ -87,4 +77,4 @@ internal void callback_dumper_update(State* state, Callback* callback, Network* 
 internal void callback_dumper_end_sample(State* state, Callback* callbac, Network* network);
 
 
-#endif //CALLBACK_H
+#endif // __ENGINE_CALLBACK_H__

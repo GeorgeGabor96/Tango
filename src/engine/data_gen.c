@@ -1,6 +1,3 @@
-#include "simulator/data_gen.h"
-
-
 /***********************
 * DATA GENERATOR
 ***********************/
@@ -10,7 +7,7 @@ data_gen_create_constant_current(State* state, f32 value, u32 n_samples, u32 sam
     check(n_samples > 0, "n_samples is 0");
     check(sample_duration > 0, "sample_duration is 0");
     
-    DataGen* data = (DataGen*) memory_arena_push(state->permanent_storage, sizeof(*data));
+    DataGen* data = (DataGen*)memory_push(state->permanent_storage, sizeof(*data));
     check_memory(data);
     
     data->type = DATA_GEN_CONSTANT_CURRENT;
@@ -33,7 +30,7 @@ data_gen_create_random_spikes(State* state, f32 chance, u32 n_samples, u32 sampl
     check(chance >= 0.0f, "chance should be at least 0, its %f", chance);
     check(chance <= 1.0f, "chance should be at most 1, its %f", chance);
     
-    DataGen* data = (DataGen*) memory_arena_push(state->permanent_storage, sizeof(*data));
+    DataGen* data = (DataGen*) memory_push(state->permanent_storage, sizeof(*data));
     check_memory(data);
     
     data->type = DATA_GEN_RANDOM_SPIKES;
@@ -46,6 +43,7 @@ data_gen_create_random_spikes(State* state, f32 chance, u32 n_samples, u32 sampl
     error:
     return NULL;
 }
+
 
 internal DataGen*
 data_gen_create_spike_pulses(State* state,
@@ -69,7 +67,7 @@ data_gen_create_spike_pulses(State* state,
           "between_pulses_spike_chance is %f not in [0, 1]",
           between_pulses_spike_chance);
     
-    DataGen* data = (DataGen*) memory_arena_push(state->permanent_storage, sizeof(*data));
+    DataGen* data = (DataGen*) memory_push(state->permanent_storage, sizeof(*data));
     check_memory(data);
     
     data->type = DATA_GEN_SPIKE_PULSES;
@@ -90,16 +88,15 @@ data_gen_create_spike_pulses(State* state,
 }
 
 
-
 /***********************
 * DATA SAMPLE
 ***********************/
 internal DataSample*
-data_gen_sample_create(MemoryArena* arena, DataGen* data, u32 idx) {
-    check(arena != NULL, "arena is NULL");
+data_gen_sample_create(Memory* memory, DataGen* data, u32 idx) {
+    check(memory != NULL, "memor yis NULL");
     check(data != NULL, "data is NULL");
     
-    DataSample* sample = (DataSample*) memory_arena_push(arena, sizeof(*sample));
+    DataSample* sample = (DataSample*) memory_push(memory, sizeof(*sample));
     check_memory(sample);
     
     sample->duration = data->sample_duration;
@@ -136,9 +133,8 @@ data_gen_sample_create(MemoryArena* arena, DataGen* data, u32 idx) {
 * NETWORK INPUTS
 ***********************/
 internal Inputs*
-data_network_inputs_create(MemoryArena* arena, DataSample* sample,
-                           Network* network, u32 time) {
-    check(arena != NULL, "arena is NULL");
+data_network_inputs_create(Memory* memory, DataSample* sample, Network* network, u32 time) {
+    check(memory != NULL, "memory is NULL");
     check(sample != NULL, "sample is NULL");
     check(network != NULL, "network is NULL");
     
@@ -146,10 +142,10 @@ data_network_inputs_create(MemoryArena* arena, DataSample* sample,
     u32 j = 0;
     Layer* layer = NULL;
     Input* input = NULL;
-    Inputs* inputs = (Inputs*)memory_arena_push(arena, sizeof(*inputs));
+    Inputs* inputs = (Inputs*)memory_push(memory, sizeof(*inputs));
     check_memory(inputs);
     inputs->n_inputs = network->n_in_layers;
-    inputs->inputs = (Input*)memory_arena_push(arena, sizeof(*input) * inputs->n_inputs);
+    inputs->inputs = (Input*)memory_push(memory, sizeof(*input) * inputs->n_inputs);
     check_memory(inputs->inputs);
     
     bool* spikes = NULL;
@@ -163,7 +159,7 @@ data_network_inputs_create(MemoryArena* arena, DataSample* sample,
         switch (sample->type) {
     
             case DATA_SAMPLE_RANDOM_SPIKES:
-                spikes = (bool*)memory_arena_push(arena, layer->n_neurons * sizeof(bool));
+                spikes = (bool*)memory_push(memory, layer->n_neurons * sizeof(bool));
                 check_memory(spikes);
                 for (j = 0; j < layer->n_neurons; ++j)
                     spikes[j] = random_get_bool(sample->data_gen->random_spikes.chance);
@@ -174,7 +170,7 @@ data_network_inputs_create(MemoryArena* arena, DataSample* sample,
                 break;
 
             case DATA_SAMPLE_CONSTANT_CURRENT:
-                currents = (f32*)memory_arena_push(arena, sizeof(f32) * layer->n_neurons);
+                currents = (f32*)memory_push(memory, sizeof(f32) * layer->n_neurons);
                 check_memory(currents);
                 for (j = 0; j < layer->n_neurons; ++j)
                     currents[j] = sample->data_gen->const_current.value;
@@ -185,7 +181,7 @@ data_network_inputs_create(MemoryArena* arena, DataSample* sample,
                 break;
 
             case DATA_SAMPLE_SPIKE_PULSES:
-                spikes = (bool*) memory_arena_push(arena, layer->n_neurons * sizeof(bool));
+                spikes = (bool*) memory_push(memory, layer->n_neurons * sizeof(bool));
                 check_memory(spikes);
             
                 DataGenSpikePulses* data_pulses = &(sample->data_gen->spike_pulses);

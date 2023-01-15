@@ -1,16 +1,5 @@
-/* date = October 13th 2022 7:29 pm */
-
-#ifndef SIMULATOR_H
-#define SIMULATOR_H
-
-
-#include "common.h"
-#include "utils/thread_pool.h"
-#include "containers/array.h"
-#include "simulator/types.h"
-#include "simulator/network.h"
-#include "simulator/data_gen.h"
-#include "simulator/callback.h"
+#ifndef __ENGINE_SIMULATOR_H__
+#define __ENGINE_SIMULATOR_H__
 
 
 #define SIMULATOR_N_MAX_CALLBACKS 5u
@@ -28,4 +17,4 @@ internal void simulator_infer(Simulator* simulator, State* state, ThreadPool* po
 internal void simulator_learn(Simulator* simulator, State* state, ThreadPool* pool);
 internal void simulator_add_callback(Simulator* simulator, State* state, Callback* callback);
 
-#endif //SIMULATOR_H
+#endif // __ENGINE_SIMULATOR_H__
