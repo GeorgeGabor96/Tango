@@ -1,5 +1,5 @@
 internal DumperMeta*
-_callback_dumper_build_meta(Network* network, Memory* memory) {
+_callback_dumper_build_meta(Network* network, Memory* memory, String* out_path) {
     DumperMeta* meta = (DumperMeta*)memory_push(memory, sizeof(*meta));
     check_memory(meta);
 
@@ -87,6 +87,11 @@ _callback_dumper_build_meta(Network* network, Memory* memory) {
         }
     }
 
+    // Build the file path
+    String* file_path = string_path_join_c_str(memory, out_path, "meta.bin");
+    check_memory(file_path);
+
+    meta->file_path = file_path;
     meta->n_layers = n_layers;
     meta->n_neurons = n_neurons;
     meta->n_synapses = n_synapses;
@@ -112,6 +117,8 @@ _callback_dumper_build_data(DumperMeta* meta, Memory* memory) {
                                       sizeof(*synapse_data) * meta->n_synapses);
     check_memroy(synapse_data);
 
+    data->file_name = NULL;
+    data->file_path = NULL;
     data->neuron_data = neuron_data;
     data->synapse_data = synapse_data;
     return data;
@@ -150,6 +157,8 @@ callback_dumper_create(State* state, const char* output_folder, Network* network
     callback->dumper.meta = meta;
     callback->dumper.data = data;
 
+    // TODO: dump meta info
+
     return callback;
 
     error:
@@ -176,11 +185,19 @@ callback_dumper_begin_sample(State* state,
     
     dumper = &(callback->dumper);
     u32 i = 0;
-   
-    dumper->data->file_name = ...;
-    String* file_path = ....;
-    dumper->data->fp = fopen(file_path->data, "wb");
-    // TODO: add check
+    
+    char file_name[100];
+    sprintf(file_name, "sample_%d.bin", dumper->sample_count);
+    
+
+    dumper->data->file_name = string_create(file_name);
+    check_memory(file_name);
+
+    String* file_path = string_path_join(dumper->output_folder, dumper->data->file_name);
+    dumper->data->fp = fopen(string_get_c_str(file_path), "wb");
+    if (dumper->data->fp == NULL) {
+        log_error("Could not open sample file %s", string_get_c_str(file_path));
+    }
     
     error:
     return;
@@ -275,6 +292,8 @@ callback_dumper_end_sample(State* state, Callback* callback, Network* network) {
     // NOTE: 2. Need to write the sample duration in the meta file for this sample file
     // Need to open the meta file and close it after
     FILE* fp = fopen(dumper->meta->file_path, "wa"); // need to join
+    check(fp != NULL, "Could not open file %s", string_get_c_str(dumper->meta->file_path));
+    
     String* file_name = dumper->data->file_name;
 
     fwrite(&(file_name->length), sizeof(u32), 1, fp);
