@@ -342,6 +342,7 @@ callback_dumper_end_sample(State* state, Callback* callback, Network* network) {
     // NOTE: 1. Need to close the data file
     fflush(dumper->data->fp);
     fclose(dumper->data->fp);
+    log_info("Finished dumping in %s", string_to_c_str(dumper->data->file_name));
 
     // NOTE: 2. Need to write the sample duration in the meta file for this sample file
     // Need to open the meta file and close it after
