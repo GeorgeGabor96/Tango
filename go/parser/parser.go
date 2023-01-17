@@ -54,3 +54,10 @@ func (parser *SampleParser) String() string {
 	str := string(bytes)
 	return str
 }
+
+func (parser *SampleParser) IsFinished() bool {
+    if parser.Offset >= uint32(len(parser.Bytes)) {
+        return true
+    }
+    return false
+}

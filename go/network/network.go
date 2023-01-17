@@ -7,6 +7,79 @@ import (
 	"tango/go/parser"
 )
 
+type LayerMeta struct {
+    Name string
+    NeuronStartIdx uint32
+    NNeurons uint32
+}
+
+type SynapseMeta struct {
+    InNeuronIdx uint32
+    OutNeuronIdx uint32
+}
+
+type SampleMeta struct {
+    FileName string
+    Duration uint32
+}
+
+type Meta struct {
+    File string
+    NLayers uint32
+    NNeurons uint32
+    NSynapses uint32
+
+    Layers []LayerMeta
+    Synapses []SynapseMeta
+    Samples []SampleMeta
+}
+
+func BuildMeta(metaFile string) (*Meta, error) {
+    fmt.Printf("[INFO] Parsing file %v\n", metaFile)
+    netParser, err := parser.NewSampleParser(metaFile)
+    if err != nil {
+        log.Fatal(err)
+        return nil, errors.New("Couln't create new parser");
+    }
+
+    nLayers := netParser.Uint32()
+    nNeurons := netParser.Uint32()
+    nSynapses := netParser.Uint32()
+
+    meta := new(Meta)
+    meta.File = metaFile
+    meta.NLayers = nLayers
+    meta.NNeurons = nNeurons
+    meta.NSynapses = nSynapses
+    meta.Layers = make([]LayerMeta, nLayers)
+    meta.Synapses = make([]SynapseMeta, nSynapses)
+    meta.Samples = make([]SampleMeta, 0)
+
+    var layerI uint32
+    for layerI = 0; layerI < nLayers; layerI++ {
+        layer := &(meta.Layers[layerI])
+        layer.Name = netParser.String()
+        layer.NeuronStartIdx = netParser.Uint32()
+        layer.NNeurons = netParser.Uint32()
+    }
+
+    var synapseI uint32
+    for synapseI = 0; synapseI < nSynapses; synapseI++ {
+        synapse := &(meta.Synapses[synapseI])
+        synapse.InNeuronIdx = netParser.Uint32()
+        synapse.OutNeuronIdx = netParser.Uint32()
+    }
+
+    var sample SampleMeta
+    for netParser.IsFinished() {
+        sample.FileName = netParser.String()
+        sample.Duration = netParser.Uint32()
+        meta.Samples = append(meta.Samples, sample)
+    }
+
+    return meta, nil
+}
+
 type NetworkSample struct {
 	File     string
 	Duration uint32

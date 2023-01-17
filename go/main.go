@@ -39,6 +39,11 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+    metaFile := utils.Join(args.binFolder, "meta.bin")
+    meta, _ := network.BuildMeta(metaFile)
+    fmt.Println(meta)
+    return
+
 	sampleNames := utils.FileNamesWithExtension(args.binFolder, "bin")
 
 	var wg sync.WaitGroup
