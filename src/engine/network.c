@@ -211,7 +211,7 @@ network_get_layer_idx(Network* net, Layer* layer) {
     check(net != NULL, "net is NULL");
     check(layer != NULL, "layer is NULL");
 
-    for (layer_i = 0; layer_i < net->n_layers; ++layer_i)
+    for (u32 layer_i = 0; layer_i < net->n_layers; ++layer_i)
         if (layer == net->layers[layer_i]) return layer_i;
 
     error:

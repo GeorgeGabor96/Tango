@@ -5,17 +5,6 @@
 /*****************************
 *  NETWORK DUMPER definitions
 *****************************/
-typedef struct DumperMeta { 
-    String* file_path;
-    
-    u32 n_layers;
-    u32 n_neurons;
-    u32 n_synapses;
-
-    DumperLayerMeta* layer_meta;
-    DumperSynapseMeta* synapse_meta;
-} DumperMeta;
-
 typedef struct DumperLayerMeta {
     String* name;
     u32 neuron_start_idx;
@@ -27,14 +16,17 @@ typedef struct DumperSynapseMeta {
     u32 out_neuron_idx;
 } DumperSynapseMeta;
 
-
-typedef struct DumperData {
-    String* file_name;
-    FILE* fp;
+typedef struct DumperMeta { 
+    String* file_path;
     
-    DumperNeuronData* neuron_data;
-    DumperSynapseData* synapse_data;
-} DumperData;
+    u32 n_layers;
+    u32 n_neurons;
+    u32 n_synapses;
+
+    DumperLayerMeta* layer_meta;
+    DumperSynapseMeta* synapse_meta;
+} DumperMeta;
+
 
 typedef struct DumperNeuronData {
     f32 voltage;
@@ -49,10 +41,19 @@ typedef struct DumperSynapseData {
     f32 conductance;
 } DumperSynapseData;
 
+typedef struct DumperData {
+    String* file_name;
+    FILE* fp;
+    
+    DumperNeuronData* neuron_data;
+    DumperSynapseData* synapse_data;
+} DumperData;
+
+
 typedef struct Dumper {
     String* output_folder;
     
-    u32 time; // TODO: why do I need this?
+    u32 sample_step; // TODO: why do I need this?
     u32 sample_count;
     u32 sample_duration;
 

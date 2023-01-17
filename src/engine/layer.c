@@ -530,10 +530,10 @@ internal u32
 layer_get_neuron_idx(Layer* layer, Neuron* neuron) {
     check(layer != NULL, "layer is NULL");
     check(neuron != NULL, "neuron is NULL");
-    check(neuron >= layer->neurons && neuron < layer->neurons + layer->n_neurons,
+    check(neuron >= layer->neurons && neuron <= layer->neurons + layer->n_neurons - 1,
           "neuron doesn't belong to this layer");
 
-    u32 idx = (neuron - layer->neurons) / sizeof(*neuron);
+    u32 idx = (u32)((sz)(neuron - layer->neurons) / sizeof(*neuron));
     return idx;
 
     error:
