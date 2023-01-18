@@ -64,7 +64,7 @@ _callback_dumper_build_meta(Network* network, Memory* memory, String* out_path) 
     
     for (layer_i = 0; layer_i < n_layers; ++layer_i) {
         out_layer = network->layers[layer_i];
-        out_layer_meta = &layer_meta[layer_i];
+        out_layer_meta = &layers_meta[layer_i];
 
         for (neuron_i = 0; neuron_i < out_layer->n_neurons; ++neuron_i) {
             out_neuron = &out_layer->neurons[neuron_i];
@@ -72,12 +72,15 @@ _callback_dumper_build_meta(Network* network, Memory* memory, String* out_path) 
             out_neuron_idx = out_layer_meta->neuron_start_idx +
                              layer_get_neuron_idx(out_layer, out_neuron);
 
-            for (in_synapses_i = 0; in_synapses_i < neuron->n_in_synapse_arrays; ++in_synapses_i) {
-                in_synapses = neuron->in_synapse_arrays[in_synapses_i];
+            for (in_synapses_i = 0;
+                 in_synapses_i < out_neuron->n_in_synapse_arrays;
+                 ++in_synapses_i) {
+                
+                in_synapses = out_neuron->in_synapse_arrays[in_synapses_i];
                 // The index of the in_synapses and the idx of input layer of the current layer should match
-                in_layer = layer->in_layers[in_synapses_i];
+                in_layer = out_layer->in_layers[in_synapses_i];
                 in_layer_idx = network_get_layer_idx(network, in_layer);
-                in_layer_meta = &layer_meta[in_layer_idx];
+                in_layer_meta = &layers_meta[in_layer_idx];
 
                 for (synapse_i = 0; synapse_i < in_synapses->length; ++synapse_i) {
                     synapse = in_synapse_array_get(in_synapses, synapse_i); 
