@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 	"sync"
 	"tango/go/network"
-	"tango/go/utils"
 )
 
 type Arguments struct {
@@ -16,7 +16,7 @@ type Arguments struct {
 
 func ParseArguments() (*Arguments, error) {
 	args := new(Arguments)
-    args.binFolder = ""
+	args.binFolder = ""
 
 	for i := 1; i < len(os.Args); i++ {
 		if os.Args[i] == "--bin_folder" {
@@ -26,10 +26,10 @@ func ParseArguments() (*Arguments, error) {
 			return nil, errors.New(fmt.Sprintf("Unknown Argument %v", os.Args[i]))
 		}
 	}
- 
-    if args.binFolder == "" {
-        return nil, errors.New(fmt.Sprintf("Must provide the --bin_folder argument"))
-    }
+
+	if args.binFolder == "" {
+		return nil, errors.New(fmt.Sprintf("Must provide the --bin_folder argument"))
+	}
 
 	return args, nil
 }
@@ -39,30 +39,28 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-    metaFile := utils.Join(args.binFolder, "meta.bin")
-    meta, _ := network.BuildMeta(metaFile)
-    fmt.Println(meta)
-    return
-
-	sampleNames := utils.FileNamesWithExtension(args.binFolder, "bin")
+	meta, _ := network.BuildMeta(args.binFolder)
 
 	var wg sync.WaitGroup
-	for _, sampleName := range sampleNames {
-		sampleFile := utils.Join(args.binFolder, sampleName)
+	for sampleName := range meta.Samples {
+		sampleNameCopy := strings.Clone(sampleName)
+		fmt.Println(sampleName)
 		wg.Add(1)
 
 		go func() {
-			CreateActivityPlot(sampleFile)
+			CreateActivityPlot(meta, sampleNameCopy)
 			wg.Done()
 		}()
 	}
 	wg.Wait()
+
+	return
 }
 
-func CreateActivityPlot(sampleFile string) {
-	net, err := network.NewNetworkSample(sampleFile)
+func CreateActivityPlot(meta *network.Meta, sampleName string) {
+	data, err := network.BuildData(meta, sampleName)
 	if err != nil {
 		log.Fatal(err)
 	}
-	net.ActivityPlot("")
+	network.ActivityPlot(meta, data, "")
 }

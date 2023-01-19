@@ -47,14 +47,13 @@ func (t NetXTicks) Ticks(min, max float64) []plot.Tick {
 	return ticks
 }
 
-func (netSample *NetworkSample) ActivityPlot(outFolder string) {
-	fmt.Printf("[INFO] Begin ActivityPlot for %v\n", netSample.File)
-	fileName := utils.FileNameFromPath(netSample.File)
+func ActivityPlot(meta *Meta, data *Data, outFolder string) {
+	fmt.Printf("[INFO] Begin ActivityPlot for %v\n", data.Name)
 
 	if outFolder == "" {
-		outFolder = utils.FolderFromPath(netSample.File)
+		outFolder = meta.Folder
 	}
-	imgName := utils.RemoveExtension(fileName) + "_aux.png"
+	imgName := utils.RemoveExtension(data.Name) + "_aux.png"
 
 	imgPath := utils.Join(outFolder, imgName)
 	var yPad uint32 = 5
@@ -63,14 +62,14 @@ func (netSample *NetworkSample) ActivityPlot(outFolder string) {
 
 	// NOTE: yPad is space between the line and the neurons so that they do not intersect
 	var yOffset uint32 = yPad + 1
-	var neuron uint32 = 0
-	var step uint32 = 0
+	var neuronI uint32 = 0
+	var stepI uint32 = 0
 
 	// NOTE: for the layer that ends up at the bottom it needs a line below its neurons. Normally the X axis could do it but its ugly
 	linePts := make(plotter.XYs, 2)
 	linePts[0].X = float64(0)
 	linePts[0].Y = float64(yOffset)
-	linePts[1].X = float64(netSample.Duration)
+	linePts[1].X = float64(data.Duration)
 	linePts[1].Y = float64(yOffset)
 
 	l, err := plotter.NewLine(linePts)
@@ -79,29 +78,31 @@ func (netSample *NetworkSample) ActivityPlot(outFolder string) {
 	}
 	p.Add(l)
 	yOffset += yPad
-	ticks := make([]plot.Tick, netSample.NLayers)
+	ticks := make([]plot.Tick, meta.NLayers)
 
-	for i := len(netSample.Layers) - 1; i >= 0; i-- { //, layer := range netSample.Layers {
-		layer := netSample.Layers[i]
+	for i := int(meta.NLayers - 1); i >= 0; i-- {
+		layerMeta := meta.Layers[i]
+		layerData := data.Layers[i]
 
 		// build the y tick
-		ticks[i].Value = float64(yOffset + layer.NNeurons/2)
-		ticks[i].Label = layer.Name
+		ticks[i].Value = float64(yOffset + layerMeta.NNeurons/2)
+		ticks[i].Label = layerMeta.Name
 
 		// add the points
-		spikePts := make(plotter.XYs, layer.NSpikes)
+		spikePts := make(plotter.XYs, layerData.NSpikes)
 		spikePtI := 0
 
-		for step = 0; step < netSample.Duration; step++ {
-			for neuron = 0; neuron < layer.NNeurons; neuron++ {
-				spike := layer.GetSpike(step, neuron)
-				if spike == true {
-					spikePts[spikePtI].X = float64(step)
-					spikePts[spikePtI].Y = float64(yOffset + neuron)
+		for stepI = 0; stepI < data.Duration; stepI++ {
+			for neuronI = layerMeta.NeuronStartIdx; neuronI < layerMeta.NeuronStartIdx+layerMeta.NNeurons; neuronI++ {
+				neuron := data.Neurons[stepI][neuronI]
+				if neuron.Spike {
+					spikePts[spikePtI].X = float64(stepI)
+					spikePts[spikePtI].Y = float64(yOffset + neuronI)
 					spikePtI++
 				}
 			}
 		}
+
 		s, err := plotter.NewScatter(spikePts)
 		if err != nil {
 			panic(err)
@@ -111,11 +112,11 @@ func (netSample *NetworkSample) ActivityPlot(outFolder string) {
 		p.Add(s)
 
 		// add the layer line
-		yOffset += layer.NNeurons + yPad + 1
+		yOffset += layerMeta.NNeurons + yPad + 1
 		linePts := make(plotter.XYs, 2)
 		linePts[0].X = float64(0)
 		linePts[0].Y = float64(yOffset)
-		linePts[1].X = float64(netSample.Duration)
+		linePts[1].X = float64(data.Duration)
 		linePts[1].Y = float64(yOffset)
 
 		l, err := plotter.NewLine(linePts)
@@ -128,11 +129,11 @@ func (netSample *NetworkSample) ActivityPlot(outFolder string) {
 	}
 
 	// General plot settings
-	p.Title.Text = fileName
+	p.Title.Text = data.Name
 	p.Title.TextStyle.Font.Size = 50
 	p.X.Label.Text = "time"
 	p.X.Label.TextStyle.Font.Size = 40
-	p.X.Tick.Marker = &NetXTicks{duration: netSample.Duration, nTicks: 10}
+	p.X.Tick.Marker = &NetXTicks{duration: data.Duration, nTicks: 10}
 	p.X.Tick.Label.Font.Size = 20
 	p.Y.Label.Text = "layers"
 	p.Y.Label.TextStyle.Font.Size = 40

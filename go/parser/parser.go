@@ -8,37 +8,37 @@ import (
 	"os"
 )
 
-type SampleParser struct {
+type Parser struct {
 	Bytes  []byte
 	Offset uint32
 }
 
-func NewSampleParser(binaryFile string) (*SampleParser, error) {
+func NewParser(binaryFile string) (*Parser, error) {
 	bytes, err := os.ReadFile(binaryFile)
 	if err != nil {
 		log.Fatal(err)
 		return nil, errors.New("File doesn't exist")
 	}
-	parser := new(SampleParser)
+	parser := new(Parser)
 	parser.Bytes = bytes
 	parser.Offset = 0
 	return parser, nil
 }
 
-func (parser *SampleParser) Uint32() uint32 {
+func (parser *Parser) Uint32() uint32 {
 	value := binary.LittleEndian.Uint32(parser.Bytes[parser.Offset : parser.Offset+4])
 	parser.Offset += 4
 	return value
 }
 
-func (parser *SampleParser) Float32() float32 {
+func (parser *Parser) Float32() float32 {
 	bits := binary.LittleEndian.Uint32(parser.Bytes[parser.Offset : parser.Offset+4])
 	parser.Offset += 4
 	value := math.Float32frombits(bits)
 	return value
 }
 
-func (parser *SampleParser) Bool() bool {
+func (parser *Parser) Bool() bool {
 	int_value := parser.Uint32()
 	value := false
 	if int_value != 0 {
@@ -47,7 +47,7 @@ func (parser *SampleParser) Bool() bool {
 	return value
 }
 
-func (parser *SampleParser) String() string {
+func (parser *Parser) String() string {
 	len := parser.Uint32()
 	bytes := parser.Bytes[parser.Offset : parser.Offset+len]
 	parser.Offset += len
@@ -55,9 +55,9 @@ func (parser *SampleParser) String() string {
 	return str
 }
 
-func (parser *SampleParser) IsFinished() bool {
-    if parser.Offset >= uint32(len(parser.Bytes)) {
-        return true
-    }
-    return false
+func (parser *Parser) IsFinished() bool {
+	if parser.Offset >= uint32(len(parser.Bytes)) {
+		return true
+	}
+	return false
 }
