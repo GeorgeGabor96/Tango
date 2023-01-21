@@ -66,7 +66,7 @@ layer_process_neurons(void* task) {
     u32 spikes_idx = math_clip_u32(n_spikes, neuron_start_i, neuron_end_i);
 
     u32 i = 0;
-    
+
     switch (layer_task->data->type) {
         case LAYER_TASK_STEP:
             for (i = neuron_start_i; i < neuron_end_i; ++i)
@@ -95,7 +95,8 @@ layer_process_neurons(void* task) {
         case LAYER_TASK_LEARNING_STEP:
             for (i = neuron_start_i; i < neuron_end_i; ++i)
                 neuron_learning_step(neurons + i, time);
-    
+            break;
+
         case LAYER_TASK_LEARNING_STEP_INJECT_CURRENT:
             for (i = neuron_start_i; i < currents_idx; ++i)
                 neuron_learning_step_inject_current(neurons + i, currents[i], time);

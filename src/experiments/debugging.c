@@ -77,7 +77,7 @@ int main() {
     DataGen* data = data_gen_create_spike_pulses(state, 2, 1000, 100, 20, 50, 0.1f, 0.01f);
     Callback* callback = callback_dumper_create(state, output_folder, network);
     
-    ThreadPool* pool = thread_pool_create(4, layer_process_neurons, state->permanent_storage);
+    ThreadPool* pool = thread_pool_create(0, layer_process_neurons, state->permanent_storage);
     
     Simulator* sim = simulator_create(state, network, data);
     simulator_add_callback(sim, state, callback);

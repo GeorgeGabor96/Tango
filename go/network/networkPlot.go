@@ -62,6 +62,7 @@ func ActivityPlot(meta *Meta, data *Data, outFolder string) {
 
 	// NOTE: yPad is space between the line and the neurons so that they do not intersect
 	var yOffset uint32 = yPad + 1
+    var neuronAbsI uint32 = 0
 	var neuronI uint32 = 0
 	var stepI uint32 = 0
 
@@ -93,11 +94,11 @@ func ActivityPlot(meta *Meta, data *Data, outFolder string) {
 		spikePtI := 0
 
 		for stepI = 0; stepI < data.Duration; stepI++ {
-			for neuronI = layerMeta.NeuronStartIdx;
-                neuronI < layerMeta.NeuronStartIdx+layerMeta.NNeurons;
-                neuronI++ {
+			for neuronAbsI, neuronI = layerMeta.NeuronStartIdx, 0;
+                neuronI < layerMeta.NNeurons;
+                neuronAbsI, neuronI = neuronAbsI+1, neuronI+1 {
 
-				neuron := data.Neurons[stepI][neuronI]
+				neuron := data.Neurons[stepI][neuronAbsI]
 				if neuron.Spike {
 					spikePts[spikePtI].X = float64(stepI)
 					spikePts[spikePtI].Y = float64(yOffset + neuronI)
