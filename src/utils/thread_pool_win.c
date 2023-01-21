@@ -55,7 +55,7 @@ process_task(ThreadPool* pool) {
     LeaveCriticalSection(&(pool->lock));
     
 	task = pool->queue->tasks[task_i];
-	pool->execute(task);
+    pool->execute(task);
     
     // NOTE: decrement the number of threads that work and signal that the work may be finish
     EnterCriticalSection(&(pool->lock));

@@ -57,13 +57,23 @@ layer_process_neurons(void* task) {
     u32 neuron_end_i = layer_task->neuron_end_i;
    
     // NOTE: here we will use only one set of variables to remove a lot of duplicate code
-    f32* currents = layer_task->data->currents->currents;
-    u32 n_currents = layer_task->data->currents->n_currents;
-    u32 currents_idx = math_clip_u32(n_currents, neuron_start_i, neuron_end_i);
+    f32* currents = NULL;
+    u32 n_currents = 0;
+    u32 currents_idx = 0;
+    if (layer_task->data->currents) {
+        currents = layer_task->data->currents->currents;
+        n_currents = layer_task->data->currents->n_currents;
+        currents_idx = math_clip_u32(n_currents, neuron_start_i, neuron_end_i);
+    }
 
-    bool* spikes = layer_task->data->spikes->spikes;
-    u32 n_spikes = layer_task->data->spikes->n_spikes;
-    u32 spikes_idx = math_clip_u32(n_spikes, neuron_start_i, neuron_end_i);
+    bool* spikes = NULL;
+    u32 n_spikes = 0;
+    u32 spikes_idx = 0;
+    if (layer_task->data->spikes) {
+        spikes = layer_task->data->spikes->spikes;
+        n_spikes = layer_task->data->spikes->n_spikes;
+        spikes_idx = math_clip_u32(n_spikes, neuron_start_i, neuron_end_i);
+    }
 
     u32 i = 0;
 
@@ -184,7 +194,7 @@ internal void
 layer_step(Layer* layer, u32 time, Memory* memory, ThreadPool* pool) {
     TIMING_COUNTER_START(LAYER_STEP);
    
-    LayerStepData data;
+    LayerStepData data = { 0 };
     data.type = LAYER_TASK_STEP;
     
     _layer_run(layer, time, memory, pool, &data);
@@ -488,7 +498,7 @@ internal void
 layer_learning_step(Layer* layer, u32 time, Memory* memory, ThreadPool* pool) {
     TIMING_COUNTER_START(LAYER_LEARNING_STEP);
     
-    LayerStepData data;
+    LayerStepData data = { 0 };
     data.type = LAYER_TASK_LEARNING_STEP;
 
     _layer_run(layer, time, memory, pool, &data);
