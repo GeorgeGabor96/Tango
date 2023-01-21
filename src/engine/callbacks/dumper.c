@@ -184,7 +184,7 @@ callback_dumper_create(State* state, const char* output_folder, Network* network
 
     output_folder_s = string_create(state->permanent_storage, output_folder);
     check_memory(output_folder_s);
-    
+
     callback = (Callback*)memory_push(state->permanent_storage, sizeof(*callback));
     check_memory(callback);
     
@@ -203,6 +203,10 @@ callback_dumper_create(State* state, const char* output_folder, Network* network
     callback->dumper.sample_duration = 0;
     callback->dumper.meta = meta;
     callback->dumper.data = data;
+
+    bool result = os_folder_create_str(output_folder_s);
+    check(result == TRUE, "couldn't create folder %s",
+          string_to_c_str(output_folder_s));
 
     _callback_dumper_save_meta(meta);
 
