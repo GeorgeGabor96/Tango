@@ -5,6 +5,29 @@
 /*****************************
 *  NETWORK DUMPER definitions
 *****************************/
+typedef struct DumperLayerMeta {
+    String* name;
+    u32 neuron_start_idx;
+    u32 n_neurons;
+} DumperLayerMeta;
+
+typedef struct DumperSynapseMeta {
+    u32 in_neuron_idx;
+    u32 out_neuron_idx;
+} DumperSynapseMeta;
+
+typedef struct DumperMeta {
+    String* file_path;
+
+    u32 n_layers;
+    u32 n_neurons;
+    u32 n_synapses;
+
+    DumperLayerMeta* layer_meta;
+    DumperSynapseMeta* synapse_meta;
+} DumperMeta;
+
+
 typedef struct DumperNeuronData {
     f32 voltage;
     bool spike;
@@ -13,23 +36,30 @@ typedef struct DumperNeuronData {
     f32 ipsc;
 } DumperNeuronData;
 
+typedef struct DumperSynapseData {
+    f32 weight;
+    f32 conductance;
+} DumperSynapseData;
 
-typedef struct DumperLayerData {
-    String* name; // no ownership
-    u32 n_neurons;
-    DumperNeuronData* neurons_data;
-} DumperLayerData;
+typedef struct DumperData {
+    String* file_name;
+    FILE* fp;
+
+    DumperNeuronData* neuron_data;
+    DumperSynapseData* synapse_data;
+} DumperData;
 
 
 typedef struct Dumper {
     String* output_folder;
-    u32 time;
+
+    u32 sample_step;
     u32 sample_count;
     u32 sample_duration;
-    u32 n_layers;
-    DumperLayerData* layers_data;
-} Dumper;
 
+    DumperMeta* meta;
+    DumperData* data;
+} Dumper;
 
 
 /**********************
@@ -45,7 +75,7 @@ internal char* callback_type_get_c_str(CallbackType type);
 
 typedef struct Callback {
     CallbackType type;
-    
+
     union {
         Dumper dumper;
     };
@@ -55,7 +85,7 @@ typedef struct Callback {
 /********************
 * Callback functions
 ********************/
-internal void callback_begin_sample(State* state, 
+internal void callback_begin_sample(State* state,
                                     Callback* callback,
                                     Network* network,
                                     u32 sample_duration);
@@ -67,11 +97,11 @@ internal void callback_end_sample(State* state, Callback* callback, Network* net
 * Network Dumper functions
 **************************/
 internal Callback* callback_dumper_create(State* state,
-                                          const char* output_folder, 
+                                          const char* output_folder,
                                           Network* network);
-internal void callback_dumper_begin_sample(State* state, 
-                                           Callback* callback, 
-                                           Network* network, 
+internal void callback_dumper_begin_sample(State* state,
+                                           Callback* callback,
+                                           Network* network,
                                            u32 sample_duration);
 internal void callback_dumper_update(State* state, Callback* callback, Network* network);
 internal void callback_dumper_end_sample(State* state, Callback* callbac, Network* network);

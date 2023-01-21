@@ -34,5 +34,6 @@ internal void network_clear(Network* network);
 internal f32* network_get_layer_voltages(State* state, Network* network, u32 i);
 internal bool* network_get_layer_spikes(State* state, Network* network, u32 i);
 
+internal u32 network_get_layer_idx(Network* net, Layer* layer);
 
 #endif // __ENGINE_NETWORK_H__
