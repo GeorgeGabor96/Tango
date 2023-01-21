@@ -53,8 +53,6 @@ func main() {
 		}()
 	}
 	wg.Wait()
-
-	return
 }
 
 func CreateActivityPlot(meta *network.Meta, sampleName string) {

@@ -16,9 +16,9 @@ typedef struct DumperSynapseMeta {
     u32 out_neuron_idx;
 } DumperSynapseMeta;
 
-typedef struct DumperMeta { 
+typedef struct DumperMeta {
     String* file_path;
-    
+
     u32 n_layers;
     u32 n_neurons;
     u32 n_synapses;
@@ -44,7 +44,7 @@ typedef struct DumperSynapseData {
 typedef struct DumperData {
     String* file_name;
     FILE* fp;
-    
+
     DumperNeuronData* neuron_data;
     DumperSynapseData* synapse_data;
 } DumperData;
@@ -52,8 +52,8 @@ typedef struct DumperData {
 
 typedef struct Dumper {
     String* output_folder;
-    
-    u32 sample_step; // TODO: why do I need this?
+
+    u32 sample_step;
     u32 sample_count;
     u32 sample_duration;
 
@@ -75,7 +75,7 @@ internal char* callback_type_get_c_str(CallbackType type);
 
 typedef struct Callback {
     CallbackType type;
-    
+
     union {
         Dumper dumper;
     };
@@ -85,7 +85,7 @@ typedef struct Callback {
 /********************
 * Callback functions
 ********************/
-internal void callback_begin_sample(State* state, 
+internal void callback_begin_sample(State* state,
                                     Callback* callback,
                                     Network* network,
                                     u32 sample_duration);
@@ -97,11 +97,11 @@ internal void callback_end_sample(State* state, Callback* callback, Network* net
 * Network Dumper functions
 **************************/
 internal Callback* callback_dumper_create(State* state,
-                                          const char* output_folder, 
+                                          const char* output_folder,
                                           Network* network);
-internal void callback_dumper_begin_sample(State* state, 
-                                           Callback* callback, 
-                                           Network* network, 
+internal void callback_dumper_begin_sample(State* state,
+                                           Callback* callback,
+                                           Network* network,
                                            u32 sample_duration);
 internal void callback_dumper_update(State* state, Callback* callback, Network* network);
 internal void callback_dumper_end_sample(State* state, Callback* callbac, Network* network);

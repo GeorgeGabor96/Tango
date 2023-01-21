@@ -24,7 +24,6 @@ internal String* string_path_join(Memory* memory,
 internal String* string_path_join_c_str(Memory* memory,
                                         String* str1,
                                         const char* c_str);
-// TODO: rename to string_get_c_str
-internal const char* string_to_c_str(String* str);
+internal const char* string_get_c_str(String* str);
 
 #endif // __UTILS_CONTAINERS_STRING_H__

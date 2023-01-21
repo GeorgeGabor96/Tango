@@ -33,7 +33,7 @@ _callback_dumper_build_meta(Network* network, Memory* memory, String* out_path) 
     DumperLayerMeta* layers_meta = (DumperLayerMeta*)memory_push(memory,
                                                                  sizeof(*layers_meta) * n_layers);
     check_memory(layers_meta);
-   
+
     u32 neuron_idx = 0;
     DumperLayerMeta* layer_meta = NULL;
     for (layer_i = 0; layer_i < n_layers; ++layer_i) {
@@ -61,7 +61,7 @@ _callback_dumper_build_meta(Network* network, Memory* memory, String* out_path) 
     u32 in_layer_idx = 0;
     u32 in_neuron_idx = 0;
     u32 out_neuron_idx = 0;
-    
+
     for (layer_i = 0; layer_i < n_layers; ++layer_i) {
         out_layer = network->layers[layer_i];
         out_layer_meta = &layers_meta[layer_i];
@@ -75,7 +75,7 @@ _callback_dumper_build_meta(Network* network, Memory* memory, String* out_path) 
             for (in_synapses_i = 0;
                  in_synapses_i < out_neuron->n_in_synapse_arrays;
                  ++in_synapses_i) {
-                
+
                 in_synapses = out_neuron->in_synapse_arrays[in_synapses_i];
                 // The index of the in_synapses and the idx of input layer of the current layer should match
                 in_layer = out_layer->in_layers[in_synapses_i];
@@ -83,7 +83,7 @@ _callback_dumper_build_meta(Network* network, Memory* memory, String* out_path) 
                 in_layer_meta = &layers_meta[in_layer_idx];
 
                 for (synapse_i = 0; synapse_i < in_synapses->length; ++synapse_i) {
-                    synapse = in_synapse_array_get(in_synapses, synapse_i); 
+                    synapse = in_synapse_array_get(in_synapses, synapse_i);
                     in_neuron_idx = in_layer_meta->neuron_start_idx +
                                     layer_get_neuron_idx(in_layer, synapse->in_neuron);
 
@@ -106,7 +106,7 @@ _callback_dumper_build_meta(Network* network, Memory* memory, String* out_path) 
     meta->layer_meta = layers_meta;
     meta->synapse_meta = synapses_meta;
     return meta;
-    
+
     error:
     return NULL;
 }
@@ -129,7 +129,7 @@ _callback_dumper_build_data(DumperMeta* meta, Memory* memory) {
     data->neuron_data = neuron_data;
     data->synapse_data = synapse_data;
     return data;
-    
+
     error:
     return NULL;
 }
@@ -141,7 +141,7 @@ _callback_dumper_save_meta(DumperMeta* meta) {
     String* name = NULL;
     DumperSynapseMeta* s_meta = NULL;
     DumperLayerMeta* l_meta = NULL;
-    FILE* fp = fopen(string_to_c_str(meta->file_path), "wb");
+    FILE* fp = fopen(string_get_c_str(meta->file_path), "wb");
     check(fp != NULL, "could not open meta file");
 
     fwrite(&meta->n_layers, sizeof(u32), 1, fp);
@@ -153,7 +153,7 @@ _callback_dumper_save_meta(DumperMeta* meta) {
         name = l_meta->name;
 
         fwrite(&name->length, sizeof(u32), 1, fp);
-        fwrite(string_to_c_str(name), sizeof(char), name->length, fp);
+        fwrite(string_get_c_str(name), sizeof(char), name->length, fp);
         fwrite(&l_meta->neuron_start_idx, sizeof(u32), 1, fp);
         fwrite(&l_meta->n_neurons, sizeof(u32), 1, fp);
     }
@@ -187,15 +187,15 @@ callback_dumper_create(State* state, const char* output_folder, Network* network
 
     callback = (Callback*)memory_push(state->permanent_storage, sizeof(*callback));
     check_memory(callback);
-    
+
     DumperMeta* meta = _callback_dumper_build_meta(network,
-                                state->permanent_storage, 
+                                state->permanent_storage,
                                 output_folder_s);
     check_memory(meta);
 
     DumperData* data = _callback_dumper_build_data(meta, state->permanent_storage);
     check_memory(data);
-   
+
     callback->type = CALLBACK_NETWORK_DUMPER;
     callback->dumper.output_folder = output_folder_s;
     callback->dumper.sample_step = 0;
@@ -206,7 +206,7 @@ callback_dumper_create(State* state, const char* output_folder, Network* network
 
     bool result = os_folder_create_str(output_folder_s);
     check(result == TRUE, "couldn't create folder %s",
-          string_to_c_str(output_folder_s));
+          string_get_c_str(output_folder_s));
 
     _callback_dumper_save_meta(meta);
 
@@ -233,15 +233,15 @@ callback_dumper_begin_sample(State* state,
           callback_type_get_c_str(callback->type));
     check(network != NULL, "network is NULL");
     check(sample_duration != 0, "sample_duration is 0");
-    
+
     dumper = &callback->dumper;
     dumper->sample_duration = sample_duration;
     dumper->sample_step = 0;
     u32 i = 0;
-    
+
     char file_name[100];
     sprintf(file_name, "sample_%d.bin", dumper->sample_count);
-    
+
 
     dumper->data->file_name = string_create(state->transient_storage, file_name);
     check_memory(file_name);
@@ -251,9 +251,9 @@ callback_dumper_begin_sample(State* state,
                                          dumper->data->file_name);
     check(file_path != NULL, "Couldn't build path for sample file %s", file_name);
 
-    dumper->data->fp = fopen(string_to_c_str(file_path), "wb");
-    check(dumper->data->fp != NULL, "Could not open sample file %s", string_to_c_str(file_path));
-    
+    dumper->data->fp = fopen(string_get_c_str(file_path), "wb");
+    check(dumper->data->fp != NULL, "Could not open sample file %s", string_get_c_str(file_path));
+
     error:
     return;
 }
@@ -294,7 +294,7 @@ callback_dumper_update(State* state, Callback* callback, Network* network) {
 
         for (neuron_i = 0; neuron_i < layer->n_neurons; ++neuron_i) {
             neuron = &layer->neurons[neuron_i];
-           
+
             neuron_data = &dumper->data->neuron_data[neuron_idx];
             neuron_data->voltage = neuron->voltage;
             neuron_data->spike = neuron->spike;
@@ -309,11 +309,11 @@ callback_dumper_update(State* state, Callback* callback, Network* network) {
 
                 for (synapse_i = 0; synapse_i < in_synapses->length; ++synapse_i) {
                     synapse = in_synapse_array_get(in_synapses, synapse_i);
-                    
+
                     synapse_data = &dumper->data->synapse_data[synapse_idx];
                     synapse_data->weight = synapse->weight;
                     synapse_data->conductance = synapse->conductance;
-                
+
                     ++synapse_idx;
                 }
             }
@@ -324,7 +324,7 @@ callback_dumper_update(State* state, Callback* callback, Network* network) {
            dumper->data->fp);
     fwrite(dumper->data->synapse_data, sizeof(DumperSynapseData), dumper->meta->n_synapses,
            dumper->data->fp);
-    
+
     ++(dumper->sample_step);
 
     error:
@@ -345,26 +345,26 @@ callback_dumper_end_sample(State* state, Callback* callback, Network* network) {
     check(network != NULL, "network is NULL");
 
     Dumper* dumper = &callback->dumper;
-    
+
     // NOTE: 1. Need to close the data file
     fflush(dumper->data->fp);
     fclose(dumper->data->fp);
-    log_info("Finished dumping in %s", string_to_c_str(dumper->data->file_name));
+    log_info("Finished dumping in %s", string_get_c_str(dumper->data->file_name));
 
     // NOTE: 2. Need to write the sample duration in the meta file for this sample file
     // Need to open the meta file and close it after
-    FILE* fp = fopen(string_to_c_str(dumper->meta->file_path), "ab"); // need to join
-    check(fp != NULL, "Could not open file %s", string_to_c_str(dumper->meta->file_path));
-    
+    FILE* fp = fopen(string_get_c_str(dumper->meta->file_path), "ab"); // need to join
+    check(fp != NULL, "Could not open file %s", string_get_c_str(dumper->meta->file_path));
+
     String* file_name = dumper->data->file_name;
 
     fwrite(&(file_name->length), sizeof(u32), 1, fp);
     fwrite(file_name->data, sizeof(char), file_name->length, fp);
     fwrite(&(dumper->sample_duration), sizeof(u32), 1, fp);
-   
+
     fflush(fp);
     fclose(fp);
-    
+
     ++(dumper->sample_count);
 
     error:
