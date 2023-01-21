@@ -93,7 +93,10 @@ func ActivityPlot(meta *Meta, data *Data, outFolder string) {
 		spikePtI := 0
 
 		for stepI = 0; stepI < data.Duration; stepI++ {
-			for neuronI = layerMeta.NeuronStartIdx; neuronI < layerMeta.NeuronStartIdx+layerMeta.NNeurons; neuronI++ {
+			for neuronI = layerMeta.NeuronStartIdx;
+                neuronI < layerMeta.NeuronStartIdx+layerMeta.NNeurons;
+                neuronI++ {
+
 				neuron := data.Neurons[stepI][neuronI]
 				if neuron.Spike {
 					spikePts[spikePtI].X = float64(stepI)

@@ -30,6 +30,31 @@ type Meta struct {
 	Samples  map[string]uint32
 }
 
+type NeuronData struct {
+	Voltage float32
+	Spike   bool
+	PSC     float32
+	EPSC    float32
+	IPSC    float32
+}
+
+type SynapseData struct {
+	Weight      float32
+	Conductance float32
+}
+
+type LayerData struct {
+	NSpikes uint32
+}
+
+type Data struct {
+	Name     string
+	Duration uint32
+	Neurons  [][]NeuronData
+	Synapses [][]SynapseData
+	Layers   []LayerData
+}
+
 func BuildMeta(folder string) (*Meta, error) {
 	metaFile := utils.Join(folder, "meta.bin")
 
@@ -75,31 +100,6 @@ func BuildMeta(folder string) (*Meta, error) {
 	}
 
 	return meta, nil
-}
-
-type NeuronData struct {
-	Voltage float32
-	Spike   bool
-	PSC     float32
-	EPSC    float32
-	IPSC    float32
-}
-
-type SynapseData struct {
-	Weight      float32
-	Conductance float32
-}
-
-type LayerData struct {
-	NSpikes uint32
-}
-
-type Data struct {
-	Name     string
-	Duration uint32
-	Neurons  [][]NeuronData
-	Synapses [][]SynapseData
-	Layers   []LayerData
 }
 
 func BuildData(meta *Meta, fileName string) (*Data, error) {
