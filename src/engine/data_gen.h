@@ -1,5 +1,5 @@
 #ifndef __ENGINE_DATA_GEN_H__
-#define __DATA_GEN_H__
+#define __ENGINE_DATA_GEN_H__
 
 
 typedef enum {
@@ -32,7 +32,7 @@ typedef struct DataGen {
     u32 n_samples;
     // NOTE: This may be specific per type but for now its good here
     u32 sample_duration;
-    
+
     union {
         DataGenConstCurrent const_current;
         DataGenRandomSpikes random_spikes;
@@ -77,7 +77,7 @@ typedef struct DataSample {
     DataSampleType type;
     u32 duration;
     DataGen* data_gen;
-    
+
     union {
         void* random_spikes;
         void* const_current;

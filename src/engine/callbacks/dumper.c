@@ -237,7 +237,6 @@ callback_dumper_begin_sample(State* state,
     dumper = &callback->dumper;
     dumper->sample_duration = sample_duration;
     dumper->sample_step = 0;
-    u32 i = 0;
 
     char file_name[100];
     sprintf(file_name, "sample_%d.bin", dumper->sample_count);

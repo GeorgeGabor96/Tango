@@ -43,18 +43,6 @@ string_create(Memory* memory, const char* c_str) {
 }
 
 
-internal char
-string_char_at_idx(String* str, u32 idx) {
-    check(str != NULL, "str is NULL");
-    check(str->length > idx, "idx is too big");
-
-    return str->data[idx];
-
-    error:
-    return 255;  // NOTE: what value for invalid char??
-}
-
-
 internal bool
 string_equal(String* str1, String* str2) {
     u32 i = 0;

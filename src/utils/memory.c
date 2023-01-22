@@ -1,7 +1,7 @@
 #ifdef MEMORY_MANAGE
 
 /********************************************************************************
-* This will keep nodes in Hash Table, where the key is the memory adress of the 
+* This will keep nodes in Hash Table, where the key is the memory adress of the
 * allocation. Every node has info about one memory allocation and when memory
 * is freed a node is removed from the Hash Table
 ********************************************************************************/
@@ -155,13 +155,13 @@ internal inline MemoryHashTable*
 memory_hash_table_create(size_t n_entries) {
 	MemoryHashTable* table = (MemoryHashTable*)malloc(sizeof(MemoryHashTable));
 	check_memory(table);
-    
+
 	table->entries = (MemoryList*)calloc(n_entries, sizeof(MemoryList));
 	check_memory(table->entries);
-    
+
 	table->n_entries= n_entries;
 	table->length = 0;
-    
+
 	return table;
     error:
     if (table != NULL) {
@@ -176,13 +176,12 @@ memory_hash_table_resize(MemoryHashTable* table, size_t new_size) {
 	size_t i = 0;
 	MemoryList* list = NULL;
 	MemoryNode* node = NULL;
-	size_t hash = 0;
 	MemoryHashTable* new_table = memory_hash_table_create(new_size);
-    
+
 	// move the nodes from @table to @new_table
 	for (i = 0; i < table->n_entries; ++i) {
 		list = &(table->entries[i]);
-		
+
 		// take all elements from the list
 		while ((node = memory_list_remove_first(list)) != NULL) {
 			node->next = NULL;
@@ -190,7 +189,7 @@ memory_hash_table_resize(MemoryHashTable* table, size_t new_size) {
 			memory_hash_table_add(new_table, node);
 		}
 	}
-    
+
 	// overwrite table
 	free(table->entries);	// table->entries contains only empty lists
 	table->entries = new_table->entries;
@@ -241,14 +240,14 @@ internal void*
 memory_malloc(size_t size, char* desc) {
     check(size != 0, "size is 0");
     check(desc != NULL, "desc is NULL");
-    
+
     // TODO: check the size and desc to be valid and add tests for that
     if (memory_table == NULL)
         memory_table = memory_hash_table_create(MEMORY_TABLE_INITIAL_LENGTH);
-    
+
 	void* ptr = malloc(size);
 	check_memory(ptr);
-	
+
     MemoryNode* node = memory_create_node(ptr, size, desc);
 	memory_hash_table_add(memory_table, node);
 	return ptr;
@@ -262,12 +261,12 @@ memory_calloc(size_t nitems, size_t size, char* desc) {
     check(nitems != 0, "nitems is 0");
     check(size != 0, "size is 0");
     check(desc != NULL, "desc is NULL");
-    
+
     if (memory_table == NULL)
         memory_table = memory_hash_table_create(MEMORY_TABLE_INITIAL_LENGTH);
 	void* ptr = calloc(nitems, size);
 	check_memory(ptr);
-    
+
 	MemoryNode* node = memory_create_node(ptr, nitems * size, desc);
 	memory_hash_table_add(memory_table, node);
 	return ptr;
@@ -281,14 +280,14 @@ memory_realloc(void* ptr, size_t size, char* desc) {
     check(ptr != NULL, "ptr is NULL");
     check(size != 0, "size is 0");
     check(desc != NULL, "desc is NULL");
-    
+
     if (memory_table == NULL)
         memory_table = memory_hash_table_create(MEMORY_TABLE_INITIAL_LENGTH);
-    
+
 	// remove node because its key may change
 	MemoryNode* node = memory_hash_table_remove(memory_table, ptr);
 	check(node != NULL, "%p pointer does not have a node", ptr);
-    
+
     // try to realloc
 	void* n_ptr = realloc(ptr, size);
 	if (n_ptr == NULL) {
@@ -314,11 +313,11 @@ memory_free(void* ptr) {
 	check(ptr != NULL, "ptr is NULL");
     if (memory_table == NULL)
         memory_table = memory_hash_table_create(MEMORY_TABLE_INITIAL_LENGTH);
-    
+
     // find node and remove it from list
 	MemoryNode* node = memory_hash_table_remove(memory_table, ptr);
 	check(node != NULL, "Node should exist for %p", ptr);
-    
+
 	free(node->ptr);
 	free(node);
     error:
@@ -336,11 +335,11 @@ memory_get_n_blocks() {
 	size_t n_blocks = 0;
 	MemoryList* list = NULL;
 	MemoryNode* node = NULL;
-    
+
 	for (i = 0; i < memory_table->n_entries; ++i) {
 		list = &(memory_table->entries[i]);
 		node = list->first;
-        
+
 		while (node != NULL) {
 			n_blocks++;
 			node = node->next;
@@ -358,11 +357,11 @@ memory_get_size() {
 	size_t mem_size = 0;
 	MemoryList* list = NULL;
 	MemoryNode* node = NULL;
-    
+
 	for (i = 0; i < memory_table->n_entries; ++i) {
 		list = &(memory_table->entries[i]);
 		node = list->first;
-        
+
 		while (node != NULL) {
 			mem_size += node->size;
 			node = node->next;
@@ -383,19 +382,19 @@ memory_is_empty() {
 
 internal void
 memory_report() {
-	if (memory_table == NULL) 
+	if (memory_table == NULL)
         memory_table = memory_hash_table_create(MEMORY_TABLE_INITIAL_LENGTH);
 	size_t i = 0;
 	size_t mem_size = 0;
 	size_t n_nodes = 0;
 	MemoryList* list = NULL;
 	MemoryNode* node = NULL;
-    
+
 	log_info("UNFREED MEMORY");
 	for (i = 0; i < memory_table->n_entries; ++i) {
 		list = &(memory_table->entries[i]);
 		node = list->first;
-        
+
 		while (node != NULL) {
 			printf("Node %llu - desc: %s ptr: %p size: %llu BYTES\n", n_nodes, node->desc, node->ptr, node->size);
 			n_nodes++;
@@ -403,7 +402,7 @@ memory_report() {
 			node = node->next;
 		}
 	}
-    
+
 	check(n_nodes == memory_table->length, "@n_nodes != @memory_table->length");
 	log_info("Summary %llu nodes, %llu BYTES not freed\n", n_nodes, mem_size);
     error:
@@ -415,35 +414,35 @@ internal void
 memory_show_inner_state(u32 show_entries, u32 show_empty) {
 	if (memory_table == NULL)
         memory_table = memory_hash_table_create(MEMORY_TABLE_INITIAL_LENGTH);
-    
+
 	size_t i = 0;
 	MemoryList* list = NULL;
 	MemoryNode* node = NULL;
 	size_t n_lists = 0;
-    
+
 	log_info("INNER STATE");
 	for (i = 0; i < memory_table->n_entries; ++i) {
-		
+
 		list = &(memory_table->entries[i]);
 		node = list->first;
-		
-		if (show_entries == 1 && (show_empty == 1 || list->first != NULL)) 
+
+		if (show_entries == 1 && (show_empty == 1 || list->first != NULL))
             printf("[%4llu] ", i);
-        
+
 		if (list->first != NULL)
             n_lists++;
-        
+
 		if (show_entries == 1) {
 			while (node != NULL) {
 				printf("-> %p ", node->ptr);
 				node = node->next;
 			}
 		}
-		
+
         if (show_entries == 1 && (show_empty == 1 || list->first != NULL))
             printf("\n");
 	}
-    
+
 	printf("TABLE LENGTH: %llu\nTABLE ENTRIES: %llu\nAverage List Length %f\n", memory_table->length, memory_table->n_entries, (float)memory_table->length / n_lists);
 }
 
