@@ -9,15 +9,15 @@ if "%1" == "release" (set mode="release")
 if "%1" == "crazy" (set mode="crazy")
 
 if %mode% == "debug" (
-	set output_dir=build\debug
+	set output_dir=bin\debug
 	set mode_flags=%debug_flags%
 )
 if %mode% == "release" (
-	set output_dir=build\release
+	set output_dir=bin\release
 	set mode_flags=%release_flags%
 )
 if %mode% == "crazy" (
-	set output_dir=build\crazy
+	set output_dir=bin\crazy
 	set mode_flags=%crazy_flags%
 )
 
@@ -32,3 +32,5 @@ set defines=-D_CRT_SECURE_NO_WARNINGS
 pushd %output_dir%
 clang ../../src/experiments/debugging.c %compiler_flags% -o debugging.exe %defines% %mode_flags% %include_flags% %linker_flags%
 popd
+
+echo Build Finished
