@@ -1,3 +1,6 @@
+#include "engine/callbacks/dumper.c"
+
+
 internal char*
 callback_type_get_c_str(CallbackType type) {
     if (type == CALLBACK_NETWORK_DUMPER) return "CALLBACK_NETWORK_DUMPER";

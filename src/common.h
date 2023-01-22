@@ -65,6 +65,13 @@ __LINE__,\
 
 #else
 
+#if _MSC_VER
+#include <intrin.h>
+#define debugBreak() __debugbreak()
+#else
+#define debugBreak() __builtin_trap()
+#endif
+
 #define debug(M, ...) fprintf(stderr,\
 "[DEBUG] %s:%d: " M "\n",\
 __FILE__,\
@@ -74,6 +81,7 @@ __LINE__,\
 #define check(A, M, ...) if (!(A)) {\
 log_error(M, ##__VA_ARGS__);\
 errno=0;\
+debugBreak();\
 goto error; }
 
 #define check_memory(A) check((A), "Out of Memory.")
