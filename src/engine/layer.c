@@ -265,7 +265,6 @@ layer_show(Layer* layer) {
     check(layer != NULL, "layer is NULL");
 
     u32 i = 0;
-    u32 j = 0;
     u32 n_in_synapses = layer_get_n_in_synapses(layer);
 
     printf("-------------------\n");
@@ -291,7 +290,6 @@ _layer_link_dense(State* state,
                  SynapseCls* cls, f32 weight, f32 chance) {
     u32 neuron_i = 0;
     u32 in_neuron_i = 0;
-    u32 synapse_i = 0;
     u32 in_synapses_init = 0;
     Neuron* neuron = NULL;
     Neuron* in_neuron = NULL;

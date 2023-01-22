@@ -14,7 +14,6 @@ typedef struct String {
 
 
 internal String* string_create(Memory* memory, const char* c_str);
-internal char string_char_at_idx(String* str, u32 idx);
 
 internal bool string_equal(String* str1, String* str2);
 internal bool string_equal_c_str(String* str, const char* c_str);
