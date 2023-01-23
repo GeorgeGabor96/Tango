@@ -7,7 +7,8 @@ import (
 	"os"
 	"strings"
 	"sync"
-	"tango/go/network"
+	"tango/go/experiment"
+	"tango/go/plotting"
 )
 
 type Arguments struct {
@@ -39,7 +40,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	meta, _ := network.BuildMeta(args.binFolder)
+	meta, _ := experiment.BuildMeta(args.binFolder)
 
 	var wg sync.WaitGroup
 	for sampleName := range meta.Samples {
@@ -55,10 +56,11 @@ func main() {
 	wg.Wait()
 }
 
-func CreateActivityPlot(meta *network.Meta, sampleName string) {
-	data, err := network.BuildData(meta, sampleName)
+func CreateActivityPlot(meta *experiment.Meta, sampleName string) {
+	data, err := experiment.BuildData(meta, sampleName)
 	if err != nil {
 		log.Fatal(err)
 	}
-	network.ActivityPlot(meta, data, "")
+	//plotting.ActivityPlot(meta, data, "")
+	plotting.SynapsesHistPlot(meta, data, "", 100)
 }

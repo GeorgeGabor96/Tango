@@ -1,7 +1,8 @@
-package network
+package plotting
 
 import (
 	"fmt"
+	"tango/go/experiment"
 	"tango/go/utils"
 
 	"gonum.org/v1/plot"
@@ -10,20 +11,20 @@ import (
 	"gonum.org/v1/plot/vg/draw"
 )
 
-type NetYTicks struct {
+type ActivityYTicks struct {
 	layerTicks []plot.Tick
 }
 
-func (t NetYTicks) Ticks(min, max float64) []plot.Tick {
+func (t ActivityYTicks) Ticks(min, max float64) []plot.Tick {
 	return t.layerTicks
 }
 
-type NetXTicks struct {
+type ActivityXTicks struct {
 	duration uint32
 	nTicks   uint32
 }
 
-func (t NetXTicks) Ticks(min, max float64) []plot.Tick {
+func (t ActivityXTicks) Ticks(min, max float64) []plot.Tick {
 	ticks := make([]plot.Tick, t.nTicks+1)
 	modValue := t.duration % t.nTicks
 	var tickInc uint32 = 0
@@ -47,7 +48,7 @@ func (t NetXTicks) Ticks(min, max float64) []plot.Tick {
 	return ticks
 }
 
-func ActivityPlot(meta *Meta, data *Data, outFolder string) {
+func ActivityPlot(meta *experiment.Meta, data *experiment.Data, outFolder string) {
 	fmt.Printf("[INFO] Begin ActivityPlot for %v\n", data.Name)
 
 	if outFolder == "" {
@@ -62,7 +63,7 @@ func ActivityPlot(meta *Meta, data *Data, outFolder string) {
 
 	// NOTE: yPad is space between the line and the neurons so that they do not intersect
 	var yOffset uint32 = yPad + 1
-    var neuronAbsI uint32 = 0
+	var neuronAbsI uint32 = 0
 	var neuronI uint32 = 0
 	var stepI uint32 = 0
 
@@ -94,9 +95,7 @@ func ActivityPlot(meta *Meta, data *Data, outFolder string) {
 		spikePtI := 0
 
 		for stepI = 0; stepI < data.Duration; stepI++ {
-			for neuronAbsI, neuronI = layerMeta.NeuronStartIdx, 0;
-                neuronI < layerMeta.NNeurons;
-                neuronAbsI, neuronI = neuronAbsI+1, neuronI+1 {
+			for neuronAbsI, neuronI = layerMeta.NeuronStartIdx, 0; neuronI < layerMeta.NNeurons; neuronAbsI, neuronI = neuronAbsI+1, neuronI+1 {
 
 				neuron := data.Neurons[stepI][neuronAbsI]
 				if neuron.Spike {
@@ -137,11 +136,11 @@ func ActivityPlot(meta *Meta, data *Data, outFolder string) {
 	p.Title.TextStyle.Font.Size = 50
 	p.X.Label.Text = "time"
 	p.X.Label.TextStyle.Font.Size = 40
-	p.X.Tick.Marker = &NetXTicks{duration: data.Duration, nTicks: 10}
+	p.X.Tick.Marker = &ActivityXTicks{duration: data.Duration, nTicks: 10}
 	p.X.Tick.Label.Font.Size = 20
 	p.Y.Label.Text = "layers"
 	p.Y.Label.TextStyle.Font.Size = 40
-	p.Y.Tick.Marker = &NetYTicks{layerTicks: ticks}
+	p.Y.Tick.Marker = &ActivityYTicks{layerTicks: ticks}
 	p.Y.Tick.Label.Font.Size = 20
 
 	if err := p.Save(20*vg.Inch, 20*vg.Inch, imgPath); err != nil {

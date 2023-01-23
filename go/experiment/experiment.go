@@ -1,4 +1,4 @@
-package network
+package experiment
 
 import (
 	"errors"

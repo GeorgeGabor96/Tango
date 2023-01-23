@@ -4,6 +4,7 @@ import (
 	"errors"
 	"io/ioutil"
 	"log"
+	"os"
 	"path/filepath"
 	"strings"
 )
@@ -63,4 +64,21 @@ func GetExtension(fileName string) string {
 	}
 	extension := tokens[1]
 	return extension
+}
+
+func CreateFolder(folder string) bool {
+	fi, err := os.Stat(folder)
+	if err == nil {
+		// If we can read the stat it means something exists just check its a dir
+		mode := fi.Mode()
+		if mode.IsDir() {
+			return true
+		}
+	}
+
+	if err := os.Mkdir(folder, os.ModePerm); err != nil {
+		log.Fatal(err)
+		return false
+	}
+	return true
 }
