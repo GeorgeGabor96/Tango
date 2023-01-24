@@ -48,14 +48,12 @@ func (t ActivityXTicks) Ticks(min, max float64) []plot.Tick {
 	return ticks
 }
 
-func ActivityPlot(meta *experiment.Meta, data *experiment.Data, outFolder string) {
+func ActivityPlot(meta *experiment.Meta, data *experiment.Data) error {
 	fmt.Printf("[INFO] Begin ActivityPlot for %v\n", data.Name)
 
-	if outFolder == "" {
-		outFolder = meta.Folder
-	}
-	imgName := utils.RemoveExtension(data.Name) + "_aux.png"
-
+	sampleName := utils.RemoveExtension(data.Name)
+	outFolder := utils.Join(meta.Folder, sampleName)
+	imgName := sampleName + "_aux.png"
 	imgPath := utils.Join(outFolder, imgName)
 	var yPad uint32 = 5
 
@@ -76,7 +74,7 @@ func ActivityPlot(meta *experiment.Meta, data *experiment.Data, outFolder string
 
 	l, err := plotter.NewLine(linePts)
 	if err != nil {
-		panic(err)
+		return err
 	}
 	p.Add(l)
 	yOffset += yPad
@@ -108,7 +106,7 @@ func ActivityPlot(meta *experiment.Meta, data *experiment.Data, outFolder string
 
 		s, err := plotter.NewScatter(spikePts)
 		if err != nil {
-			panic(err)
+			return err
 		}
 		s.GlyphStyle.Shape = draw.BoxGlyph{}
 		s.GlyphStyle.Radius = 1
@@ -124,7 +122,7 @@ func ActivityPlot(meta *experiment.Meta, data *experiment.Data, outFolder string
 
 		l, err := plotter.NewLine(linePts)
 		if err != nil {
-			panic(err)
+			return err
 		}
 		yOffset += yPad
 
@@ -133,18 +131,19 @@ func ActivityPlot(meta *experiment.Meta, data *experiment.Data, outFolder string
 
 	// General plot settings
 	p.Title.Text = data.Name
-	p.Title.TextStyle.Font.Size = 50
+	p.Title.TextStyle.Font.Size = PLOTTING_TITLE_FONT_SIZE
 	p.X.Label.Text = "time"
-	p.X.Label.TextStyle.Font.Size = 40
+	p.X.Label.TextStyle.Font.Size = PLOTTING_LABEL_FONT_SIZE
 	p.X.Tick.Marker = &ActivityXTicks{duration: data.Duration, nTicks: 10}
-	p.X.Tick.Label.Font.Size = 20
+	p.X.Tick.Label.Font.Size = PLOTTING_TICK_FONT_SIZE
 	p.Y.Label.Text = "layers"
-	p.Y.Label.TextStyle.Font.Size = 40
+	p.Y.Label.TextStyle.Font.Size = PLOTTING_LABEL_FONT_SIZE
 	p.Y.Tick.Marker = &ActivityYTicks{layerTicks: ticks}
-	p.Y.Tick.Label.Font.Size = 20
+	p.Y.Tick.Label.Font.Size = PLOTTING_TICK_FONT_SIZE
 
 	if err := p.Save(20*vg.Inch, 20*vg.Inch, imgPath); err != nil {
-		panic(err)
+		return err
 	}
 	fmt.Printf("[INFO] Saved activity plot in %v\n", imgPath)
+	return nil
 }

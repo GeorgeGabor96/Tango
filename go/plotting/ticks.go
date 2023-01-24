@@ -20,7 +20,7 @@ func (t FloatTicks) Ticks(min, max float64) []plot.Tick {
 	for i = 0; i < t.nTicks+1; i++ {
 		value = min + tickInc*float64(i)
 		ticks[i].Value = value
-		ticks[i].Label = fmt.Sprintf("%.2v", value)
+		ticks[i].Label = fmt.Sprintf("%.5v", value)
 	}
 	return ticks
 }

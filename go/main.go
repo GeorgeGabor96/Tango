@@ -61,6 +61,6 @@ func CreateActivityPlot(meta *experiment.Meta, sampleName string) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	//plotting.ActivityPlot(meta, data, "")
-	plotting.SynapsesHistPlot(meta, data, "", 100)
+	plotting.SynapseWeightPlot(meta, data, 100)
+	//plotting.SynapseConductancePlot(meta, data, 100)
 }
