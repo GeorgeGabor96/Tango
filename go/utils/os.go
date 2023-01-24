@@ -13,6 +13,12 @@ func Join(p1 string, p2 string) string {
 	return p1 + string(filepath.Separator) + p2
 }
 
+func JoinWithCreate(p1 string, p2 string) string {
+	joinFolder := Join(p1, p2)
+	CreateFolder(joinFolder)
+	return joinFolder
+}
+
 func FileNamesWithExtension(dir string, ext string) []string {
 	var fileNames []string
 	items, err := ioutil.ReadDir(dir)

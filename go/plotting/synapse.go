@@ -18,12 +18,9 @@ func SynapseWeightPlot(meta *experiment.Meta, data *experiment.Data, sI uint32) 
 		return errors.New(msg)
 	}
 
-	outFolder := utils.Join(meta.Folder, utils.RemoveExtension(data.Name))
-	utils.CreateFolder(outFolder)
-	outFolder = utils.Join(outFolder, "synapses")
-	utils.CreateFolder(outFolder)
-	outFolder = utils.Join(outFolder, "weight")
-	utils.CreateFolder(outFolder)
+	outFolder := utils.JoinWithCreate(meta.Folder, utils.RemoveExtension(data.Name))
+	outFolder = utils.JoinWithCreate(outFolder, "synapses")
+	outFolder = utils.JoinWithCreate(outFolder, "weight")
 	fileName := fmt.Sprintf("%v.png", sI)
 	filePath := utils.Join(outFolder, fileName)
 
@@ -50,12 +47,9 @@ func SynapseConductancePlot(meta *experiment.Meta, data *experiment.Data, sI uin
 		return errors.New(msg)
 	}
 
-	outFolder := utils.Join(meta.Folder, utils.RemoveExtension(data.Name))
-	utils.CreateFolder(outFolder)
-	outFolder = utils.Join(outFolder, "synapses")
-	utils.CreateFolder(outFolder)
-	outFolder = utils.Join(outFolder, "conductance")
-	utils.CreateFolder(outFolder)
+	outFolder := utils.JoinWithCreate(meta.Folder, utils.RemoveExtension(data.Name))
+	outFolder = utils.JoinWithCreate(outFolder, "synapses")
+	outFolder = utils.JoinWithCreate(outFolder, "conductance")
 	fileName := fmt.Sprintf("%v.png", sI)
 	filePath := utils.Join(outFolder, fileName)
 
@@ -77,15 +71,9 @@ func SynapseConductancePlot(meta *experiment.Meta, data *experiment.Data, sI uin
 }
 
 func SynapsesHistPlot(meta *experiment.Meta, data *experiment.Data, stepInc uint32) error {
-	fmt.Printf("[INFO] Begin Synapse Hist Plots for %v\n", data.Name)
-
 	sampleName := utils.RemoveExtension(data.Name)
-	outFolder := utils.Join(meta.Folder, sampleName)
-	utils.CreateFolder(outFolder)
-	outFolder = utils.Join(outFolder, "synapse_hist")
-	utils.CreateFolder(outFolder)
-	outFolder = utils.Join(outFolder, sampleName)
-	utils.CreateFolder(outFolder)
+	outFolder := utils.JoinWithCreate(meta.Folder, sampleName)
+	outFolder = utils.JoinWithCreate(outFolder, "synapse_hist")
 
 	weights := make(plotter.Values, meta.NSynapses)
 
@@ -127,7 +115,5 @@ func SynapsesHistPlot(meta *experiment.Meta, data *experiment.Data, stepInc uint
 			return err
 		}
 	}
-
-	fmt.Printf("[INFO] Finished Synapse Hist Plots for %v\n", data.Name)
 	return nil
 }

@@ -49,11 +49,9 @@ func (t ActivityXTicks) Ticks(min, max float64) []plot.Tick {
 }
 
 func ActivityPlot(meta *experiment.Meta, data *experiment.Data) error {
-	fmt.Printf("[INFO] Begin ActivityPlot for %v\n", data.Name)
-
 	sampleName := utils.RemoveExtension(data.Name)
-	outFolder := utils.Join(meta.Folder, sampleName)
-	imgName := sampleName + "_aux.png"
+	outFolder := utils.JoinWithCreate(meta.Folder, sampleName)
+	imgName := sampleName + ".png"
 	imgPath := utils.Join(outFolder, imgName)
 	var yPad uint32 = 5
 
@@ -144,6 +142,5 @@ func ActivityPlot(meta *experiment.Meta, data *experiment.Data) error {
 	if err := p.Save(20*vg.Inch, 20*vg.Inch, imgPath); err != nil {
 		return err
 	}
-	fmt.Printf("[INFO] Saved activity plot in %v\n", imgPath)
 	return nil
 }
