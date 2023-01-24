@@ -1,4 +1,4 @@
-package network
+package experiment
 
 import (
 	"errors"
@@ -110,7 +110,6 @@ func BuildData(meta *Meta, fileName string) (*Data, error) {
 
 	filePath := utils.Join(meta.Folder, fileName)
 
-	fmt.Printf("[INFO] Parsing data file %v\n", filePath)
 	parser, err := parser.NewParser(filePath)
 	if err != nil {
 		log.Fatal(err)

@@ -4,12 +4,19 @@ import (
 	"errors"
 	"io/ioutil"
 	"log"
+	"os"
 	"path/filepath"
 	"strings"
 )
 
 func Join(p1 string, p2 string) string {
 	return p1 + string(filepath.Separator) + p2
+}
+
+func JoinWithCreate(p1 string, p2 string) string {
+	joinFolder := Join(p1, p2)
+	CreateFolder(joinFolder)
+	return joinFolder
 }
 
 func FileNamesWithExtension(dir string, ext string) []string {
@@ -63,4 +70,21 @@ func GetExtension(fileName string) string {
 	}
 	extension := tokens[1]
 	return extension
+}
+
+func CreateFolder(folder string) bool {
+	fi, err := os.Stat(folder)
+	if err == nil {
+		// If we can read the stat it means something exists just check its a dir
+		mode := fi.Mode()
+		if mode.IsDir() {
+			return true
+		}
+	}
+
+	if err := os.Mkdir(folder, os.ModePerm); err != nil {
+		log.Fatal(err)
+		return false
+	}
+	return true
 }

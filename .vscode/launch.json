@@ -10,7 +10,7 @@
             "request": "launch",
             "mode": "auto",
             "program": "go\\main.go",
-            "args": ["--bin_folder", "d:\\repos\\Tango_outputs\\synfire_chain\\"]
+            "args": ["--bin_folder", "d:\\repos\\Tango_outputs\\synfire_chain"]
         },
         {
             "name": "W23 C Debug",

@@ -1,7 +1,8 @@
-package network
+package plotting
 
 import (
 	"fmt"
+	"tango/go/experiment"
 	"tango/go/utils"
 
 	"gonum.org/v1/plot"
@@ -10,20 +11,20 @@ import (
 	"gonum.org/v1/plot/vg/draw"
 )
 
-type NetYTicks struct {
+type ActivityYTicks struct {
 	layerTicks []plot.Tick
 }
 
-func (t NetYTicks) Ticks(min, max float64) []plot.Tick {
+func (t ActivityYTicks) Ticks(min, max float64) []plot.Tick {
 	return t.layerTicks
 }
 
-type NetXTicks struct {
+type ActivityXTicks struct {
 	duration uint32
 	nTicks   uint32
 }
 
-func (t NetXTicks) Ticks(min, max float64) []plot.Tick {
+func (t ActivityXTicks) Ticks(min, max float64) []plot.Tick {
 	ticks := make([]plot.Tick, t.nTicks+1)
 	modValue := t.duration % t.nTicks
 	var tickInc uint32 = 0
@@ -47,14 +48,10 @@ func (t NetXTicks) Ticks(min, max float64) []plot.Tick {
 	return ticks
 }
 
-func ActivityPlot(meta *Meta, data *Data, outFolder string) {
-	fmt.Printf("[INFO] Begin ActivityPlot for %v\n", data.Name)
-
-	if outFolder == "" {
-		outFolder = meta.Folder
-	}
-	imgName := utils.RemoveExtension(data.Name) + "_aux.png"
-
+func ActivityPlot(meta *experiment.Meta, data *experiment.Data) error {
+	sampleName := utils.RemoveExtension(data.Name)
+	outFolder := utils.JoinWithCreate(meta.Folder, sampleName)
+	imgName := sampleName + ".png"
 	imgPath := utils.Join(outFolder, imgName)
 	var yPad uint32 = 5
 
@@ -62,7 +59,7 @@ func ActivityPlot(meta *Meta, data *Data, outFolder string) {
 
 	// NOTE: yPad is space between the line and the neurons so that they do not intersect
 	var yOffset uint32 = yPad + 1
-    var neuronAbsI uint32 = 0
+	var neuronAbsI uint32 = 0
 	var neuronI uint32 = 0
 	var stepI uint32 = 0
 
@@ -75,7 +72,7 @@ func ActivityPlot(meta *Meta, data *Data, outFolder string) {
 
 	l, err := plotter.NewLine(linePts)
 	if err != nil {
-		panic(err)
+		return err
 	}
 	p.Add(l)
 	yOffset += yPad
@@ -94,9 +91,7 @@ func ActivityPlot(meta *Meta, data *Data, outFolder string) {
 		spikePtI := 0
 
 		for stepI = 0; stepI < data.Duration; stepI++ {
-			for neuronAbsI, neuronI = layerMeta.NeuronStartIdx, 0;
-                neuronI < layerMeta.NNeurons;
-                neuronAbsI, neuronI = neuronAbsI+1, neuronI+1 {
+			for neuronAbsI, neuronI = layerMeta.NeuronStartIdx, 0; neuronI < layerMeta.NNeurons; neuronAbsI, neuronI = neuronAbsI+1, neuronI+1 {
 
 				neuron := data.Neurons[stepI][neuronAbsI]
 				if neuron.Spike {
@@ -109,7 +104,7 @@ func ActivityPlot(meta *Meta, data *Data, outFolder string) {
 
 		s, err := plotter.NewScatter(spikePts)
 		if err != nil {
-			panic(err)
+			return err
 		}
 		s.GlyphStyle.Shape = draw.BoxGlyph{}
 		s.GlyphStyle.Radius = 1
@@ -125,7 +120,7 @@ func ActivityPlot(meta *Meta, data *Data, outFolder string) {
 
 		l, err := plotter.NewLine(linePts)
 		if err != nil {
-			panic(err)
+			return err
 		}
 		yOffset += yPad
 
@@ -134,18 +129,18 @@ func ActivityPlot(meta *Meta, data *Data, outFolder string) {
 
 	// General plot settings
 	p.Title.Text = data.Name
-	p.Title.TextStyle.Font.Size = 50
+	p.Title.TextStyle.Font.Size = PLOTTING_TITLE_FONT_SIZE
 	p.X.Label.Text = "time"
-	p.X.Label.TextStyle.Font.Size = 40
-	p.X.Tick.Marker = &NetXTicks{duration: data.Duration, nTicks: 10}
-	p.X.Tick.Label.Font.Size = 20
+	p.X.Label.TextStyle.Font.Size = PLOTTING_LABEL_FONT_SIZE
+	p.X.Tick.Marker = &ActivityXTicks{duration: data.Duration, nTicks: 10}
+	p.X.Tick.Label.Font.Size = PLOTTING_TICK_FONT_SIZE
 	p.Y.Label.Text = "layers"
-	p.Y.Label.TextStyle.Font.Size = 40
-	p.Y.Tick.Marker = &NetYTicks{layerTicks: ticks}
-	p.Y.Tick.Label.Font.Size = 20
+	p.Y.Label.TextStyle.Font.Size = PLOTTING_LABEL_FONT_SIZE
+	p.Y.Tick.Marker = &ActivityYTicks{layerTicks: ticks}
+	p.Y.Tick.Label.Font.Size = PLOTTING_TICK_FONT_SIZE
 
 	if err := p.Save(20*vg.Inch, 20*vg.Inch, imgPath); err != nil {
-		panic(err)
+		return err
 	}
-	fmt.Printf("[INFO] Saved activity plot in %v\n", imgPath)
+	return nil
 }

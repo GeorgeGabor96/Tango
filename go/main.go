@@ -7,7 +7,8 @@ import (
 	"os"
 	"strings"
 	"sync"
-	"tango/go/network"
+	"tango/go/experiment"
+	"tango/go/plotting"
 )
 
 type Arguments struct {
@@ -39,7 +40,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	meta, _ := network.BuildMeta(args.binFolder)
+	meta, _ := experiment.BuildMeta(args.binFolder)
 
 	var wg sync.WaitGroup
 	for sampleName := range meta.Samples {
@@ -55,10 +56,23 @@ func main() {
 	wg.Wait()
 }
 
-func CreateActivityPlot(meta *network.Meta, sampleName string) {
-	data, err := network.BuildData(meta, sampleName)
+func CreateActivityPlot(meta *experiment.Meta, sampleName string) {
+	fmt.Printf("[INFO] Begin processing sample %v\n", sampleName)
+	data, err := experiment.BuildData(meta, sampleName)
 	if err != nil {
 		log.Fatal(err)
 	}
-	network.ActivityPlot(meta, data, "")
+	plotting.ActivityPlot(meta, data)
+
+	plotting.SynapseConductancePlot(meta, data, 100)
+	plotting.SynapseWeightPlot(meta, data, 100)
+	plotting.SynapsesHistPlot(meta, data, 100)
+
+	plotting.NeuronVoltagePlot(meta, data, 100)
+	plotting.NeuronSpikesPlot(meta, data, 100)
+	plotting.NeuronPscPlot(meta, data, 100)
+	plotting.NeuronEpscPlot(meta, data, 100)
+	plotting.NeuronIpscPlot(meta, data, 100)
+
+	fmt.Printf("[INFO] Finished processing sample %v\n", sampleName)
 }
