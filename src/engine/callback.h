@@ -7,13 +7,13 @@
 *****************************/
 typedef struct DumperLayerMeta {
     String* name;
-    u32 neuron_start_idx;
+    u32 neuron_start_i;
     u32 n_neurons;
 } DumperLayerMeta;
 
 typedef struct DumperSynapseMeta {
-    u32 in_neuron_idx;
-    u32 out_neuron_idx;
+    u32 in_neuron_i;
+    u32 out_neuron_i;
 } DumperSynapseMeta;
 
 typedef struct DumperMeta {

@@ -37,8 +37,8 @@ typedef struct Layer {
     u32 n_inputs;
     u32 n_outputs;
 
-    u32 neuron_idx_start;
-    u32 neuron_idx_end;
+    u32 neuron_start_i;
+    u32 neuron_end_i;
 
     bool it_ran;
 } Layer;

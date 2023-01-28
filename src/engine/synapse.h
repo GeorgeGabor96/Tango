@@ -37,8 +37,8 @@ struct Synapse {
                       // NOTE: Need to use a bigger type if we want a bigger delay
                       // TODO: add checks
 
-    Neuron* in_neuron;
-    Neuron* out_neuron;
+    u32 in_neuron_i;
+    u32 out_neuron_i;
 };
 
 
