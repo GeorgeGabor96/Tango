@@ -41,21 +41,10 @@ internal NeuronCls* neuron_cls_create_lif_refract(State* state,
                                                   const char* name,
                                                   u32 refract_time);
 
-
-typedef struct InSynapseArray {
-    u32 length;
-    sz synapse_size;
-    Synapse* synapses;
-} InSynapseArray;
-
-
-internal Synapse* in_synapse_array_get(InSynapseArray* synapses, u32 i);
-
-
 typedef struct SynapseIdxArray {
     u32 capacity;
     u32 length;
-    u32* values;
+    u32* idxs;
     struct SynapseIdxArray* next;
 } SynapseIdxArray;
 
@@ -73,8 +62,8 @@ struct Neuron {
     bool spike;
     u32 last_spike_time;
 
-    SynapseIdxArray* in_synapses;
-    SynapseIdxArray* out_synapses;
+    SynapseIdxArray* in_synapse_arrays;
+    SynapseIdxArray* out_synapse_arrays;
     u32 n_in_synapse_arrays;
     u32 n_out_synapse_arrays;
 };
@@ -83,23 +72,18 @@ struct Neuron {
 internal Neuron* neuron_create(State* state,  NeuronCls* cls);
 internal void neuron_init(Neuron* neuron, NeuronCls* cls);
 
-// NOTE: the neuron takes ownership over the synapses array
-internal void neuron_add_in_synapse_array(Neuron* neuron,
-                                          InSynapseArray* synapses);
-internal void neuron_add_out_synapse_array(Neuron* neuron, OutSynapseArray* synapses);
-
-internal void neuron_step(Neuron* neuron, u32 time);
+internal void neuron_step(Neuron* neuron, Synapse* synapses, u32 time);
 
 // NOTE: use to set inputs
-internal void neuron_step_force_spike(Neuron* neuron, u32 time);
-internal void neuron_step_inject_current(Neuron* neuron, f32 psc, u32 time);
+internal void neuron_step_force_spike(Neuron* neuron, Synapse* synapses, u32 time);
+internal void neuron_step_inject_current(Neuron* neuron, Synapse* synapses, f32 psc, u32 time);
 
-internal void neuron_clear(Neuron* neuron);
+internal void neuron_clear(Neuron* neuron, Synapse* synapses);
 
 // For plasticity
-internal void neuron_learning_step(Neuron* neuron, u32 time);
-internal void neuron_learning_step_force_spike(Neuron* neuron, u32 time);
-internal void neuron_learning_step_inject_current(Neuron* neuron,
+internal void neuron_learning_step(Neuron* neuron, Neuron* neurons, Synapse* synapses, u32 time);
+internal void neuron_learning_step_force_spike(Neuron* neuron, Neuron* neurons, Synapse* synapses, u32 time);
+internal void neuron_learning_step_inject_current(Neuron* neuron, Neuron* neurons, Synapse* synapses,
                                                   f32 psc,
                                                   u32 time);
 

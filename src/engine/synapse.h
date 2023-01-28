@@ -46,7 +46,6 @@ internal sz synapse_size_with_cls(SynapseCls* cls);
 internal Synapse* synapse_create(State* state, SynapseCls* cls, f32 weight);
 internal void synapse_init(Synapse* synapse, SynapseCls* cls, f32 weight);
 
-internal u32 synapse_next_spike_time(Synapse* synapse);
 internal void synapse_add_spike_time(Synapse* synapse, u32 spike_time);
 internal f32 synapse_compute_psc(Synapse* synapse, f32 voltage);
 internal void synapse_step(Synapse* synapse, u32 time);
@@ -59,11 +58,8 @@ internal void synapse_clear(Synapse* synapse);
 #define SYNAPSE_POTENTIATION_INTERVAL (u32)20
 #define SYNAPSE_DEPRESSION_INTERVAL (u32) 30
 
+internal void synapse_stdp_potentiation_update(Synapse* synapse, u32 in_spike_time, u32 out_spike_time);
 
-internal f32 synapse_stdp_potentiation_weight_update(u32 interval);
-internal void synapse_stdp_potentiation_update(Synapse* synapse);
-
-internal f32 synapse_stdp_depression_weight_update(u32 interval);
-internal void synapse_stdp_depression_update(Synapse* synapse);
+internal void synapse_stdp_depression_update(Synapse* synapse, u32 in_spike_time, u32 out_spike_time);
 
 #endif // __SYNAPSE_H__
