@@ -25,20 +25,12 @@ layer_create(State* state, const char* name, LayerType type, u32 n_neurons, Neur
 
     layer = (Layer*) memory_push(state->permanent_storage, sizeof(*layer));
     check_memory(layer);
+    memset(layer, 0, sizoef(*layer));
 
     layer->n_neurons = n_neurons;
-    // TODO: should I just keep pointers to neurons and remove the init?
-    layer->neurons = (Neuron*)memory_push(state->permanent_storage, layer->n_neurons * sizeof(Neuron));
-    check_memory(layer->neurons);
-    for (i = 0; i < layer->n_neurons; ++i)
-        neuron_init(layer->neurons + i, cls);
-
-    memset(layer->in_layers, 0, sizeof(Layer*) * LAYER_N_MAX_IN_LAYERS);
-
     layer->name = string_create(state->permanent_storage, name);
     check_memory(layer->name);
     layer->type = type;
-    layer->it_ran = FALSE;
 
     return layer;
     error:
@@ -285,109 +277,132 @@ layer_show(Layer* layer) {
 
 
 internal bool
-_layer_link_dense(State* state,
-                 Layer* layer, Layer* in_layer,
-                 SynapseCls* cls, f32 weight, f32 chance) {
+_layer_link_dense(State* state, Layer* layer, LayerLink* link, Neuron* neurons, Synapse* synapses, u32 offset) {
     u32 neuron_i = 0;
     u32 in_neuron_i = 0;
-    u32 in_synapses_init = 0;
-    Neuron* neuron = NULL;
+    Layer* in_layer = link->layer;
+
+    f32 chance = link->chance;
+    if (chance < 1.0f) chance = math_clip_f32(chance + 0.1f, 0.0f, 1.0f);
+    u32 n_synapses_per_neuron = (u32)(chance * in_layer->n_neurons);
+
+    for (neuron_i = layer->neuron_idx_start; neuron_i < layer->neuron_idx_end; ++neuron_i) {
+        SynapseIdxArray* synapse_idxs = memory_push(state->permanent_storage, sizeof(*synapse_idxs) * n_synapses_per_neuron * sizeof(u32));
+        check_memory(synapse_idxs);
+        synapse_idxs->capacity = n_synapses_per_neuron;
+        synapse_idxs->length = 0;
+        synapse_idxs->values = (u32*)(synapse_idxs + 1);
+
+        Neuron* neuron = &neurons[neuron_i];
+        synapse_idxs->next = neuron->in_synapses != NULL ? neuron->in_synapses : NULL;
+        neuron->in_synapses = synapse_idxs;
+    }
+
+    // TODO: <= or just <??
+    n_synapses_per_neuron = (u32)(chance * layer->n_neurons);
+    for (neuron_i = in_layer->neuron_idx_start; neuron_i < in_layer->neuron_idx_end; ++neuron_i) {
+        SynapseIdxArray* synapse_idxs = memory_push(state->permanent_storage, sizeof(*synapse_idxs) * n_synapses_per_neuron * sizeof(u32));
+        check_memory(synapse_idxs);
+        synapse_idxs->capacity = n_synapses_per_neuron;
+        synapse_idxs->length = 0;
+        synapse_idxs->values = (u32*)(synapse_idxs + 1);
+
+        Neuron* neuron = &neurons[neuron_i];
+        synapse_idxs->next = neuron->out_synapses != NULL ? neuron->out_synapses : NULL;
+        neuron->out_synapses = synapse_idxs;
+    }
+
+    SynapseIdxArray* synapse_idxs = NULL;
+    u32 out_neuron_i = 0;
+    u32 in_neuron_i = 0;
     Neuron* in_neuron = NULL;
+    Neuron* out_neuron = NULL;
     Synapse* synapse = NULL;
-    InSynapseArray* in_synapses = NULL;
-    bool status = FALSE;
-    sz synapse_size = synapse_size_with_cls(cls);
+    for (out_neuron_i = layer->neuron_idx_start; out_neuron_i < layer->neuron_idx_end; ++out_neuron_i) {
+        for (in_neuron_i = in_layer->neuron_idx_start; in_neuron_i < in_layer->neuron_idx_end; ++in_neuron_i) {
+            if (random_get_chance_f32() > link->chance) continue;
 
-    OutSynapseArray* out_synapses = NULL;
-    OutSynapseArray** out_synapses_in_layer = memory_push(state->transient_storage,
-                                                          in_layer->n_neurons * sizeof(OutSynapseArray*));
-    check_memory(out_synapses_in_layer);
+            synapse = &synapses[offset];
+            synapse_init(synapse, link->cls, link->weight);
 
-    // INIT the output synapses for each of the input neurons
-    for (neuron_i = 0; neuron_i < in_layer->n_neurons; ++neuron_i) {
-        out_synapses = memory_push(state->permanent_storage,
-                                   sizeof(OutSynapseArray) + sizeof(Synapse*) * layer->n_neurons);
-        check_memory(out_synapses);
-        out_synapses->length = 0;
-        out_synapses->synapses = (Synapse**)(out_synapses + 1);
-        out_synapses_in_layer[neuron_i] = out_synapses;
-    }
+            in_neuron = &neurons[in_neuron_i];
+            synapse_idxs = in_neuron->out_synapses;
+            synapse_idxs->values[synapse_idxs->length++] = offset;
 
-    for (neuron_i = 0; neuron_i < layer->n_neurons; ++neuron_i) {
-        neuron = layer->neurons + neuron_i;
+            out_neuron = &neurons[out_neuron_i];
+            synapse_idxs = out_neuron->in_synapses;
+            synapse_idxs->values[synapse_idxs->length++] = offset;
 
-        // ALLOC all input synapses
-        in_synapses = (InSynapseArray*)memory_push(state->permanent_storage,
-                                        sizeof(InSynapseArray) + synapse_size * in_layer->n_neurons);
-        check_memory(in_synapses);
-        in_synapses->length = in_layer->n_neurons;
-        in_synapses->synapse_size = synapse_size;
-        in_synapses->synapses = (Synapse*)(in_synapses + 1);
-
-        in_synapses_init = 0;
-
-        for (in_neuron_i = 0;
-             in_neuron_i < in_layer->n_neurons;
-             ++in_neuron_i) {
-
-            if (random_get_chance_f32() > chance)
-                continue;
-
-            in_neuron = in_layer->neurons + in_neuron_i;
-
-            synapse = in_synapse_array_get(in_synapses, in_synapses_init);
-            ++(in_synapses_init);
-
-            synapse_init(synapse, cls, weight);
-            synapse->in_neuron = in_neuron;
-            synapse->out_neuron =  neuron;
-
-            // NOTE: save the synapse in the output synapses of the input neuron
-            out_synapses = out_synapses_in_layer[in_neuron_i];
-            out_synapses->synapses[out_synapses->length] = synapse;
-            ++(out_synapses->length);
-
-            // THIS should never happen
-            check(out_synapses->length <= layer->n_neurons,
-                  "out_synapses->length > layer->n_neurons");
+            ++offset;
         }
-        in_synapses->length = in_synapses_init;
-        neuron_add_in_synapse_array(neuron, in_synapses);
     }
 
-    for (neuron_i = 0; neuron_i < in_layer->n_neurons; ++neuron_i) {
-        neuron = in_layer->neurons + neuron_i;
-        out_synapses = out_synapses_in_layer[neuron_i];
-        neuron_add_out_synapse_array(neuron, out_synapses);
-    }
 
-    status = TRUE;
     error:
-    return status;
+    return offset;
 }
 
 
-internal bool
-layer_link(State* state, Layer* layer, Layer* input_layer, SynapseCls* cls, f32 weight, f32 chance) {
+internal u32
+layer_layer_link_synapses(Layer* layer, LayerLink* link, Synapse* synapses, u32 offset) {
     bool status = FALSE;
-    check(state != NULL, "state is NULL");
     check(layer != NULL, "layer is NULL");
-    check(input_layer != NULL, "input_layer is NULL");
-    check(cls != NULL, "cls is NULL");
-    check(chance >= 0.0f && chance <= 1.0f, "chance should be in [0, 1]");
+    check(link != NULL, "link is NULL");
+    check(synapses != NULL, "synapses is NULL");
+    check(offset <= (u32)-1, "offset is too big %u", offset);
 
     if (layer->type == LAYER_DENSE) {
-        status = _layer_link_dense(state, layer, input_layer, cls, weight, chance);
-        check(status == TRUE, "couldn't link layers %s and %s",
-              string_get_c_str(layer->name), string_get_c_str(input_layer->name));
+        offset = _layer_link_dense(layer, link, synapses, offset);
     } else {
         log_error("Unknown layer type %u", layer->type);
     }
 
-    // NOTE: Save reference to the input layer
-    check(layer->n_in_layers < LAYER_N_MAX_IN_LAYERS, "too many input layers");
-    layer->in_layers[layer->n_in_layers] = input_layer;
-    ++(layer->n_in_layers);
+    error:
+    return offset;
+}
+
+
+internal bool
+layer_link(State* state, Layer* layer, Layer* in_layer, SynapseCls* cls, f32 weight, f32 chance) {
+    bool status = FALSE;
+    check(state != NULL, "state is NULL");
+    check(layer != NULL, "layer is NULL");
+    check(in_layer != NULL, "input_layer is NULL");
+    check(cls != NULL, "cls is NULL");
+    check(chance >= 0.0f && chance <= 1.0f, "chance should be in [0, 1]");
+
+    // NOTE: Save references between layers
+    LayerLink* link = (LayerLink*) memory_push(state->permanent_storage, sizeof(LayerLink*));
+    check_memory(link);
+    link->layer = in_layer;
+    link->cls = cls;
+    link->weight = weight;
+    link->chance = chance;
+
+    if (!layer->inputs) {
+        link->next = NULL;
+        layer->inputs = link;
+    } else {
+        link->next = layer->inputs;
+        layer->inputs = link;
+    }
+    layer->n_inputs++;
+
+    link = (LayerLink*) memory_push(state->permanent_storage, sizeof(LayerLink*));
+    check_memory(link);
+    link->layer = layer;
+    link->cls = cls;
+    link->weight = weight;
+    link->chance = chance;
+
+    if (!in_layer->outputs) {
+        link->next = NULL;
+        in_layer->outputs = link;
+    } else {
+        link->next = in_layer->outputs;
+        in_layer->outputs = link;
+    }
+    in_layer->n_outputs++;
 
     error:
     return status;

@@ -26,6 +26,74 @@ network_create(State* state, const char* name) {
 }
 
 
+internal bool
+network_build(State* state, Network* network) {
+    check(state != NULL, "state is NULL");
+    check(network != NULL, "network is NULL");
+
+    u32 n_neurons = 0;
+    u32 n_synapses = 0;
+
+    NetworkLayerLink* layer_it = NULL;
+    LayerLink* in_layer_it = NULL;
+    Layer* layer = NULL;
+    Layer* input = NULL;
+    f32 chance = 0.0f;
+
+    for (layer_it = network->layers; layer_it != NULL; layer_it = layer_it->next) {
+        layer = layer_it->layer;
+        n_neurons += layer->n_neurons;
+
+        in_layer_it = NULL;
+        for (in_layer_it = layer->inputs; in_layer_it != NULL; in_layer_it = in_layer_it->next) {
+            if (in_layer_it->chance >= 1.0f) {
+                n_synapses += layer->n_neurons * in_layer_it->layer->n_neurons;
+            } else {
+                chance = math_clip_f32(in_layer_it->chance + 0.1f, 0.0f, 1.0f);
+                n_synapses += layer->n_neurons * chance * in_layer_it->layer->n_neurons;
+            }
+        }
+    }
+
+    network->neurons = (Neuron*)memory_push(state->permanent_storage, sizeof(Neuron) * n_neurons);
+    check_memory(network->neurons);
+    network->synapses = (Synapse*)memory_push(state->permanent_storage, sizeof(Synapse) * n_synapses);
+    check_memory(network->synapses);
+    network->n_neurons = n_neurons;
+    network->n_synapses = n_synapses;
+
+    // allocate neurons in each layer
+    u32 neuron_offset = 0;
+    for (layer_it = network->layers; layer_it != NULL; layer_it = layer_it->next) {
+        layer = layer_it->layer;
+        layer->neuron_idx_start = neuron_offset;
+        neuron_offset += layer->n_neurons;
+        layer->neuron_idx_end = neuron_offset;
+
+        // TODO: init the neurons, we need a class write? were do we get that
+
+    }
+    check(neuron_offset <= network->n_neurons, "Used more neurons than were allocated");
+
+    // allocate synapses to each pair of layers
+    u32 synapse_offset = 0;
+    for (layer_it = network->layers; layer_it != NULL; layer_it = layer_it->next) {
+        layer = layer_it->layer;
+
+        for (in_layer_it = layer->inputs; in_layer_it != NULL; in_layer_it = in_layer_it->next) {
+
+            synapse_offset = layer_link_synapses(layer, in_layer_it, network->synapses, synapse_offset);
+
+        }
+    }
+    check(synapse_offset <= network->n_synapses, "Used more synapses than were allocated");
+
+    return TRUE;
+    error:
+    return FALSE;
+}
+
+
 internal void
 network_show(Network* network) {
     check(network != NULL, "network is NULL");

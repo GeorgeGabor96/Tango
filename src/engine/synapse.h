@@ -24,7 +24,7 @@ typedef struct SynapseCls {
 
 internal SynapseCls* synapse_cls_create(State* state,
                                         const char* name, SynapseType type,
-                                        f32 rev_potential, f32 amp, 
+                                        f32 rev_potential, f32 amp,
                                         f32 tau_ms, u32 delay);
 
 
@@ -32,13 +32,11 @@ struct Synapse {
     SynapseCls* cls;
     f32 weight;
     f32 conductance;
-    
-    u32 n_max_spike_times;
-    u32 n_spike_times;
-    u32 spike_times_head;  // remove
-    u32 spike_times_tail;  // add
-    u32* spike_times;      // Directly after the synapse
-    
+
+    u64 spike_queue;  // NOTE: Support delays of at most 63
+                      // NOTE: Need to use a bigger type if we want a bigger delay
+                      // TODO: add checks
+
     Neuron* in_neuron;
     Neuron* out_neuron;
 };
@@ -60,7 +58,7 @@ internal void synapse_clear(Synapse* synapse);
 
 #define SYNAPSE_POTENTIATION_INTERVAL (u32)20
 #define SYNAPSE_DEPRESSION_INTERVAL (u32) 30
-                                
+
 
 internal f32 synapse_stdp_potentiation_weight_update(u32 interval);
 internal void synapse_stdp_potentiation_update(Synapse* synapse);

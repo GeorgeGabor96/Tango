@@ -2,11 +2,11 @@
 #define __ENGINE_NEURON_H__
 
 
-typedef enum { 
+typedef enum {
     NEURON_INVALID,
     NEURON_LIF,
-    NEURON_LIF_REFRACT 
-} NeuronType; 
+    NEURON_LIF_REFRACT
+} NeuronType;
 
 
 internal char* neuron_type_get_c_str(NeuronType type);
@@ -37,7 +37,7 @@ typedef struct NeuronCls {
 
 
 internal NeuronCls* neuron_cls_create_lif(State* state, const char* name);
-internal NeuronCls* neuron_cls_create_lif_refract(State* state, 
+internal NeuronCls* neuron_cls_create_lif_refract(State* state,
                                                   const char* name,
                                                   u32 refract_time);
 
@@ -52,10 +52,12 @@ typedef struct InSynapseArray {
 internal Synapse* in_synapse_array_get(InSynapseArray* synapses, u32 i);
 
 
-typedef struct OutSynapseArray {
+typedef struct SynapseIdxArray {
+    u32 capacity;
     u32 length;
-    Synapse** synapses;
-} OutSynapseArray;
+    u32* values;
+    struct SynapseIdxArray* next;
+} SynapseIdxArray;
 
 
 #define NEURON_N_MAX_INPUTS 5u
@@ -70,11 +72,9 @@ struct Neuron {
     f32 ipsc;
     bool spike;
     u32 last_spike_time;
-    
-    // NOTE: the neuron owns its input synapses
-    InSynapseArray* in_synapse_arrays[NEURON_N_MAX_INPUTS];
-    OutSynapseArray* out_synapse_arrays[NEURON_N_MAX_OUTPUTS];
-    
+
+    SynapseIdxArray* in_synapses;
+    SynapseIdxArray* out_synapses;
     u32 n_in_synapse_arrays;
     u32 n_out_synapse_arrays;
 };
@@ -98,7 +98,7 @@ internal void neuron_clear(Neuron* neuron);
 
 // For plasticity
 internal void neuron_learning_step(Neuron* neuron, u32 time);
-internal void neuron_learning_step_force_spike(Neuron* neuron, u32 time); 
+internal void neuron_learning_step_force_spike(Neuron* neuron, u32 time);
 internal void neuron_learning_step_inject_current(Neuron* neuron,
                                                   f32 psc,
                                                   u32 time);
