@@ -173,7 +173,7 @@ synapse_step(Synapse* synapse, u32 time) {
     }
 
     // NOTE: Just shift the queue to the right
-    synapse->spike_queue >= 1; // TODO: check this in the debugger
+    synapse->spike_queue >>= 1; // TODO: check this in the debugger
 
     TIMING_COUNTER_END(SYNAPSE_STEP);
 
