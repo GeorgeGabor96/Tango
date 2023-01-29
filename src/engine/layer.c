@@ -281,7 +281,6 @@ layer_show(Layer* layer, Neuron* neurons) {
     LayerLink* link = NULL;
 
     printf("-------------------\n");
-    printf("Name: %s\n", "123");
     printf("Name: %s\n", string_get_c_str(layer->name));
     printf("Type: %s\n", layer_type_get_c_str(layer->type));
     printf("Number of neurons %u of type %s\n",
@@ -422,14 +421,14 @@ layer_link(State* state, Layer* layer, Layer* in_layer, SynapseCls* cls, f32 wei
     check(chance >= 0.0f && chance <= 1.0f, "chance should be in [0, 1]");
 
     // NOTE: Save references between layers
-    LayerLink* link = (LayerLink*) memory_push(state->permanent_storage, sizeof(LayerLink*));
+    LayerLink* link = (LayerLink*) memory_push(state->permanent_storage, sizeof(*link));
     check_memory(link);
     link->layer = in_layer;
     link->cls = cls;
     link->weight = weight;
     link->chance = chance;
 
-    if (!layer->inputs) {
+    if (layer->inputs == NULL) {
         link->next = NULL;
         layer->inputs = link;
     } else {
@@ -438,14 +437,14 @@ layer_link(State* state, Layer* layer, Layer* in_layer, SynapseCls* cls, f32 wei
     }
     layer->n_inputs++;
 
-    link = (LayerLink*) memory_push(state->permanent_storage, sizeof(LayerLink*));
+    link = (LayerLink*) memory_push(state->permanent_storage, sizeof(*link));
     check_memory(link);
     link->layer = layer;
     link->cls = cls;
     link->weight = weight;
     link->chance = chance;
 
-    if (!in_layer->outputs) {
+    if (in_layer->outputs == NULL) {
         link->next = NULL;
         in_layer->outputs = link;
     } else {

@@ -7,13 +7,17 @@ typedef struct NetworkLayerLink {
     struct NetworkLayerLink* next;
 } NetworkLayerLink;
 
+typedef struct NetworkLayerList {
+    NetworkLayerLink* first;
+    NetworkLayerLink* last;
+} NetworkLayerList;
+
 typedef struct Network {
     String* name;
 
-    // TODO: Do I need to keep all in layers???
-    NetworkLayerLink* layers;
-    NetworkLayerLink* in_layers;
-    NetworkLayerLink* out_layers;
+    NetworkLayerList layers;
+    NetworkLayerList in_layers;
+    NetworkLayerList out_layers;
 
     u32 n_layers;
     u32 n_in_layers;
@@ -24,6 +28,7 @@ typedef struct Network {
     u32 n_neurons;
     u32 n_synapses;
 
+    bool is_built;
 } Network;
 
 

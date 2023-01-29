@@ -153,7 +153,7 @@ data_network_inputs_create(Memory* memory, DataSample* sample, Network* network,
 
     NetworkLayerLink* it = NULL;
 
-    for (i = 0, it = network->in_layers; i < inputs->n_inputs && it != NULL; ++i, it = it->next) {
+    for (i = 0, it = network->in_layers.first; i < inputs->n_inputs && it != NULL; ++i, it = it->next) {
         input = inputs->inputs + i;
         layer = it->layer;
 

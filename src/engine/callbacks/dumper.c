@@ -13,7 +13,7 @@ _callback_dumper_build_meta(Network* network, Memory* memory, String* out_path) 
                                                                  sizeof(*layers_meta) * n_layers);
     check_memory(layers_meta);
 
-    for (layer_i = 0, link = network->layers; layer_i < n_layers && link->next != NULL; ++layer_i, link = link->next) {
+    for (layer_i = 0, link = network->layers.first; layer_i < n_layers && link != NULL; ++layer_i, link = link->next) {
         layer = link->layer;
         layer_meta = &layers_meta[layer_i];
 
@@ -251,7 +251,7 @@ callback_dumper_update(State* state, Callback* callback, Network* network) {
 
     for (synapse_i = 0; synapse_i < network->n_synapses; ++synapse_i) {
         synapse = synapses + synapse_i;
-        synapse_data = synapse_data + synapse_i;
+        synapse_data = synapses_data + synapse_i;
 
         synapse_data->weight = synapse->weight;
         synapse_data->conductance = synapse->conductance;

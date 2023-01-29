@@ -61,6 +61,7 @@ Network* get_network(State* state) {
 
     network_add_layer(state, network, layer_out_exci, FALSE, TRUE);
 
+    network_build(state, network);
     network_show(network);
 
     return network;
@@ -82,7 +83,7 @@ int main() {
     Simulator* sim = simulator_create(state, network, data);
     simulator_add_callback(sim, state, callback);
 
-    simulator_learn(sim, state, pool);
+    simulator_infer(sim, state, pool);
     thread_pool_stop(pool);
 
     timing_report(state->transient_storage, output_folder);
