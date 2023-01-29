@@ -125,7 +125,6 @@ synapse_add_spike_time(Synapse* synapse, u32 spike_time) {
            synapse_next_spike_offset(synapse));
 
     // NOTE: Just set the bit corresponding to the offset
-    // TODO: Check this works in the debugger
     synapse->spike_queue |= 1 << synapse->cls->delay;
 
     error:
@@ -173,7 +172,7 @@ synapse_step(Synapse* synapse, u32 time) {
     }
 
     // NOTE: Just shift the queue to the right
-    synapse->spike_queue >>= 1; // TODO: check this in the debugger
+    synapse->spike_queue >>= 1;
 
     TIMING_COUNTER_END(SYNAPSE_STEP);
 

@@ -192,7 +192,9 @@ _neuron_update_out_synapses(Neuron* neuron, Synapse* synapses, u32 time) {
     Synapse* synapse = NULL;
     SynapseIdxArray* it = NULL;
 
-    for (it = neuron->in_synapse_arrays; it != NULL; it = it->next) {
+    if (neuron->spike == FALSE) return;
+
+    for (it = neuron->out_synapse_arrays; it != NULL; it = it->next) {
         for (synapse_i = 0; synapse_i < it->length; ++synapse_i) {
             synapse = synapses + it->idxs[synapse_i];
             synapse_add_spike_time(synapse, time);
