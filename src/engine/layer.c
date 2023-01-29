@@ -53,7 +53,8 @@ layer_process_neurons(void* task) {
 
     // NOTE: UNWRAP the task structure
     u32 time = layer_task->time;
-    Neuron* neurons = layer_task->neurons;
+    Layer* layer = layer_task->layer;
+    Neuron* neurons = layer_task->neurons + layer->neuron_start_i;
     Synapse* synapses = layer_task->synapses;
     u32 neuron_start_i = layer_task->neuron_start_i;
     u32 neuron_end_i = layer_task->neuron_end_i;
@@ -137,10 +138,10 @@ _layer_task_create(Layer* layer, Neuron* neurons, Synapse* synapses, Memory* mem
     task->neurons = neurons;
     task->synapses = synapses;
     task->time = time;
-    task->neuron_start_i = layer->neuron_start_i + task_i * n_neurons_per_task;
+    task->neuron_start_i = task_i * n_neurons_per_task;
     task->neuron_end_i = task->neuron_start_i + n_neurons_per_task;
-    if (task->neuron_end_i > layer->neuron_end_i)
-        task->neuron_end_i = layer->neuron_end_i;
+    if (task->neuron_end_i > layer->n_neurons)
+        task->neuron_end_i = layer->n_neurons;
 
     error:
     return task;
