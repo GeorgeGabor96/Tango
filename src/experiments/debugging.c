@@ -83,7 +83,7 @@ int main() {
     Simulator* sim = simulator_create(state, network, data);
     simulator_add_callback(sim, state, callback);
 
-    simulator_infer(sim, state, pool);
+    simulator_learn(sim, state, pool);
     thread_pool_stop(pool);
 
     timing_report(state->transient_storage, output_folder);
