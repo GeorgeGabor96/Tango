@@ -27,6 +27,7 @@ struct LayerLink {
 struct Layer {
     LayerType type;
     String* name;
+    NeuronCls* neuron_cls;
 
     LayerLink* inputs;
     LayerLink* outputs;
@@ -82,6 +83,9 @@ internal u32 layer_get_n_in_synapses(Layer* layer, Neuron* neurons);
 internal bool layer_link(State* state,
                          Layer* layer, Layer* input_layer,
                          SynapseCls* cls, f32 weight, f32 chance);
+
+internal u32 layer_link_synapses(State* state, Layer* layer, LayerLink* link, Neuron* neurons, Synapse* synapses, u32 offset);
+internal void layer_init_neurons(Layer* layer, Neuron* neurons);
 
 internal void layer_process_neurons(void* task);
 

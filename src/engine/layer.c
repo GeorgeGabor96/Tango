@@ -25,12 +25,21 @@ layer_create(State* state, const char* name, LayerType type, u32 n_neurons, Neur
 
     layer = (Layer*) memory_push(state->permanent_storage, sizeof(*layer));
     check_memory(layer);
-    memset(layer, 0, sizeof(*layer));
 
-    layer->n_neurons = n_neurons;
+    layer->type = type;
     layer->name = string_create(state->permanent_storage, name);
     check_memory(layer->name);
-    layer->type = type;
+    layer->neuron_cls = cls;
+    layer->inputs = NULL;
+    layer->outputs = NULL;
+    layer->n_inputs = 0;
+    layer->n_outputs = 0;
+
+    layer->n_neurons = n_neurons;
+    layer->neuron_start_i = 0;
+    layer->neuron_end_i = 0;
+
+    layer->it_ran = FALSE;
 
     return layer;
     error:
@@ -272,11 +281,12 @@ layer_show(Layer* layer, Neuron* neurons) {
     LayerLink* link = NULL;
 
     printf("-------------------\n");
+    printf("Name: %s\n", "123");
     printf("Name: %s\n", string_get_c_str(layer->name));
     printf("Type: %s\n", layer_type_get_c_str(layer->type));
     printf("Number of neurons %u of type %s\n",
            layer->n_neurons,
-           string_get_c_str(neurons[layer->neuron_start_i].cls->name));
+           string_get_c_str(layer->neuron_cls->name));
     printf("Number of input synapses %u\n", n_in_synapses);
 
     printf("Input layers: ");
@@ -366,7 +376,7 @@ _layer_link_dense(State* state, Layer* layer, LayerLink* link, Neuron* neurons, 
 
 
 internal u32
-layer_layer_link_synapses(State* state, Layer* layer, LayerLink* link, Neuron* neurons, Synapse* synapses, u32 offset) {
+layer_link_synapses(State* state, Layer* layer, LayerLink* link, Neuron* neurons, Synapse* synapses, u32 offset) {
     bool status = FALSE;
     check(state != NULL, "state is NULL");
     check(layer != NULL, "layer is NULL");
@@ -385,6 +395,22 @@ layer_layer_link_synapses(State* state, Layer* layer, LayerLink* link, Neuron* n
     return offset;
 }
 
+
+internal void
+layer_init_neurons(Layer* layer, Neuron* neurons) {
+    check(layer != NULL, "layer is NULL");
+    check(neurons != NULL, "neurons is NULL");
+
+    u32 neuron_i = 0;
+    Neuron* neuron = NULL;
+    for (neuron_i = layer->neuron_start_i; neuron_i < layer->neuron_end_i; ++neuron_i) {
+        neuron = neurons + neuron_i;
+        neuron_init(neuron, layer->neuron_cls);
+    }
+
+    error:
+    return;
+}
 
 internal bool
 layer_link(State* state, Layer* layer, Layer* in_layer, SynapseCls* cls, f32 weight, f32 chance) {

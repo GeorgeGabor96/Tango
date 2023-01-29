@@ -42,7 +42,6 @@ struct Synapse {
 };
 
 
-internal sz synapse_size_with_cls(SynapseCls* cls);
 internal Synapse* synapse_create(State* state, SynapseCls* cls, f32 weight);
 internal void synapse_init(Synapse* synapse, SynapseCls* cls, f32 weight);
 

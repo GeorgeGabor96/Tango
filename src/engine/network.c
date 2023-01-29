@@ -11,13 +11,18 @@ network_create(State* state, const char* name) {
     network->name = string_create(state->permanent_storage, name);
     check(network->name != NULL, "network->name is NULL");
 
-    memset(network->layers, 0, sizeof(Layer*) * NETWORK_N_MAX_LAYERS);
-    memset(network->in_layers, 0, sizeof(Layer*) * NETWORK_N_MAX_LAYERS);
-    memset(network->out_layers, 0, sizeof(Layer*) * NETWORK_N_MAX_LAYERS);
+    network->layers = NULL;
+    network->in_layers = NULL;
+    network->out_layers = NULL;
 
     network->n_layers = 0;
     network->n_in_layers = 0;
     network->n_out_layers = 0;
+
+    network->neurons = NULL;
+    network->synapses = NULL;
+    network->n_neurons = 0;
+    network->n_synapses = 0;
 
     return network;
 
@@ -64,13 +69,14 @@ network_build(State* state, Network* network) {
 
     // allocate neurons in each layer
     u32 neuron_offset = 0;
+    u32 neuron_i = 0;
+    Neuron* neuron = NULL;
     for (layer_it = network->layers; layer_it != NULL; layer_it = layer_it->next) {
         layer = layer_it->layer;
-        layer->neuron_idx_start = neuron_offset;
+        layer->neuron_start_i = neuron_offset;
         neuron_offset += layer->n_neurons;
-        layer->neuron_idx_end = neuron_offset;
-
-        // TODO: init the neurons, we need a class write? were do we get that
+        layer->neuron_end_i = neuron_offset;
+        layer_init_neurons(layer, network->neurons);
 
     }
     check(neuron_offset <= network->n_neurons, "Used more neurons than were allocated");
@@ -81,9 +87,7 @@ network_build(State* state, Network* network) {
         layer = layer_it->layer;
 
         for (in_layer_it = layer->inputs; in_layer_it != NULL; in_layer_it = in_layer_it->next) {
-
-            synapse_offset = layer_link_synapses(layer, in_layer_it, network->synapses, synapse_offset);
-
+            synapse_offset = layer_link_synapses(state, layer, in_layer_it, network->neurons, network->synapses, synapse_offset);
         }
     }
     check(synapse_offset <= network->n_synapses, "Used more synapses than were allocated");
@@ -98,34 +102,31 @@ internal void
 network_show(Network* network) {
     check(network != NULL, "network is NULL");
     u32 i = 0;
-    u32 n_synapses = 0;
-    u32 n_neurons = 0;
     Layer* layer = NULL;
+    NetworkLayerLink* it = NULL;
 
     printf("-----------------------NETWORK---------------------\n");
     printf("Name: %s\n\n", string_get_c_str(network->name));
 
     printf("Layers:\n");
-    for (i = 0; i < network->n_layers; ++i) {
-        layer = network->layers[i];
-        layer_show(layer);
-        n_synapses += layer_get_n_in_synapses(layer);
-        n_neurons += layer->n_neurons;
+    for (it = network->layers; it != NULL; it = it->next) {
+        layer = it->layer;
+        layer_show(layer, network->neurons);
     }
     printf("Number of layers: %u\n\n", network->n_layers);
 
     printf("Input Layers: ");
-    for (i = 0; i < network->n_in_layers; ++i)
-        printf("%s, ", string_get_c_str(network->in_layers[i]->name));
+    for (it = network->in_layers; it != NULL; it = it->next)
+        printf("%s, ", string_get_c_str(it->layer->name));
     printf("\nNumber of input layers: %u\n\n", network->n_in_layers);
 
     printf("Output Layers: ");
-    for (i = 0; i < network->n_out_layers; ++i)
-        printf("%s, ", string_get_c_str(network->out_layers[i]->name));
+    for (it = network->out_layers; it != NULL; it = it->next)
+        printf("%s, ", string_get_c_str(it->layer->name));
     printf("\nNumber of output layers: %u\n\n", network->n_out_layers);
 
-    printf("Number of neurons: %u\n", n_neurons);
-    printf("Number of synapses: %u\n", n_synapses);
+    printf("Number of neurons: %u\n", network->n_neurons);
+    printf("Number of synapses: %u\n", network->n_synapses);
     printf("-----------------------NETWORK---------------------\n");
 
     error:
@@ -134,25 +135,33 @@ network_show(Network* network) {
 
 
 internal void
-network_add_layer(Network* network, Layer* layer,
+network_add_layer(State* state, Network* network, Layer* layer,
                   bool is_input, bool is_output) {
+    check(state != NULL, "state is NULL");
     check(network != NULL, "network is NULL");
     check(layer != NULL, "layer is NULL");
 
-    check(network->n_layers < NETWORK_N_MAX_LAYERS,
-          "network->n_layers %u  >= NETWORK_N_MAX_LAYERS %u, increase array size",
-          network->n_layers, NETWORK_N_MAX_LAYERS);
-
-    network->layers[network->n_layers] = layer;
+    NetworkLayerLink* link = (NetworkLayerLink*)memory_push(state->permanent_storage, sizeof(*link));
+    check_memory(link);
+    link->layer = layer;
+    link->next = network->layers ? network->layers : NULL;
+    network->layers = link;
+    // TODO: ned to add at the end??
     ++(network->n_layers);
 
     if (is_input == TRUE) {
-        network->in_layers[network->n_in_layers] = layer;
+        link = (NetworkLayerLink*)memory_push(state->permanent_storage, sizeof(*link));
+        link->layer = layer;
+        link->next = network->in_layers ? network->in_layers : NULL;
+        network->in_layers = link;
         ++(network->n_in_layers);
     }
 
     if (is_output == TRUE) {
-        network->out_layers[network->n_out_layers] = layer;
+        link = (NetworkLayerLink*)memory_push(state->permanent_storage, sizeof(*link));
+        link->layer = layer;
+        link->next = network->out_layers ? network->out_layers : NULL;
+        network->out_layers = link;
         ++(network->n_out_layers);
     }
 
@@ -176,39 +185,44 @@ _network_step(Network* network, Inputs* inputs, u32 time, Memory* memory, Thread
 
     Layer* layer = NULL;
     Input* input = NULL;
+    NetworkLayerLink* it = NULL;
     u32 i = 0;
 
     // NOTE: Assume that the order of inputs are the same as the order of input layers in
     // NOTE: the network
-    for (i = 0; i < inputs->n_inputs; ++i) {
+    for (i = 0, it = network->in_layers; it != NULL; ++i, it = it->next) {
         input = inputs->inputs + i;
-        layer = network->layers[i];
+        layer = it->layer;
 
         if (mode == MODE_INFER) {
             if (input->type == INPUT_SPIKES)
-                layer_step_force_spike(layer, time, &(input->spikes), memory, pool);
+                layer_step_force_spike(layer, network->neurons, network->synapses,
+                                       time, &(input->spikes), memory, pool);
             else if (input->type == INPUT_CURRENT)
-                layer_step_inject_current(layer, time, &(input->currents), memory, pool);
+                layer_step_inject_current(layer, network->neurons, network->synapses,
+                                          time, &(input->currents), memory, pool);
             else
                 log_error("Unknown network input type %d", input->type);
         } else if (mode == MODE_LEARNING) {
             if (input->type == INPUT_SPIKES)
-                layer_learning_step_force_spike(layer, time, &(input->spikes), memory, pool);
+                layer_learning_step_force_spike(layer, network->neurons, network->synapses,
+                                                time, &(input->spikes), memory, pool);
             else if (input->type == INPUT_CURRENT)
-                layer_learning_step_inject_current(layer, time, &(input->currents), memory, pool);
+                layer_learning_step_inject_current(layer, network->neurons, network->synapses,
+                                                   time, &(input->currents), memory, pool);
             else
                 log_error("Unknown network input type %d", input->type);
         }
         layer->it_ran = TRUE;
     }
 
-    for (i = 0; i < network->n_layers; ++i) {
-        layer = network->layers[i];
+    for (it = network->layers; it != NULL; it = it->next) {
+        layer = it->layer;
         if (layer->it_ran == FALSE)
             if (mode == MODE_INFER)
-                layer_step(layer, time, memory, pool);
+                layer_step(layer, network->neurons, network->synapses, time, memory, pool);
             else if (mode == MODE_LEARNING)
-                layer_learning_step(layer, time, memory, pool);
+                layer_learning_step(layer, network->neurons, network->synapses, time, memory, pool);
     }
 
     error:
@@ -235,9 +249,10 @@ network_learn(Network* network, Inputs* inputs, u32 time, Memory* memory, Thread
 internal void
 network_clear(Network* network) {
     check(network != NULL, "network is NULL");
+    NetworkLayerLink* it = NULL;
 
-    for (u32 i = 0; i < network->n_layers; ++i)
-        layer_clear(network->layers[i]);
+    for (it = network->layers; it != NULL; it = it->next)
+        layer_clear(it->layer, network->neurons, network->synapses);
 
     error:
     return;
@@ -250,8 +265,18 @@ network_get_layer_voltages(State* state, Network* network, u32 i) {
     check(network != NULL, "network is NULL");
     check(i < network->n_layers, "i >= network->n_layers");
 
-    f32* voltages = layer_get_voltages(state->transient_storage,
-                                       network->layers[i]);
+    u32 j = 0;
+    NetworkLayerLink* it = NULL;
+    Layer* layer = NULL;
+
+    for (j = 0, it = network->layers; it != NULL; ++j, it = it->next) {
+        if (j == i) {
+            layer = it->layer;
+            break;
+        }
+    }
+
+    f32* voltages = layer_get_voltages(state->transient_storage, layer, network->neurons);
     return voltages;
 
     error:
@@ -265,8 +290,18 @@ network_get_layer_spikes(State* state, Network* network, u32 i) {
     check(network != NULL, "network is NULL");
     check(i < network->n_layers, "i >= network->n_layers");
 
-    bool* spikes = layer_get_spikes(state->transient_storage,
-                                    network->layers[i]);
+    u32 j = 0;
+    NetworkLayerLink* it = NULL;
+    Layer* layer = NULL;
+
+    for (j = 0, it = network->layers; it != NULL; ++j, it = it->next) {
+        if (j == i) {
+            layer = it->layer;
+            break;
+        }
+    }
+
+    bool* spikes = layer_get_spikes(state->transient_storage, layer, network->neurons);
     return spikes;
 
     error:
@@ -279,8 +314,11 @@ network_get_layer_idx(Network* net, Layer* layer) {
     check(net != NULL, "net is NULL");
     check(layer != NULL, "layer is NULL");
 
-    for (u32 layer_i = 0; layer_i < net->n_layers; ++layer_i)
-        if (layer == net->layers[layer_i]) return layer_i;
+    u32 i = 0;
+    NetworkLayerLink* it = NULL;
+
+    for (i = 0, it = net->layers; it != NULL; ++i, it = it->next)
+        if (it->layer == layer) return i;
 
     error:
     return (u32) -1;

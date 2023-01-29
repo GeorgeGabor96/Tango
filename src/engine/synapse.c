@@ -69,7 +69,7 @@ synapse_create(State* state, SynapseCls* cls, f32 weight) {
     check(cls != NULL, "cls is NULL");
 
     // Alloc also the queue after the synapse for max cache
-    synapse = (Synapse*)memory_push(state->permanent_storage, synapse_size_with_cls(cls));
+    synapse = (Synapse*)memory_push(state->permanent_storage, sizeof(*synapse));
     check_memory(synapse);
 
     synapse_init(synapse, cls, weight);
