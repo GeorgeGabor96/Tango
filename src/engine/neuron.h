@@ -49,6 +49,9 @@ typedef struct SynapseIdxArray {
 } SynapseIdxArray;
 
 
+SynapseIdxArray* neuron_create_synapses_idx_array(Memory* memory, u32 capacity);
+
+
 #define NEURON_N_MAX_INPUTS 5u
 #define NEURON_N_MAX_OUTPUTS 5u
 #define NEURON_INVALID_SPIKE_TIME (u32)-1

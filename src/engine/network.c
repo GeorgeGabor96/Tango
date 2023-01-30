@@ -144,6 +144,26 @@ network_show(Network* network) {
 }
 
 
+internal bool
+_network_link_layer(Memory* memory, NetworkLayerList* chain, Layer* layer) {
+    NetworkLayerLink* link = (NetworkLayerLink*)memory_push(memory, sizeof(*link));
+    check_memory(link);
+    link->layer = layer;
+    link->next = NULL;
+    if (chain->first) {
+        chain->last->next = link;
+        chain->last = link;
+    } else {
+        chain->first = link;
+        chain->last = link;
+    }
+
+    return TRUE;
+    error:
+    return FALSE;
+}
+
+
 internal void
 network_add_layer(State* state, Network* network, Layer* layer,
                   bool is_input, bool is_output) {
@@ -152,44 +172,19 @@ network_add_layer(State* state, Network* network, Layer* layer,
     check(network->is_built == FALSE, "layers cannot be added if the network is built");
     check(layer != NULL, "layer is NULL");
 
-    NetworkLayerLink* link = (NetworkLayerLink*)memory_push(state->permanent_storage, sizeof(*link));
-    check_memory(link);
-    link->layer = layer;
-    link->next = NULL;
-    if (network->layers.first) {
-        network->layers.last->next = link;
-        network->layers.last = link;
-    } else {
-        network->layers.first = link;
-        network->layers.last = link;
-    }
+    bool res = _network_link_layer(state->permanent_storage, &network->layers, layer);
+    check(res == TRUE, "Couldn't link layer in network->layers");
     ++(network->n_layers);
 
     if (is_input == TRUE) {
-        link = (NetworkLayerLink*)memory_push(state->permanent_storage, sizeof(*link));
-        link->layer = layer;
-        link->next = NULL;
-        if (network->in_layers.first) {
-            network->in_layers.last->next = link;
-            network->in_layers.last = link;
-        } else {
-            network->in_layers.first = link;
-            network->in_layers.last = link;
-        }
+        res = _network_link_layer(state->permanent_storage, &network->in_layers, layer);
+        check(res == TRUE, "Couldn't link layer in network->in_layers");
         ++(network->n_in_layers);
     }
 
     if (is_output == TRUE) {
-        link = (NetworkLayerLink*)memory_push(state->permanent_storage, sizeof(*link));
-        link->layer = layer;
-        link->next = NULL;
-        if (network->out_layers.first) {
-            network->out_layers.last->next = link;
-            network->out_layers.last = link;
-        } else {
-            network->out_layers.first = link;
-            network->out_layers.last = link;
-        }
+        res = _network_link_layer(state->permanent_storage, &network->out_layers, layer);
+        check(res == TRUE, "Couldn't link layer in network->out_layers");
         ++(network->n_out_layers);
     }
 
@@ -286,73 +281,4 @@ network_clear(Network* network) {
 
     error:
     return;
-}
-
-
-internal f32*
-network_get_layer_voltages(State* state, Network* network, u32 i) {
-    check(state != NULL, "state is NULL");
-    check(network != NULL, "network is NULL");
-    check(network->is_built == TRUE, "network should be built");
-    check(i < network->n_layers, "i >= network->n_layers");
-
-    u32 j = 0;
-    NetworkLayerLink* it = NULL;
-    Layer* layer = NULL;
-
-    for (j = 0, it = network->layers.first; it != NULL; ++j, it = it->next) {
-        if (j == i) {
-            layer = it->layer;
-            break;
-        }
-    }
-
-    f32* voltages = layer_get_voltages(state->transient_storage, layer, network->neurons);
-    return voltages;
-
-    error:
-    return NULL;
-}
-
-
-internal bool*
-network_get_layer_spikes(State* state, Network* network, u32 i) {
-    check(state != NULL, "state is NULL");
-    check(network != NULL, "network is NULL");
-    check(network->is_built == TRUE, "network should be built");
-    check(i < network->n_layers, "i >= network->n_layers");
-
-    u32 j = 0;
-    NetworkLayerLink* it = NULL;
-    Layer* layer = NULL;
-
-    for (j = 0, it = network->layers.first; it != NULL; ++j, it = it->next) {
-        if (j == i) {
-            layer = it->layer;
-            break;
-        }
-    }
-
-    bool* spikes = layer_get_spikes(state->transient_storage, layer, network->neurons);
-    return spikes;
-
-    error:
-    return NULL;
-}
-
-
-internal u32
-network_get_layer_idx(Network* net, Layer* layer) {
-    check(net != NULL, "net is NULL");
-    check(net->is_built == TRUE, "network should be built");
-    check(layer != NULL, "layer is NULL");
-
-    u32 i = 0;
-    NetworkLayerLink* it = NULL;
-
-    for (i = 0, it = net->layers.first; it != NULL; ++i, it = it->next)
-        if (it->layer == layer) return i;
-
-    error:
-    return (u32) -1;
 }

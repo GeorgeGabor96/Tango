@@ -38,7 +38,8 @@ synapse_cls_create(State* state,
           rev_potential);
     check(amp > 0.0f, "amp needs to be > 0");
     check(tau_ms > 0.0f, "tau_ms needs to be > 0");
-    check(delay > 0 && delay <= 63, "delay needs to be in [0, 63] not %d", delay);
+    check(delay > 0 && delay <= SYNAPSE_QUEUE_CAPACITY,
+          "delay needs to be in [0, %u] not %llu", delay, SYNAPSE_QUEUE_CAPACITY);
 
     cls = (SynapseCls*)memory_push(state->permanent_storage, sizeof(*cls));
     check_memory(cls);

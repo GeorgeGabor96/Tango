@@ -3,9 +3,7 @@ _memory_add_block(Memory* memory, sz size) {
     MemoryBlock* block = NULL;
     check(memory != NULL, "memory is NULL");
 
-    sz block_size = 0;
-    if (size > memory->block_size) block_size = size;
-    else block_size = memory->block_size;
+    sz block_size = size > memory->block_size ? size : memory->block_size;
 
     block = (MemoryBlock*)memory_malloc(sizeof(*block) + block_size, "_memory_block_create");
     check_memory(block);
@@ -120,7 +118,7 @@ memory_push(Memory* memory, sz size) {
     }
     else {
         bool found_block = FALSE;
-        // NOTE: Try to find a block that fits th size
+        // NOTE: Try to find a block that fits the size
         while (memory->current_block != NULL) {
             if (memory->current_adr + size <= memory->current_block->memory_end) {
                 found_block = TRUE;

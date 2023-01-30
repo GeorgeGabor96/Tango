@@ -28,6 +28,8 @@ internal SynapseCls* synapse_cls_create(State* state,
                                         f32 tau_ms, u32 delay);
 
 
+#define SYNAPSE_QUEUE_CAPACITY (sizeof(u64) * 8 - 1)
+
 struct Synapse {
     SynapseCls* cls;
     f32 weight;
@@ -35,7 +37,6 @@ struct Synapse {
 
     u64 spike_queue;  // NOTE: Support delays of at most 63
                       // NOTE: Need to use a bigger type if we want a bigger delay
-                      // TODO: add checks
 
     u32 in_neuron_i;
     u32 out_neuron_i;

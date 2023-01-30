@@ -1,3 +1,24 @@
+/****************************
+*   NEURON SYNAPSE ARRAY IDXS
+****************************/
+SynapseIdxArray* neuron_create_synapses_idx_array(Memory* memory, u32 capacity) {
+    check(memory != NULL, "memory is NULL");
+    check(capacity != 0, "capacity is 0");
+
+    SynapseIdxArray* array = memory_push(memory, sizeof(*array) * capacity * sizeof(u32));
+    check_memory(array);
+
+    array->capacity = capacity;
+    array->length = 0;
+    array->idxs = (u32*)(array + 1);
+
+    return array;
+    error:
+    return NULL;
+}
+
+
+
 /********************
 *   NEURON TYPE
 ********************/

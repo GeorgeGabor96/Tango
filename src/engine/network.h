@@ -45,10 +45,4 @@ internal void network_learn(Network* network, Inputs* inputs, u32 time,
                             Memory* memory, ThreadPool* pool);
 internal void network_clear(Network* network);
 
-internal f32* network_get_layer_voltages(State* state, Network* network, u32 i);
-internal bool* network_get_layer_spikes(State* state, Network* network, u32 i);
-
-// TODO: Do i need this?
-internal u32 network_get_layer_idx(Network* net, Layer* layer);
-
 #endif // __ENGINE_NETWORK_H__
