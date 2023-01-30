@@ -20,13 +20,14 @@ typedef struct Memory {
     MemoryBlock* first_block;
     MemoryBlock* last_block;
     u32 n_blocks;
+    bool allow_bigger;
 } Memory;
 
 
-internal Memory* memory_create(sz memory_size);
+internal Memory* memory_create(sz memory_size, bool allow_bigger);
 internal void memory_destroy(Memory* arena);
 internal void memory_clear(Memory* arena);
-internal void* memory_push(Memory* arena, sz size); 
+internal void* memory_push(Memory* arena, sz size);
 
 
 #endif // __UTILS_CONTAINERS_MEMORY_H__

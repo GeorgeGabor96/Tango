@@ -151,10 +151,11 @@ data_network_inputs_create(Memory* memory, DataSample* sample, Network* network,
     bool* spikes = NULL;
     f32* currents = NULL;
 
+    NetworkLayerLink* it = NULL;
 
-    for (i = 0; i < inputs->n_inputs; ++i) {
+    for (i = 0, it = network->in_layers.first; i < inputs->n_inputs && it != NULL; ++i, it = it->next) {
         input = inputs->inputs + i;
-        layer = network->in_layers[i];
+        layer = it->layer;
 
         if (sample->type == DATA_SAMPLE_RANDOM_SPIKES) {
             spikes = (bool*)memory_push(memory, layer->n_neurons * sizeof(bool));

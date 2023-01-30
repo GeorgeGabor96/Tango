@@ -27,12 +27,16 @@ math_max_u32(u32 a, u32 b) {
 
 inline internal u32
 math_clip_u32(u32 value, u32 min, u32 max) {
-    u32 result = value;
-    
-    if (result > max) result = max;
-    else if (result < min) result = min;
-    
-    return result;
+    if (value > max) return max;
+    if (value < min) return min;
+    return value;
+}
+
+inline internal f32
+math_clip_f32(f32 value, f32 min, f32 max) {
+    if (value > max) return max;
+    if (value < min) return min;
+    return value;
 }
 
 

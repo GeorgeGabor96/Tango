@@ -21,8 +21,8 @@ Network* get_network(State* state) {
     Layer* layer_in_inhi = layer_create(state, "input_inhi", LAYER_DENSE,
                                         10, neuron_cls);
 
-    network_add_layer(network, layer_in_exci, TRUE, FALSE);
-    network_add_layer(network, layer_in_inhi, TRUE, FALSE);
+    network_add_layer(state, network, layer_in_exci, TRUE, FALSE);
+    network_add_layer(state, network, layer_in_inhi, TRUE, FALSE);
 
     Layer* last_layer_exci = layer_in_exci;
     Layer* last_layer_inhi = layer_in_inhi;
@@ -45,8 +45,8 @@ Network* get_network(State* state) {
         layer_link(state, cur_layer_inhi, last_layer_inhi,
                    synapse_cls_inhi, 1, connect_chance);
 
-        network_add_layer(network, cur_layer_exci, FALSE, FALSE);
-        network_add_layer(network, cur_layer_inhi, FALSE, FALSE);
+        network_add_layer(state, network, cur_layer_exci, FALSE, FALSE);
+        network_add_layer(state, network, cur_layer_inhi, FALSE, FALSE);
 
         last_layer_exci = cur_layer_exci;
         last_layer_inhi = cur_layer_inhi;
@@ -59,8 +59,9 @@ Network* get_network(State* state) {
     layer_link(state, layer_out_exci, last_layer_inhi, synapse_cls_inhi,
                1, connect_chance);
 
-    network_add_layer(network, layer_out_exci, FALSE, TRUE);
+    network_add_layer(state, network, layer_out_exci, FALSE, TRUE);
 
+    network_build(state, network);
     network_show(network);
 
     return network;
