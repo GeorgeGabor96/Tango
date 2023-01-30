@@ -3,12 +3,10 @@
 
 
 typedef struct State {
-    Memory* permanent_storage;
-    Memory* transient_storage;
+
 } State;
 
 
-#define BLOCK_SIZE MB(10)
 
 
 internal State* state_create();
