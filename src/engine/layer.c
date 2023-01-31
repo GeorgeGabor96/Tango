@@ -352,6 +352,9 @@ _layer_link_dense(State* state, Layer* layer, LayerLink* link, Neuron* neurons, 
             synapse_refs = out_neuron->in_synapse_arrays;
             synapse_refs->synapses[synapse_refs->length++] = synapse;
 
+            synapse->in_neuron = in_neuron;
+            synapse->out_neuron = out_neuron;
+
             ++offset;
         }
     }
