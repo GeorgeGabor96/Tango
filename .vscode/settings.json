@@ -1,9 +1,0 @@
-{
-    "files.associations": {
-        "network.h": "c",
-        "engine.h": "c",
-        "tango.h": "c",
-        "cmath": "c",
-        "experiment.h": "c"
-    }
-}
