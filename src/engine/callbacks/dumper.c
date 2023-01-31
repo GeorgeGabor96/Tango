@@ -37,7 +37,6 @@ _callback_dumper_build_meta(Network* network, Memory* memory, String* out_path) 
         synapse = network->synapses + synapse_i;
         synapse_meta = synapses_meta + synapse_i;
 
-        // TODO: check in debugger
         synapse_meta->in_neuron_i = synapse->in_neuron - network->neurons;
         synapse_meta->out_neuron_i = synapse->out_neuron - network->neurons;
     }
