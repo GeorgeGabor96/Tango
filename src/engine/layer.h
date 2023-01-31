@@ -98,7 +98,7 @@ internal void layer_step_force_spike(Layer* layer, Neuron* neurons, Synapse* syn
                                      u32 time, Spikes* spikes,
                                      Memory* memory, ThreadPool* pool);
 
-internal void layer_clear(Layer* layer, Neuron* neurons, Synapse* synapses);
+internal void layer_clear(Layer* layer, Neuron* neurons);
 
 internal f32* layer_get_voltages(Memory* memory, Layer* layer, Neuron* neurons);
 internal f32* layer_get_pscs(Memory* memory, Layer* layer, Neuron* neurons);

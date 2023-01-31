@@ -93,8 +93,8 @@ synapse_init(Synapse* synapse, SynapseCls* cls, f32 weight) {
 
     synapse->spike_queue = 0;
 
-    synapse->in_neuron_i = 0;
-    synapse->out_neuron_i = 0;
+    synapse->in_neuron = NULL;
+    synapse->out_neuron = NULL;
 
     error:
     return;

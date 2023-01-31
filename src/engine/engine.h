@@ -11,7 +11,7 @@
 #include "engine/network.h"
 #include "engine/data_gen.h"
 #include "engine/callback.h"
-#include "engine/simulator.h"
+#include "engine/experiment.h"
 
 #include "engine/state.c"
 #include "engine/neuron.c"
@@ -20,7 +20,7 @@
 #include "engine/network.c"
 #include "engine/data_gen.c"
 #include "engine/callback.c"
-#include "engine/simulator.c"
+#include "engine/experiment.c"
 
 
 #endif // __ENGINE_H__

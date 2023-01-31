@@ -80,10 +80,10 @@ int main() {
 
     ThreadPool* pool = thread_pool_create(4, layer_process_neurons, state->permanent_storage);
 
-    Simulator* sim = simulator_create(state, network, data);
-    simulator_add_callback(sim, state, callback);
+    Experiment* exp = experiment_create(state, network, data);
+    experiment_add_callback(exp, state, callback);
 
-    simulator_learn(sim, state, pool);
+    experiment_learn(exp, state, pool);
     thread_pool_stop(pool);
 
     timing_report(state->transient_storage, output_folder);

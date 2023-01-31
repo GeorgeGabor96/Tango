@@ -4,6 +4,7 @@
 
 typedef struct Neuron Neuron;
 typedef struct Synapse Synapse;
+typedef struct Synapse* SynapseP;
 
 
 typedef enum {
@@ -52,4 +53,4 @@ typedef struct Inputs {
 } Inputs;
 
 
-#endif // __ENGINE_TYPES_H__ 
+#endif // __ENGINE_TYPES_H__

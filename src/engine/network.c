@@ -277,7 +277,7 @@ network_clear(Network* network) {
     NetworkLayerLink* it = NULL;
 
     for (it = network->layers.first; it != NULL; it = it->next)
-        layer_clear(it->layer, network->neurons, network->synapses);
+        layer_clear(it->layer, network->neurons);
 
     error:
     return;
