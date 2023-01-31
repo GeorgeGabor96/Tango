@@ -11,12 +11,7 @@ experiment_create(State* state, Network* network, DataGen* data) {
 
     experiment->network = network;
     experiment->data = data;
-    experiment->n_callbacks = 0;
-
-    experiment->neurons = NULL;
-    experiment->synapses = NULL;
-    experiment->n_neurons = 0;
-    experiment->n_synapses = 0;
+    experiment->callbacks = NULL;
 
     return experiment;
 
@@ -32,11 +27,11 @@ _experiment_run(Experiment* experiment, State* state, ThreadPool* pool, Mode mod
     check(state != NULL, "state is NULL");
     check(pool != NULL, "pool is NULL");
 
+    CallbackLink* callback_it = NULL;
     DataSample* sample = NULL;
     Inputs* inputs = NULL;
     u32 sample_idx = 0;
     u32 time = 0;
-    u32 callback_i = 0;
 
     // TIMING
     clock_t total_time_start = 0;
@@ -61,9 +56,11 @@ _experiment_run(Experiment* experiment, State* state, ThreadPool* pool, Mode mod
 
         network_clear(experiment->network);
 
-        for (callback_i = 0; callback_i < experiment->n_callbacks; ++callback_i)
+        for (callback_it = experiment->callbacks;
+             callback_it != NULL;
+             callback_it = callback_it->next)
             callback_begin_sample(state,
-                                  experiment->callbacks[callback_i],
+                                  callback_it->callback,
                                   experiment->network,
                                   sample->duration);
 
@@ -86,17 +83,19 @@ _experiment_run(Experiment* experiment, State* state, ThreadPool* pool, Mode mod
 
             network_time += clock() - network_time_start;
 
-            for (callback_i = 0;
-                 callback_i < experiment->n_callbacks;
-                 ++callback_i)
+            for (callback_it = experiment->callbacks;
+                callback_it != NULL;
+                callback_it = callback_it->next)
                 callback_update(state,
-                                experiment->callbacks[callback_i],
+                                callback_it->callback,
                                 experiment->network);
         }
 
-        for (callback_i = 0; callback_i < experiment->n_callbacks; ++callback_i)
+        for (callback_it = experiment->callbacks;
+             callback_it != NULL;
+             callback_it = callback_it->next)
             callback_end_sample(state,
-                                experiment->callbacks[callback_i],
+                                callback_it->callback,
                                 experiment->network);
 
         memory_clear(state->transient_storage);
@@ -145,12 +144,13 @@ experiment_add_callback(Experiment* experiment, State* state, Callback* callback
     check(experiment != NULL, "experiment is NULL");
     check(state != NULL, "state is NULL");
     check(callback != NULL, "callback is NULL");
-    check(experiment->n_callbacks <= SIMULATOR_N_MAX_CALLBACKS,
-          "Cannot add more callbacks: experiment->n_callbacks %u, SIMULATOR_N_MAX_CALLBACKS %u",
-          experiment->n_callbacks, SIMULATOR_N_MAX_CALLBACKS);
 
-    experiment->callbacks[experiment->n_callbacks] = callback;
-    ++(experiment->n_callbacks);
+    CallbackLink* link = (CallbackLink*)memory_push(state->permanent_storage, sizeof(*link));
+    check_memory(link);
+
+    link->callback = callback;
+    link->next = experiment->callbacks ? experiment->callbacks : NULL;
+    experiment->callbacks = link;
 
     error:
     return;

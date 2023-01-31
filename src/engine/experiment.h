@@ -2,18 +2,16 @@
 #define __ENGINE_EXPERIMENT_H__
 
 
-#define SIMULATOR_N_MAX_CALLBACKS 5u
+typedef struct CallbackLink {
+    Callback* callback;
+    struct CallbackLink* next;
+} CallbackLink;
+
 
 typedef struct Experiment {
     Network* network;
     DataGen* data;
-    Callback* callbacks[SIMULATOR_N_MAX_CALLBACKS];
-    u32 n_callbacks;
-
-    Neuron* neurons;
-    Synapse* synapses;
-    u32 n_neurons;
-    u32 n_synapses;
+    CallbackLink* callbacks;
 } Experiment;
 
 
