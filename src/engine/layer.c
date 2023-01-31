@@ -35,9 +35,8 @@ layer_create(State* state, const char* name, LayerType type, u32 n_neurons, Neur
     layer->n_inputs = 0;
     layer->n_outputs = 0;
 
+    layer->neurons = NULL;
     layer->n_neurons = n_neurons;
-    layer->neuron_start_i = 0;
-    layer->neuron_end_i = 0;
 
     layer->it_ran = FALSE;
 
@@ -54,7 +53,7 @@ layer_process_neurons(void* task) {
     // NOTE: UNWRAP the task structure
     u32 time = layer_task->time;
     Layer* layer = layer_task->layer;
-    Neuron* neurons = layer_task->neurons + layer->neuron_start_i;
+    Neuron* neurons = layer->neurons;
     u32 neuron_start_i = layer_task->neuron_start_i;
     u32 neuron_end_i = layer_task->neuron_end_i;
 
@@ -127,15 +126,13 @@ layer_process_neurons(void* task) {
 
 
 internal LayerTask*
-_layer_task_create(Layer* layer, Neuron* neurons, Synapse* synapses, Memory* memory, u32 time,
+_layer_task_create(Layer* layer, Memory* memory, u32 time,
                    u32 task_i, u32 n_neurons_per_task, LayerStepData* data) {
     LayerTask* task = (LayerTask*) memory_push(memory, sizeof(*task));
     check(task != NULL, "task is NULL");
 
     task->data = data;
     task->layer = layer;
-    task->neurons = neurons;
-    task->synapses = synapses;
     task->time = time;
     task->neuron_start_i = task_i * n_neurons_per_task;
     task->neuron_end_i = task->neuron_start_i + n_neurons_per_task;
@@ -162,10 +159,8 @@ _layer_get_n_neurons_per_task(Layer* layer, u32 n_tasks) {
 
 
 internal void
-_layer_run(Layer* layer, Neuron* neurons, Synapse* synapses, u32 time, Memory* memory, ThreadPool* pool, LayerStepData* data) {
+_layer_run(Layer* layer, u32 time, Memory* memory, ThreadPool* pool, LayerStepData* data) {
     check(layer != NULL, "layer is NULL");
-    check(neurons != NULL, "neurons is NULL");
-    check(synapses != NULL, "synapses is NULL");
     check(memory != NULL, "memory is NULL");
     check(pool != NULL, "pool is NULL");
     check(data != NULL, "data is NULL");
@@ -177,7 +172,7 @@ _layer_run(Layer* layer, Neuron* neurons, Synapse* synapses, u32 time, Memory* m
     LayerTask* task = NULL;
 
     for (u32 task_i = 0; task_i < n_tasks; ++task_i) {
-        task = _layer_task_create(layer, neurons, synapses, memory, time, task_i, n_neurons_per_task, data);
+        task = _layer_task_create(layer, memory, time, task_i, n_neurons_per_task, data);
         thread_pool_add_task(pool, task);
     }
 
@@ -189,19 +184,19 @@ _layer_run(Layer* layer, Neuron* neurons, Synapse* synapses, u32 time, Memory* m
 
 
 internal void
-layer_step(Layer* layer, Neuron* neurons, Synapse* synapses, u32 time, Memory* memory, ThreadPool* pool) {
+layer_step(Layer* layer, u32 time, Memory* memory, ThreadPool* pool) {
     TIMING_COUNTER_START(LAYER_STEP);
     LayerStepData data = { 0 };
     data.type = LAYER_TASK_STEP;
 
-    _layer_run(layer, neurons, synapses, time, memory, pool, &data);
+    _layer_run(layer, time, memory, pool, &data);
 
     TIMING_COUNTER_END(LAYER_STEP);
 }
 
 
 internal void
-layer_step_inject_current(Layer* layer, Neuron* neurons, Synapse* synapses, u32 time, Currents* currents,
+layer_step_inject_current(Layer* layer, u32 time, Currents* currents,
                           Memory* memory, ThreadPool* pool) {
     TIMING_COUNTER_START(LAYER_STEP_INJECT_CURRENT);
 
@@ -209,14 +204,14 @@ layer_step_inject_current(Layer* layer, Neuron* neurons, Synapse* synapses, u32 
     data.type = LAYER_TASK_STEP_INJECT_CURRENT;
     data.currents = currents;
 
-    _layer_run(layer, neurons, synapses, time, memory, pool, &data);
+    _layer_run(layer, time, memory, pool, &data);
 
     TIMING_COUNTER_END(LAYER_STEP_INJECT_CURRENT);
 }
 
 
 internal void
-layer_step_force_spike(Layer* layer, Neuron* neurons, Synapse* synapses, u32 time, Spikes* spikes,
+layer_step_force_spike(Layer* layer, u32 time, Spikes* spikes,
                        Memory* memory, ThreadPool* pool) {
     TIMING_COUNTER_START(LAYER_STEP_FORCE_SPIKE);
 
@@ -224,17 +219,18 @@ layer_step_force_spike(Layer* layer, Neuron* neurons, Synapse* synapses, u32 tim
     data.type = LAYER_TASK_STEP_FORCE_SPIKE;
     data.spikes = spikes;
 
-    _layer_run(layer, neurons, synapses, time, memory, pool, &data);
+    _layer_run(layer, time, memory, pool, &data);
 
     TIMING_COUNTER_END(LAYER_STEP_FORCE_SPIKE);
 }
 
 
 internal void
-layer_clear(Layer* layer, Neuron* neurons) {
+layer_clear(Layer* layer) {
     check(layer != NULL, "layer is NULL");
+    Neuron* neurons = layer->neurons;
 
-    for (u32 i = layer->neuron_start_i; i < layer->neuron_end_i; ++i)
+    for (u32 i = 0; i < layer->n_neurons; ++i)
         neuron_clear(neurons + i);
 
     layer->it_ran = FALSE;
@@ -245,17 +241,17 @@ layer_clear(Layer* layer, Neuron* neurons) {
 
 
 internal u32
-layer_get_n_in_synapses(Layer* layer, Neuron* neurons) {
+layer_get_n_in_synapses(Layer* layer) {
     check(layer != NULL, "layer is NULL");
-    check(neurons != NULL, "neurons is NULL");
 
     u32 n_in_synapses = 0;
     u32 i = 0;
     u32 j = 0;
     Neuron* neuron = NULL;
+    Neuron* neurons = layer->neurons;
     SynapseRefArray* it = NULL;
 
-    for (i = layer->neuron_start_i; i < layer->neuron_end_i; ++i) {
+    for (i = 0; i < layer->n_neurons; ++i) {
         neuron = neurons + i;
 
         for (it = neuron->in_synapse_arrays; it != NULL; it = it->next) {
@@ -270,11 +266,11 @@ layer_get_n_in_synapses(Layer* layer, Neuron* neurons) {
 
 
 internal void
-layer_show(Layer* layer, Neuron* neurons) {
+layer_show(Layer* layer) {
     check(layer != NULL, "layer is NULL");
 
     u32 i = 0;
-    u32 n_in_synapses = layer_get_n_in_synapses(layer, neurons);
+    u32 n_in_synapses = layer_get_n_in_synapses(layer);
     LayerLink* link = NULL;
 
     printf("-------------------\n");
@@ -302,7 +298,7 @@ layer_show(Layer* layer, Neuron* neurons) {
 
 
 internal bool
-_layer_link_dense(State* state, Layer* layer, LayerLink* link, Neuron* neurons, Synapse* synapses, u32 offset) {
+_layer_link_dense(State* state, Layer* layer, LayerLink* link, Synapse* synapses, u32 offset) {
     u32 neuron_i = 0;
     Neuron* neuron = NULL;
     Layer* in_layer = link->layer;
@@ -312,21 +308,21 @@ _layer_link_dense(State* state, Layer* layer, LayerLink* link, Neuron* neurons, 
     if (chance < 1.0f) chance = math_clip_f32(chance + 0.1f, 0.0f, 1.0f);
     u32 n_synapses_per_neuron = (u32)(chance * in_layer->n_neurons);
 
-    for (neuron_i = layer->neuron_start_i; neuron_i < layer->neuron_end_i; ++neuron_i) {
+    for (neuron_i = 0; neuron_i < layer->n_neurons; ++neuron_i) {
         synapse_refs = neuron_create_synapses_ref_array(state->permanent_storage, n_synapses_per_neuron);
         check_memory(synapse_refs);
 
-        neuron = neurons + neuron_i;
+        neuron = layer->neurons + neuron_i;
         synapse_refs->next = neuron->in_synapse_arrays != NULL ? neuron->in_synapse_arrays : NULL;
         neuron->in_synapse_arrays = synapse_refs;
     }
 
     n_synapses_per_neuron = (u32)(chance * layer->n_neurons);
-    for (neuron_i = in_layer->neuron_start_i; neuron_i < in_layer->neuron_end_i; ++neuron_i) {
+    for (neuron_i = 0; neuron_i < in_layer->n_neurons; ++neuron_i) {
         synapse_refs = neuron_create_synapses_ref_array(state->permanent_storage, n_synapses_per_neuron);
         check_memory(synapse_refs);
 
-        neuron = neurons + neuron_i;
+        neuron = in_layer->neurons + neuron_i;
         synapse_refs->next = neuron->out_synapse_arrays != NULL ? neuron->out_synapse_arrays : NULL;
         neuron->out_synapse_arrays = synapse_refs;
     }
@@ -337,18 +333,18 @@ _layer_link_dense(State* state, Layer* layer, LayerLink* link, Neuron* neurons, 
     Neuron* in_neuron = NULL;
     Neuron* out_neuron = NULL;
     Synapse* synapse = NULL;
-    for (out_neuron_i = layer->neuron_start_i; out_neuron_i < layer->neuron_end_i; ++out_neuron_i) {
-        for (in_neuron_i = in_layer->neuron_start_i; in_neuron_i < in_layer->neuron_end_i; ++in_neuron_i) {
+    for (out_neuron_i = 0; out_neuron_i < layer->n_neurons; ++out_neuron_i) {
+        for (in_neuron_i = 0; in_neuron_i < in_layer->n_neurons; ++in_neuron_i) {
             if (random_get_chance_f32() > link->chance) continue;
 
             synapse = synapses + offset;
             synapse_init(synapse, link->cls, link->weight);
 
-            in_neuron = neurons + in_neuron_i;
+            in_neuron = in_layer->neurons + in_neuron_i;
             synapse_refs = in_neuron->out_synapse_arrays;
             synapse_refs->synapses[synapse_refs->length++] = synapse;
 
-            out_neuron = neurons + out_neuron_i;
+            out_neuron = layer->neurons + out_neuron_i;
             synapse_refs = out_neuron->in_synapse_arrays;
             synapse_refs->synapses[synapse_refs->length++] = synapse;
 
@@ -365,17 +361,16 @@ _layer_link_dense(State* state, Layer* layer, LayerLink* link, Neuron* neurons, 
 
 
 internal u32
-layer_link_synapses(State* state, Layer* layer, LayerLink* link, Neuron* neurons, Synapse* synapses, u32 offset) {
+layer_link_synapses(State* state, Layer* layer, LayerLink* link, Synapse* synapses, u32 offset) {
     bool status = FALSE;
     check(state != NULL, "state is NULL");
     check(layer != NULL, "layer is NULL");
     check(link != NULL, "link is NULL");
-    check(neurons != NULL, "neurons is NULL");
     check(synapses != NULL, "synapses is NULL");
     check(offset <= (u32)-1, "offset is too big %u", offset);
 
     if (layer->type == LAYER_DENSE) {
-        offset = _layer_link_dense(state, layer, link, neurons, synapses, offset);
+        offset = _layer_link_dense(state, layer, link, synapses, offset);
     } else {
         log_error("Unknown layer type %u", layer->type);
     }
@@ -386,15 +381,13 @@ layer_link_synapses(State* state, Layer* layer, LayerLink* link, Neuron* neurons
 
 
 internal void
-layer_init_neurons(Layer* layer, Neuron* neurons) {
+layer_init_neurons(Layer* layer) {
     check(layer != NULL, "layer is NULL");
-    check(neurons != NULL, "neurons is NULL");
 
     u32 neuron_i = 0;
-    Neuron* neuron = NULL;
-    for (neuron_i = layer->neuron_start_i; neuron_i < layer->neuron_end_i; ++neuron_i) {
-        neuron = neurons + neuron_i;
-        neuron_init(neuron, layer->neuron_cls);
+    Neuron* neurons = layer->neurons;
+    for (neuron_i = 0; neuron_i < layer->n_neurons; ++neuron_i) {
+        neuron_init(neurons + neuron_i, layer->neuron_cls);
     }
 
     error:
@@ -447,15 +440,15 @@ layer_link(State* state, Layer* layer, Layer* in_layer, SynapseCls* cls, f32 wei
 
 
 internal f32*
-layer_get_voltages(Memory* memory, Layer* layer, Neuron* neurons) {
+layer_get_voltages(Memory* memory, Layer* layer) {
     check(memory != NULL, "memory is NULL");
     check(layer != NULL, "layer is NULL");
-    check(neurons != NULL, "neurons is NULL");
 
     f32* voltages = (f32*)memory_push(memory, sizeof(f32) * layer->n_neurons);
     check_memory(voltages);
+    Neuron* neurons = layer->neurons;
 
-    for (u32 i = layer->neuron_start_i; i < layer->neuron_end_i; ++i)
+    for (u32 i = 0; i < layer->n_neurons; ++i)
         voltages[i] = (neurons + i)->voltage;
 
     return voltages;
@@ -466,13 +459,13 @@ layer_get_voltages(Memory* memory, Layer* layer, Neuron* neurons) {
 
 
 internal f32*
-layer_get_pscs(Memory* memory, Layer* layer, Neuron* neurons) {
+layer_get_pscs(Memory* memory, Layer* layer) {
     check(memory != NULL, "memory is NULL");
     check(layer != NULL, "layer is NULL");
-    check(neurons != NULL, "neurons is NULL");
 
     f32* pscs = (f32*)memory_push(memory, sizeof(f32) * layer->n_neurons);
     check_memory(pscs);
+    Neuron* neurons = layer->neurons;
 
     for (u32 i = 0; i < layer->n_neurons; ++i)
         pscs[i] = (neurons + i)->epsc + (neurons + i)->ipsc;
@@ -485,13 +478,13 @@ layer_get_pscs(Memory* memory, Layer* layer, Neuron* neurons) {
 
 
 internal f32*
-layer_get_epscs(Memory* memory, Layer* layer, Neuron* neurons) {
+layer_get_epscs(Memory* memory, Layer* layer) {
     check(memory != NULL, "memory is NULL");
     check(layer != NULL, "layer is NULL");
-    check(neurons != NULL, "neurons is NULL");
 
     f32* epscs = (f32*)memory_push(memory, sizeof(f32) * layer->n_neurons);
     check_memory(epscs);
+    Neuron* neurons = layer->neurons;
 
     for (u32 i = 0; i < layer->n_neurons; ++i)
         epscs[i] = (neurons + i)->epsc;
@@ -504,13 +497,13 @@ layer_get_epscs(Memory* memory, Layer* layer, Neuron* neurons) {
 
 
 internal f32*
-layer_get_ipscs(Memory* memory, Layer* layer, Neuron* neurons) {
+layer_get_ipscs(Memory* memory, Layer* layer) {
     check(memory != NULL, "memory is NULL");
     check(layer != NULL, "layer is NULL");
-    check(neurons != NULL, "neurons is NULL");
 
     f32* ipscs = (f32*)memory_push(memory, sizeof(f32) * layer->n_neurons);
     check_memory(ipscs);
+    Neuron* neurons = layer->neurons;
 
     for (u32 i = 0; i < layer->n_neurons; ++i)
         ipscs[i] = (neurons + i)->ipsc;
@@ -523,13 +516,13 @@ layer_get_ipscs(Memory* memory, Layer* layer, Neuron* neurons) {
 
 
 internal bool*
-layer_get_spikes(Memory* memory, Layer* layer, Neuron* neurons) {
+layer_get_spikes(Memory* memory, Layer* layer) {
     check(memory != NULL, "memory is NULL");
     check(layer != NULL, "layer is NULL");
-    check(neurons != NULL, "neurons is NULL");
 
     bool* spikes = (bool*)memory_push(memory, sizeof(bool) * layer->n_neurons);
     check_memory(spikes);
+    Neuron* neurons = layer->neurons;
 
     for (u32 i = 0; i < layer->n_neurons; ++i)
         spikes[i] = (neurons + i)->spike;
@@ -542,20 +535,20 @@ layer_get_spikes(Memory* memory, Layer* layer, Neuron* neurons) {
 
 
 internal void
-layer_learning_step(Layer* layer, Neuron* neurons, Synapse* synapses, u32 time, Memory* memory, ThreadPool* pool) {
+layer_learning_step(Layer* layer, u32 time, Memory* memory, ThreadPool* pool) {
     TIMING_COUNTER_START(LAYER_LEARNING_STEP);
 
     LayerStepData data = { 0 };
     data.type = LAYER_TASK_LEARNING_STEP;
 
-    _layer_run(layer, neurons, synapses, time, memory, pool, &data);
+    _layer_run(layer, time, memory, pool, &data);
 
     TIMING_COUNTER_END(LAYER_LEARNING_STEP);
 }
 
 
 internal void
-layer_learning_step_inject_current(Layer* layer, Neuron* neurons, Synapse* synapses, u32 time, Currents* currents,
+layer_learning_step_inject_current(Layer* layer, u32 time, Currents* currents,
                                    Memory* memory, ThreadPool* pool) {
     TIMING_COUNTER_START(LAYER_LEARNING_STEP_INJECT_CURRENT);
 
@@ -563,14 +556,14 @@ layer_learning_step_inject_current(Layer* layer, Neuron* neurons, Synapse* synap
     data.type = LAYER_TASK_LEARNING_STEP_INJECT_CURRENT;
     data.currents = currents;
 
-    _layer_run(layer, neurons, synapses, time, memory, pool, &data);
+    _layer_run(layer, time, memory, pool, &data);
 
     TIMING_COUNTER_END(LAYER_LEARNING_STEP_INJECT_CURRENT);
 }
 
 
 internal void
-layer_learning_step_force_spike(Layer* layer, Neuron* neurons, Synapse* synapses, u32 time, Spikes* spikes,
+layer_learning_step_force_spike(Layer* layer, u32 time, Spikes* spikes,
                                 Memory* memory, ThreadPool* pool) {
     TIMING_COUNTER_START(LAYER_LEARNING_STEP_FORCE_SPIKE);
 
@@ -578,7 +571,7 @@ layer_learning_step_force_spike(Layer* layer, Neuron* neurons, Synapse* synapses
     data.type = LAYER_TASK_LEARNING_STEP_FORCE_SPIKE;
     data.spikes = spikes;
 
-    _layer_run(layer, neurons, synapses, time, memory, pool, &data);
+    _layer_run(layer, time, memory, pool, &data);
 
     TIMING_COUNTER_END(LAYER_LEARNING_STEP_FORCE_SPIKE);
 }

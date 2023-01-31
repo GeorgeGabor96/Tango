@@ -13,12 +13,14 @@ _callback_dumper_build_meta(Network* network, Memory* memory, String* out_path) 
                                                                  sizeof(*layers_meta) * n_layers);
     check_memory(layers_meta);
 
-    for (layer_i = 0, link = network->layers.first; layer_i < n_layers && link != NULL; ++layer_i, link = link->next) {
+    for (layer_i = 0, link = network->layers.first;
+         layer_i < n_layers && link != NULL;
+         ++layer_i, link = link->next) {
         layer = link->layer;
         layer_meta = layers_meta + layer_i;
 
         layer_meta->name = layer->name;
-        layer_meta->neuron_start_i = layer->neuron_start_i;
+        layer_meta->neuron_start_i = layer->neurons - network->neurons;
         layer_meta->n_neurons = layer->n_neurons;
     }
 
