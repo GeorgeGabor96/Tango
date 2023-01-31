@@ -8,3 +8,4 @@
 **.map
 **__pycache__**
 **.bin
+**.vscode/settings.json

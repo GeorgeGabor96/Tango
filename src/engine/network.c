@@ -76,10 +76,9 @@ network_build(State* state, Network* network) {
     Neuron* neuron = NULL;
     for (layer_it = network->layers.first; layer_it != NULL; layer_it = layer_it->next) {
         layer = layer_it->layer;
-        layer->neuron_start_i = neuron_offset;
+        layer->neurons = network->neurons + neuron_offset;
         neuron_offset += layer->n_neurons;
-        layer->neuron_end_i = neuron_offset;
-        layer_init_neurons(layer, network->neurons);
+        layer_init_neurons(layer);
 
     }
     check(neuron_offset <= n_neurons, "Used more neurons than were allocated");
@@ -90,7 +89,7 @@ network_build(State* state, Network* network) {
         layer = layer_it->layer;
 
         for (in_layer_it = layer->inputs; in_layer_it != NULL; in_layer_it = in_layer_it->next) {
-            synapse_offset = layer_link_synapses(state, layer, in_layer_it, network->neurons, network->synapses, synapse_offset);
+            synapse_offset = layer_link_synapses(state, layer, in_layer_it, network->synapses, synapse_offset);
         }
     }
     check(synapse_offset <= n_max_synapses, "Used more synapses than were allocated");
@@ -121,7 +120,7 @@ network_show(Network* network) {
     printf("Layers:\n");
     for (it = network->layers.first; it != NULL; it = it->next) {
         layer = it->layer;
-        layer_show(layer, network->neurons);
+        layer_show(layer);
     }
     printf("Number of layers: %u\n\n", network->n_layers);
 
@@ -220,19 +219,18 @@ _network_step(Network* network, Inputs* inputs, u32 time, Memory* memory, Thread
 
         if (mode == MODE_INFER) {
             if (input->type == INPUT_SPIKES)
-                layer_step_force_spike(layer, network->neurons, network->synapses,
-                                       time, &(input->spikes), memory, pool);
+                layer_step_force_spike(layer, time, &(input->spikes), memory, pool);
             else if (input->type == INPUT_CURRENT)
-                layer_step_inject_current(layer, network->neurons, network->synapses,
+                layer_step_inject_current(layer,
                                           time, &(input->currents), memory, pool);
             else
                 log_error("Unknown network input type %d", input->type);
         } else if (mode == MODE_LEARNING) {
             if (input->type == INPUT_SPIKES)
-                layer_learning_step_force_spike(layer, network->neurons, network->synapses,
+                layer_learning_step_force_spike(layer,
                                                 time, &(input->spikes), memory, pool);
             else if (input->type == INPUT_CURRENT)
-                layer_learning_step_inject_current(layer, network->neurons, network->synapses,
+                layer_learning_step_inject_current(layer,
                                                    time, &(input->currents), memory, pool);
             else
                 log_error("Unknown network input type %d", input->type);
@@ -244,9 +242,9 @@ _network_step(Network* network, Inputs* inputs, u32 time, Memory* memory, Thread
         layer = it->layer;
         if (layer->it_ran == FALSE)
             if (mode == MODE_INFER)
-                layer_step(layer, network->neurons, network->synapses, time, memory, pool);
+                layer_step(layer, time, memory, pool);
             else if (mode == MODE_LEARNING)
-                layer_learning_step(layer, network->neurons, network->synapses, time, memory, pool);
+                layer_learning_step(layer, time, memory, pool);
     }
 
     error:
@@ -277,7 +275,7 @@ network_clear(Network* network) {
     NetworkLayerLink* it = NULL;
 
     for (it = network->layers.first; it != NULL; it = it->next)
-        layer_clear(it->layer, network->neurons, network->synapses);
+        layer_clear(it->layer);
 
     error:
     return;

@@ -38,8 +38,8 @@ struct Synapse {
     u64 spike_queue;  // NOTE: Support delays of at most 63
                       // NOTE: Need to use a bigger type if we want a bigger delay
 
-    u32 in_neuron_i;
-    u32 out_neuron_i;
+    Neuron* in_neuron;
+    Neuron* out_neuron;
 };
 
 
