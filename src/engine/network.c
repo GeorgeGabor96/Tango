@@ -36,7 +36,7 @@ network_create(State* state, const char* name) {
 }
 
 
-internal bool
+internal b32
 network_build(State* state, Network* network) {
     check(state != NULL, "state is NULL");
     check(network != NULL, "network is NULL");
@@ -143,7 +143,7 @@ network_show(Network* network) {
 }
 
 
-internal bool
+internal b32
 _network_link_layer(Memory* memory, NetworkLayerList* chain, Layer* layer) {
     NetworkLayerLink* link = (NetworkLayerLink*)memory_push(memory, sizeof(*link));
     check_memory(link);
@@ -165,13 +165,13 @@ _network_link_layer(Memory* memory, NetworkLayerList* chain, Layer* layer) {
 
 internal void
 network_add_layer(State* state, Network* network, Layer* layer,
-                  bool is_input, bool is_output) {
+                  b32 is_input, b32 is_output) {
     check(state != NULL, "state is NULL");
     check(network != NULL, "network is NULL");
     check(network->is_built == FALSE, "layers cannot be added if the network is built");
     check(layer != NULL, "layer is NULL");
 
-    bool res = _network_link_layer(state->permanent_storage, &network->layers, layer);
+    b32 res = _network_link_layer(state->permanent_storage, &network->layers, layer);
     check(res == TRUE, "Couldn't link layer in network->layers");
     ++(network->n_layers);
 

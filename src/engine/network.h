@@ -28,17 +28,17 @@ typedef struct Network {
     u32 n_neurons;
     u32 n_synapses;
 
-    bool is_built;
+    b32 is_built;
 } Network;
 
 
 internal Network* network_create(State* state, const char* name);
 
 internal void network_show(Network* network);
-internal bool network_build(State* state, Network* network);
+internal b32 network_build(State* state, Network* network);
 
 internal void network_add_layer(State* state, Network* network, Layer* layer,
-                                bool is_input, bool is_output);
+                                b32 is_input, b32 is_output);
 internal void network_infer(Network* network, Inputs* inputs, u32 time,
                            Memory* memory, ThreadPool* pool);
 internal void network_learn(Network* network, Inputs* inputs, u32 time,

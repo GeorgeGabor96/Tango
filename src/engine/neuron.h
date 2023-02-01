@@ -62,7 +62,7 @@ struct Neuron {
     f32 voltage;
     f32 epsc;
     f32 ipsc;
-    bool spike;
+    b32 spike;
     u32 last_spike_time;
 
     SynapseRefArray* in_synapse_arrays;

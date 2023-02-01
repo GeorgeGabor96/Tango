@@ -148,7 +148,7 @@ data_network_inputs_create(Memory* memory, DataSample* sample, Network* network,
     inputs->inputs = (Input*)memory_push(memory, sizeof(*input) * inputs->n_inputs);
     check_memory(inputs->inputs);
 
-    bool* spikes = NULL;
+    b32* spikes = NULL;
     f32* currents = NULL;
 
     NetworkLayerLink* it = NULL;
@@ -158,7 +158,7 @@ data_network_inputs_create(Memory* memory, DataSample* sample, Network* network,
         layer = it->layer;
 
         if (sample->type == DATA_SAMPLE_RANDOM_SPIKES) {
-            spikes = (bool*)memory_push(memory, layer->n_neurons * sizeof(bool));
+            spikes = (b32*)memory_push(memory, layer->n_neurons * sizeof(b32));
             check_memory(spikes);
             for (j = 0; j < layer->n_neurons; ++j)
                 spikes[j] = random_get_bool(sample->data_gen->random_spikes.chance);
@@ -178,7 +178,7 @@ data_network_inputs_create(Memory* memory, DataSample* sample, Network* network,
             input->currents.n_currents = layer->n_neurons;
         }
         else if (sample->type == DATA_SAMPLE_SPIKE_PULSES) {
-            spikes = (bool*) memory_push(memory, layer->n_neurons * sizeof(bool));
+            spikes = (b32*) memory_push(memory, layer->n_neurons * sizeof(b32));
             check_memory(spikes);
 
             DataGenSpikePulses* data_pulses = &(sample->data_gen->spike_pulses);

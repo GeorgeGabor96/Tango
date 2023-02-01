@@ -30,7 +30,7 @@ _memory_add_block(Memory* memory, sz size) {
 
 
 internal Memory*
-memory_create(sz block_size, bool allow_bigger) {
+memory_create(sz block_size, b32 allow_bigger) {
     Memory* memory = NULL;
 
     check(block_size != 0, "block_size is 0");
@@ -117,7 +117,7 @@ memory_push(Memory* memory, sz size) {
         memory->current_adr = memory_adr + size;
     }
     else {
-        bool found_block = FALSE;
+        b32 found_block = FALSE;
         // NOTE: Try to find a block that fits the size
         while (memory->current_block != NULL) {
             if (memory->current_adr + size <= memory->current_block->memory_end) {

@@ -1,9 +1,9 @@
 /*******************
 * Helpfull functions
 *******************/
-internal bool
+internal b32
 _synapse_is_spike_arriving(Synapse* synapse) {
-    bool result = synapse->spike_queue & 1;
+    b32 result = synapse->spike_queue & 1;
     return result;
 }
 

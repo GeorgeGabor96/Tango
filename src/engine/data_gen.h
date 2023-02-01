@@ -67,7 +67,7 @@ typedef enum {
 
 
 typedef struct DataSampleSpikePulses {
-    bool in_pulse;
+    b32 in_pulse;
     u32 next_pulse_time;
     u32 next_between_pulses_time;
 } DataSampleSpikePulses;

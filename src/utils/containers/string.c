@@ -43,7 +43,7 @@ string_create(Memory* memory, const char* c_str) {
 }
 
 
-internal bool
+internal b32
 string_equal(String* str1, String* str2) {
     u32 i = 0;
     check(str1 != NULL, "str1 is NULL");
@@ -60,7 +60,7 @@ string_equal(String* str1, String* str2) {
 }
 
 
-internal bool
+internal b32
 string_equal_c_str(String* str, const char* c_str) {
     check(str != NULL, "str is NULL");
     check(c_str != NULL, "c_str is NULL");

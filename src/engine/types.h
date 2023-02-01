@@ -34,7 +34,7 @@ typedef struct Currents {
 
 
 typedef struct Spikes {
-    bool* spikes;
+    b32* spikes;
     u32 n_spikes;
 } Spikes;
 

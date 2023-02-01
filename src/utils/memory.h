@@ -18,7 +18,7 @@ internal size_t memory_get_n_blocks();
 internal size_t memory_get_size();
 
 // TRUE if allocations were freed
-internal bool memory_is_empty();
+internal b32 memory_is_empty();
 
 // Shows information about every memory allocations not freed
 internal void memory_report();
