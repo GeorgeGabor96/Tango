@@ -371,7 +371,7 @@ memory_get_size() {
 }
 
 
-internal bool
+internal b32
 memory_is_empty() {
 	if (memory_table == NULL)
         memory_table = memory_hash_table_create(MEMORY_TABLE_INITIAL_LENGTH);

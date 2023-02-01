@@ -30,9 +30,9 @@ random_init() {
 }
 
 
-internal bool
+internal b32
 random_get_bool(f32 chance) {
-    bool result = random_get_chance_f64() <= (f64)chance ? TRUE: FALSE;
+    b32 result = random_get_chance_f64() <= (f64)chance ? TRUE: FALSE;
     return result;
 }
 

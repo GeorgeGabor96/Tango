@@ -67,7 +67,7 @@ layer_process_neurons(void* task) {
         currents_idx = math_clip_u32(n_currents, neuron_start_i, neuron_end_i);
     }
 
-    bool* spikes = NULL;
+    b32* spikes = NULL;
     u32 n_spikes = 0;
     u32 spikes_idx = 0;
     if (layer_task->data->spikes) {
@@ -297,7 +297,7 @@ layer_show(Layer* layer) {
 }
 
 
-internal bool
+internal b32
 _layer_link_dense(State* state, Layer* layer, LayerLink* link, Synapse* synapses, u32 offset) {
     u32 neuron_i = 0;
     Neuron* neuron = NULL;
@@ -362,7 +362,7 @@ _layer_link_dense(State* state, Layer* layer, LayerLink* link, Synapse* synapses
 
 internal u32
 layer_link_synapses(State* state, Layer* layer, LayerLink* link, Synapse* synapses, u32 offset) {
-    bool status = FALSE;
+    b32 status = FALSE;
     check(state != NULL, "state is NULL");
     check(layer != NULL, "layer is NULL");
     check(link != NULL, "link is NULL");
@@ -414,9 +414,9 @@ LayerLink* _layer_link_add(LayerLink* chain, LayerLink* link) {
 }
 
 
-internal bool
+internal b32
 layer_link(State* state, Layer* layer, Layer* in_layer, SynapseCls* cls, f32 weight, f32 chance) {
-    bool status = FALSE;
+    b32 status = FALSE;
     check(state != NULL, "state is NULL");
     check(layer != NULL, "layer is NULL");
     check(in_layer != NULL, "input_layer is NULL");
@@ -515,12 +515,12 @@ layer_get_ipscs(Memory* memory, Layer* layer) {
 }
 
 
-internal bool*
+internal b32*
 layer_get_spikes(Memory* memory, Layer* layer) {
     check(memory != NULL, "memory is NULL");
     check(layer != NULL, "layer is NULL");
 
-    bool* spikes = (bool*)memory_push(memory, sizeof(bool) * layer->n_neurons);
+    b32* spikes = (b32*)memory_push(memory, sizeof(b32) * layer->n_neurons);
     check_memory(spikes);
     Neuron* neurons = layer->neurons;
 

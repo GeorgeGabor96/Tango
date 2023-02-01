@@ -153,7 +153,7 @@ callback_dumper_create(State* state, const char* output_folder, Network* network
     callback->dumper.meta = meta;
     callback->dumper.data = data;
 
-    bool result = os_folder_create_str(output_folder_s);
+    b32 result = os_folder_create_str(output_folder_s);
     check(result == TRUE, "couldn't create folder %s",
           string_get_c_str(output_folder_s));
 

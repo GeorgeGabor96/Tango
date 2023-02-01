@@ -30,7 +30,7 @@ typedef struct DumperMeta {
 
 typedef struct DumperNeuronData {
     f32 voltage;
-    bool spike;
+    b32 spike;
     f32 psc;
     f32 epsc;
     f32 ipsc;

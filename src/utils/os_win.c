@@ -1,7 +1,7 @@
 #include <Windows.h>
 
 
-internal bool
+internal b32
 os_folder_create_c_str(const char* path) {
     check(path != NULL, "path is NULL");
 
@@ -11,7 +11,7 @@ os_folder_create_c_str(const char* path) {
     SECURITY_ATTRIBUTES attr = { 0 };
     attr.nLength = sizeof(attr);
 
-    bool result = CreateDirectoryA(path, &attr);
+    b32 result = CreateDirectoryA(path, &attr);
 
     return result;
     error:
@@ -19,11 +19,11 @@ os_folder_create_c_str(const char* path) {
 }
 
 
-internal bool
+internal b32
 os_folder_create_str(String* path) {
     check(path != NULL, "path is NULL");
 
-    bool result = os_folder_create_c_str(string_get_c_str(path));
+    b32 result = os_folder_create_c_str(string_get_c_str(path));
     return result;
 
     error:
@@ -31,7 +31,7 @@ os_folder_create_str(String* path) {
 }
 
 
-internal bool
+internal b32
 os_folder_delete_c_str(const char* path) {
     check(path != NULL, "path is NULL");
 
@@ -61,7 +61,7 @@ os_folder_delete_c_str(const char* path) {
     int result = SHFileOperationA(&params);
     check(result == 0, "The deletion of %s wasn't succesfull", path);
 
-    bool result_d = RemoveDirectory(path);
+    b32 result_d = RemoveDirectory(path);
     check(result_d == TRUE, "Couldn't delete folder %s", path);
 
     return TRUE;
@@ -70,11 +70,11 @@ os_folder_delete_c_str(const char* path) {
 }
 
 
-internal bool
+internal b32
 os_folder_delete_str(String* path) {
     check(path != NULL, "path is NULL");
 
-    bool result = os_folder_delete_c_str(string_get_c_str(path));
+    b32 result = os_folder_delete_c_str(string_get_c_str(path));
     return result;
 
     error:
@@ -82,7 +82,7 @@ os_folder_delete_str(String* path) {
 }
 
 
-internal bool
+internal b32
 os_folder_exists_c_str(const char* path) {
     check(path != NULL, "path is NULL");
 
@@ -95,11 +95,11 @@ os_folder_exists_c_str(const char* path) {
 }
 
 
-internal bool
+internal b32
 os_folder_exists_str(String* path) {
     check(path != NULL, "path is NULL");
 
-    bool result = os_folder_exists_c_str(string_get_c_str(path));
+    b32 result = os_folder_exists_c_str(string_get_c_str(path));
     return result;
 
     error:

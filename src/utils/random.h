@@ -5,7 +5,7 @@
 
 
 internal void random_init();
-internal bool random_get_bool(f32 chance);
+internal b32 random_get_bool(f32 chance);
 internal f32 random_get_chance_f32();
 internal f64 random_get_chance_f64();
 

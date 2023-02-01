@@ -161,7 +161,7 @@ _neuron_lif_voltage_update(Neuron* neuron, f32 psc) {
 
 internal void
 _neuron_update(Neuron* neuron, u32 time, f32 psc) {
-    bool spike = FALSE;
+    b32 spike = FALSE;
 
     NeuronCls* cls = neuron->cls;
 
