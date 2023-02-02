@@ -123,26 +123,26 @@ _callback_dumper_save_meta(DumperMeta* meta) {
 
 
 internal Callback*
-callback_dumper_create(State* state, const char* output_folder, Network* network) {
-    check(state != NULL, "state is NULL");
+callback_dumper_create(Memory* memory, const char* output_folder, Network* network) {
+    check(memory != NULL, "memory is NULL");
     check(output_folder != NULL, "output_folder is NULL");
     check(network != NULL, "network is NULL");
 
     Callback* callback = NULL;
     String* output_folder_s = NULL;
 
-    output_folder_s = string_create(state->permanent_storage, output_folder);
+    output_folder_s = string_create(memory, output_folder);
     check_memory(output_folder_s);
 
-    callback = (Callback*)memory_push(state->permanent_storage, sizeof(*callback));
+    callback = (Callback*)memory_push(memory, sizeof(*callback));
     check_memory(callback);
 
     DumperMeta* meta = _callback_dumper_build_meta(network,
-                                state->permanent_storage,
+                                memory,
                                 output_folder_s);
     check_memory(meta);
 
-    DumperData* data = _callback_dumper_build_data(meta, state->permanent_storage);
+    DumperData* data = _callback_dumper_build_data(meta, memory);
     check_memory(data);
 
     callback->type = CALLBACK_NETWORK_DUMPER;
@@ -167,12 +167,11 @@ callback_dumper_create(State* state, const char* output_folder, Network* network
 
 
 internal void
-callback_dumper_begin_sample(State* state,
-                             Callback* callback,
+callback_dumper_begin_sample(Callback* callback,
                              Network* network,
-                             u32 sample_duration) {
+                             u32 sample_duration,
+                             Memory* memory) {
     Dumper* dumper = NULL;
-    check(state != NULL, "state is NULL");
     check(callback != NULL, "callback is NULL");
     check(callback->type == CALLBACK_NETWORK_DUMPER,
           "callback->type should be %u (%s) not %u (%s)",
@@ -182,6 +181,7 @@ callback_dumper_begin_sample(State* state,
           callback_type_get_c_str(callback->type));
     check(network != NULL, "network is NULL");
     check(sample_duration != 0, "sample_duration is 0");
+    check(memory != NULL, "memory is NULL");
 
     dumper = &callback->dumper;
     dumper->sample_duration = sample_duration;
@@ -191,10 +191,10 @@ callback_dumper_begin_sample(State* state,
     sprintf(file_name, "sample_%d.bin", dumper->sample_count);
 
 
-    dumper->data->file_name = string_create(state->transient_storage, file_name);
+    dumper->data->file_name = string_create(memory, file_name);
     check_memory(file_name);
 
-    String* file_path = string_path_join(state->transient_storage,
+    String* file_path = string_path_join(memory,
                                          dumper->output_folder,
                                          dumper->data->file_name);
     check(file_path != NULL, "Couldn't build path for sample file %s", file_name);
@@ -207,9 +207,9 @@ callback_dumper_begin_sample(State* state,
 }
 
 
+// TODO: why not keep ref to network and thats it
 internal void
-callback_dumper_update(State* state, Callback* callback, Network* network) {
-    check(state != NULL, "state is NULL");
+callback_dumper_update(Callback* callback, Network* network, Memory* memory) {
     check(callback != NULL, "dumper is NULL");
     check(callback->type == CALLBACK_NETWORK_DUMPER,
           "callback->type should be %u (%s) not %u (%s)",
@@ -218,6 +218,7 @@ callback_dumper_update(State* state, Callback* callback, Network* network) {
           callback->type,
           callback_type_get_c_str(callback->type));
     check(network != NULL, "network is NULL");
+    check(memory != NULL, "memory is NULL");
 
     Dumper* dumper = &callback->dumper;
     check(dumper->sample_step < dumper->sample_duration,
@@ -266,8 +267,7 @@ callback_dumper_update(State* state, Callback* callback, Network* network) {
 
 
 internal void
-callback_dumper_end_sample(State* state, Callback* callback, Network* network) {
-    check(state != NULL, "state is NULL");
+callback_dumper_end_sample(Callback* callback, Network* network, Memory* memory) {
     check(callback != NULL, "dumper is NULL");
     check(callback->type == CALLBACK_NETWORK_DUMPER,
           "callback->type should be %u (%s) not %u (%s)",
@@ -276,6 +276,7 @@ callback_dumper_end_sample(State* state, Callback* callback, Network* network) {
           callback->type,
           callback_type_get_c_str(callback->type));
     check(network != NULL, "network is NULL");
+    check(memory != NULL, "memory is NULL");
 
     Dumper* dumper = &callback->dumper;
 

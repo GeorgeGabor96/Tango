@@ -360,7 +360,7 @@ _layer_link_dense(State* state, Layer* layer, LayerLink* link, Synapse* synapses
 }
 
 
-internal b32
+internal u32
 layer_link_synapses(State* state, Layer* layer, LayerLink* link, Synapse* synapses, u32 offset) {
     check(state != NULL, "state is NULL");
     check(layer != NULL, "layer is NULL");

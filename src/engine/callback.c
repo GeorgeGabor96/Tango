@@ -9,17 +9,17 @@ callback_type_get_c_str(CallbackType type) {
 
 
 internal void
-callback_begin_sample(State* state,
-                      Callback* callback,
+callback_begin_sample(Callback* callback,
                       Network* network,
-                      u32 sample_duration) {
-    check(state != NULL, "state is NULL");
+                      u32 sample_duration,
+                      Memory* memory) {
     check(callback != NULL, "callback is NULL");
     check(network != NULL, "network is NULL");
     check(sample_duration != 0, "sample_duration is NULL");
+    check(memory != NULL, "memory is NULL");
 
     if (callback->type == CALLBACK_NETWORK_DUMPER) {
-        callback_dumper_begin_sample(state, callback, network, sample_duration);
+        callback_dumper_begin_sample(callback, network, sample_duration, memory);
     } else {
         log_error("Unknown callback type %u (%s)",
                   callback->type,
@@ -32,13 +32,13 @@ callback_begin_sample(State* state,
 
 
 internal void
-callback_update(State* state, Callback* callback, Network* network) {
-    check(state != NULL, "state is NULL");
+callback_update(Callback* callback, Network* network, Memory* memory) {
     check(callback != NULL, "callback is NULL");
     check(network != NULL, "network is NULL");
+    check(memory != NULL, "memory is NULL");
 
     if (callback->type == CALLBACK_NETWORK_DUMPER) {
-        callback_dumper_update(state, callback, network);
+        callback_dumper_update(callback, network, memory);
     } else {
         log_error("Unknown callback type %u (%s)",
                   callback->type,
@@ -51,13 +51,13 @@ callback_update(State* state, Callback* callback, Network* network) {
 
 
 internal void
-callback_end_sample(State* state, Callback* callback, Network* network) {
-    check(state != NULL, "state si NULL");
+callback_end_sample(Callback* callback, Network* network, Memory* memory) {
     check(callback != NULL, "callback is NULL");
     check(network != NULL, "network is NULL");
+    check(memory != NULL, "memory is NULL");
 
     if (callback->type == CALLBACK_NETWORK_DUMPER) {
-        callback_dumper_end_sample(state, callback, network);
+        callback_dumper_end_sample(callback, network, memory);
     } else {
         log_error("Unknown callback type %u (%s)",
                   callback->type,
