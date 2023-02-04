@@ -34,8 +34,7 @@ experiment_create(u32 n_workers) {
 
 
 internal void
-_experiment_run(Experiment* experiment, Mode mode)
-{
+_experiment_run(Experiment* experiment, Mode mode) {
     check(experiment != NULL, "experiment is NULL");
     check(experiment->data != NULL, "data is not set");
     check(experiment->network != NULL, "network is not set");
@@ -72,10 +71,9 @@ _experiment_run(Experiment* experiment, Mode mode)
         for (callback_it = experiment->callbacks;
              callback_it != NULL;
              callback_it = callback_it->next)
-            callback_begin_sample(state,
-                                  callback_it->callback,
-                                  experiment->network,
-                                  sample->duration);
+            callback_begin_sample(callback_it->callback,
+                                  sample->duration,
+                                  experiment->transient_memory);
 
         for (time = 0; time < sample->duration; ++time) {
             inputs = data_network_inputs_create(experiment->transient_memory,
@@ -99,17 +97,13 @@ _experiment_run(Experiment* experiment, Mode mode)
             for (callback_it = experiment->callbacks;
                 callback_it != NULL;
                 callback_it = callback_it->next)
-                callback_update(state,
-                                callback_it->callback,
-                                experiment->network);
+                callback_update(callback_it->callback, experiment->transient_memory);
         }
 
         for (callback_it = experiment->callbacks;
              callback_it != NULL;
              callback_it = callback_it->next)
-            callback_end_sample(state,
-                                callback_it->callback,
-                                experiment->network);
+            callback_end_sample(callback_it->callback, experiment->transient_memory);
 
         memory_clear(experiment->transient_memory);
 
@@ -178,7 +172,7 @@ experiment_set_network(Experiment* experiment, Network* network) {
 
     experiment->network = network;
 
-    return TRUE
+    return TRUE;
     error:
     return FALSE;
 }
@@ -186,7 +180,7 @@ experiment_set_network(Experiment* experiment, Network* network) {
 internal b32
 experiment_set_data_gen(Experiment* experiment, DataGen* data) {
     check(experiment != NULL, "experiment is NULL");
-    check(net != NULL, "net is NULL");
+    check(data != NULL, "data is NULL");
 
     check(experiment->data == NULL, "the data gen is already set");
 

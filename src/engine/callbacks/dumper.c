@@ -137,9 +137,7 @@ callback_dumper_create(Memory* memory, const char* output_folder, Network* netwo
     callback = (Callback*)memory_push(memory, sizeof(*callback));
     check_memory(callback);
 
-    DumperMeta* meta = _callback_dumper_build_meta(network,
-                                memory,
-                                output_folder_s);
+    DumperMeta* meta = _callback_dumper_build_meta(network, memory, output_folder_s);
     check_memory(meta);
 
     DumperData* data = _callback_dumper_build_data(meta, memory);
@@ -152,6 +150,7 @@ callback_dumper_create(Memory* memory, const char* output_folder, Network* netwo
     callback->dumper.sample_duration = 0;
     callback->dumper.meta = meta;
     callback->dumper.data = data;
+    callback->dumper.network = network;
 
     b32 result = os_folder_create_str(output_folder_s);
     check(result == TRUE, "couldn't create folder %s",
@@ -167,10 +166,7 @@ callback_dumper_create(Memory* memory, const char* output_folder, Network* netwo
 
 
 internal void
-callback_dumper_begin_sample(Callback* callback,
-                             Network* network,
-                             u32 sample_duration,
-                             Memory* memory) {
+callback_dumper_begin_sample(Callback* callback, u32 sample_duration, Memory* memory) {
     Dumper* dumper = NULL;
     check(callback != NULL, "callback is NULL");
     check(callback->type == CALLBACK_NETWORK_DUMPER,
@@ -179,7 +175,6 @@ callback_dumper_begin_sample(Callback* callback,
           callback_type_get_c_str(CALLBACK_NETWORK_DUMPER),
           callback->type,
           callback_type_get_c_str(callback->type));
-    check(network != NULL, "network is NULL");
     check(sample_duration != 0, "sample_duration is 0");
     check(memory != NULL, "memory is NULL");
 
@@ -207,9 +202,8 @@ callback_dumper_begin_sample(Callback* callback,
 }
 
 
-// TODO: why not keep ref to network and thats it
 internal void
-callback_dumper_update(Callback* callback, Network* network, Memory* memory) {
+callback_dumper_update(Callback* callback, Memory* memory) {
     check(callback != NULL, "dumper is NULL");
     check(callback->type == CALLBACK_NETWORK_DUMPER,
           "callback->type should be %u (%s) not %u (%s)",
@@ -217,7 +211,6 @@ callback_dumper_update(Callback* callback, Network* network, Memory* memory) {
           callback_type_get_c_str(CALLBACK_NETWORK_DUMPER),
           callback->type,
           callback_type_get_c_str(callback->type));
-    check(network != NULL, "network is NULL");
     check(memory != NULL, "memory is NULL");
 
     Dumper* dumper = &callback->dumper;
@@ -229,6 +222,7 @@ callback_dumper_update(Callback* callback, Network* network, Memory* memory) {
     // NOTE: dump the neurons
     u32 neuron_i = 0;
     Neuron* neuron = NULL;
+    Network* network = dumper->network;
     DumperNeuronData* neuron_data = NULL;
     Neuron* neurons = network->neurons;
     DumperNeuronData* neurons_data = dumper->data->neuron_data;
@@ -267,7 +261,7 @@ callback_dumper_update(Callback* callback, Network* network, Memory* memory) {
 
 
 internal void
-callback_dumper_end_sample(Callback* callback, Network* network, Memory* memory) {
+callback_dumper_end_sample(Callback* callback, Memory* memory) {
     check(callback != NULL, "dumper is NULL");
     check(callback->type == CALLBACK_NETWORK_DUMPER,
           "callback->type should be %u (%s) not %u (%s)",
@@ -275,7 +269,6 @@ callback_dumper_end_sample(Callback* callback, Network* network, Memory* memory)
           callback_type_get_c_str(CALLBACK_NETWORK_DUMPER),
           callback->type,
           callback_type_get_c_str(callback->type));
-    check(network != NULL, "network is NULL");
     check(memory != NULL, "memory is NULL");
 
     Dumper* dumper = &callback->dumper;

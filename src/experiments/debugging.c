@@ -70,25 +70,23 @@ Network* get_network(State* state) {
 
 
 int main() {
-    State* state = state_create();
     random_init();
 
+    Experiment* exp = experiment_create(4);
+
+
     const char* output_folder = "D:\\repos\\Tango_outputs\\synfire_chain";
-    Network* network = get_network(state);
-    DataGen* data = data_gen_create_spike_pulses(state, 2, 1000, 100, 20, 50, 0.1f, 0.01f);
-    Callback* callback = callback_dumper_create(state, output_folder, network);
+    Network* network = get_network(exp);
+    DataGen* data = data_gen_create_spike_pulses(exp->permanent_memory, 2, 1000, 100, 20, 50, 0.1f, 0.01f);
+    Callback* callback = callback_dumper_create(exp->permanent_memory, output_folder, network);
 
-    ThreadPool* pool = thread_pool_create(4, layer_process_neurons, state->permanent_storage);
-
-    Experiment* exp = experiment_create(state, network, data);
     experiment_add_callback(exp, state, callback);
 
-    experiment_learn(exp, state, pool);
-    thread_pool_stop(pool);
+    experiment_learn(exp);
 
     timing_report(state->transient_storage, output_folder);
 
-    state_destroy(state);
+    experiment_destroy(exp);
 
     memory_report();
     check(memory_is_empty() == TRUE, "We have memory leaks");
