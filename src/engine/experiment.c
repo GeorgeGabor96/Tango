@@ -34,6 +34,19 @@ experiment_create(u32 n_workers) {
 
 
 internal void
+experiment_destroy(Experiment* experiment) {
+    check(experiment != NULL, "experiment is NULL");
+
+    thread_pool_stop(experiment->pool);
+    memory_destroy(experiment->transient_memory);
+    memory_destroy(experiment->permanent_memory);
+
+    error:
+    return;
+}
+
+
+internal void
 _experiment_run(Experiment* experiment, Mode mode) {
     check(experiment != NULL, "experiment is NULL");
     check(experiment->data != NULL, "data is not set");

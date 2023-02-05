@@ -34,15 +34,14 @@ neuron_type_get_c_str(NeuronType type) {
 *   NEURON CLASS
 ********************/
 internal NeuronCls*
-neuron_cls_create_lif(State* state, const char* name) {
-    NeuronCls* neuron_cls = NULL;
-
-    check(state != NULL, "state is NULL");
+neuron_cls_create_lif(Memory* memory, const char* name) {
+    check(memory != NULL, "memory is NULL");
     check(name != NULL, "name is NULL");
-    neuron_cls = (NeuronCls*)memory_push(state->permanent_storage, sizeof(*neuron_cls));
+
+    NeuronCls* neuron_cls = (NeuronCls*)memory_push(memory, sizeof(*neuron_cls));
     check_memory(neuron_cls);
 
-    neuron_cls->name = string_create(state->permanent_storage, name);
+    neuron_cls->name = string_create(memory, name);
     check_memory(neuron_cls->name);
     neuron_cls->type = NEURON_LIF_REFRACT;
 
@@ -54,15 +53,14 @@ neuron_cls_create_lif(State* state, const char* name) {
 
 
 internal NeuronCls*
-neuron_cls_create_lif_refract(State* state, const char* name, u32 refract_time) {
-    NeuronCls* neuron_cls = NULL;
-
-    check(state != NULL, "state is NULL");
+neuron_cls_create_lif_refract(Memory* memory, const char* name, u32 refract_time) {
+    check(memory != NULL, "memory is NULL");
     check(name != NULL, "name is NULL");
-    neuron_cls = (NeuronCls*)memory_push(state->permanent_storage, sizeof(NeuronCls));
+
+    NeuronCls* neuron_cls = (NeuronCls*)memory_push(memory, sizeof(NeuronCls));
     check_memory(neuron_cls);
 
-    neuron_cls->name = string_create(state->permanent_storage, name);
+    neuron_cls->name = string_create(memory, name);
     check_memory(neuron_cls->name);
 
     neuron_cls->type = NEURON_LIF_REFRACT;
@@ -79,12 +77,10 @@ neuron_cls_create_lif_refract(State* state, const char* name, u32 refract_time) 
 *   NEURON
 ********************/
 internal Neuron*
-neuron_create(State* state, NeuronCls* cls) {
-    Neuron* neuron = NULL;
-
-    check(state != NULL, "state is NULL");
+neuron_create(Memory* memory, NeuronCls* cls) {
+    check(memory != NULL, "memory is NULL");
     check(cls != NULL, "cls is NULL");
-    neuron = (Neuron*)memory_push(state->permanent_storage, sizeof(Neuron));
+    Neuron* neuron = (Neuron*)memory_push(memory, sizeof(Neuron));
     check_memory(neuron);
 
     neuron_init(neuron, cls);

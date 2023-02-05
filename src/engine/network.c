@@ -1,14 +1,14 @@
 internal Network*
-network_create(State* state, const char* name) {
-    check(state != NULL, "state is NULL");
+network_create(Memory* memory, const char* name) {
+    check(memory != NULL, "memory is NULL");
     check(name != NULL, "name is NULL");
 
     Network* network = NULL;
 
-    network = (Network*)memory_push(state->permanent_storage, sizeof(*network));
+    network = (Network*)memory_push(memory, sizeof(*network));
     check_memory(network);
 
-    network->name = string_create(state->permanent_storage, name);
+    network->name = string_create(memory, name);
     check(network->name != NULL, "network->name is NULL");
 
     network->layers.first = NULL;
@@ -37,10 +37,11 @@ network_create(State* state, const char* name) {
 
 
 internal b32
-network_build(State* state, Network* network) {
-    check(state != NULL, "state is NULL");
+network_build(Network* network, Memory* memory) {
     check(network != NULL, "network is NULL");
     check(network->is_built == FALSE, "layers cannot be added if the network is built");
+    check(memory != NULL, "memory is NULL");
+
     u32 n_neurons = 0;
     u32 n_max_synapses = 0;
 
@@ -65,9 +66,9 @@ network_build(State* state, Network* network) {
         }
     }
 
-    network->neurons = (Neuron*)memory_push(state->permanent_storage, sizeof(Neuron) * n_neurons);
+    network->neurons = (Neuron*)memory_push(memory, sizeof(Neuron) * n_neurons);
     check_memory(network->neurons);
-    network->synapses = (Synapse*)memory_push(state->permanent_storage, sizeof(Synapse) * n_max_synapses);
+    network->synapses = (Synapse*)memory_push(memory, sizeof(Synapse) * n_max_synapses);
     check_memory(network->synapses);
 
     // allocate neurons in each layer
@@ -89,7 +90,7 @@ network_build(State* state, Network* network) {
         layer = layer_it->layer;
 
         for (in_layer_it = layer->inputs; in_layer_it != NULL; in_layer_it = in_layer_it->next) {
-            synapse_offset = layer_link_synapses(state, layer, in_layer_it, network->synapses, synapse_offset);
+            synapse_offset = layer_link_synapses(memory, layer, in_layer_it, network->synapses, synapse_offset);
         }
     }
     check(synapse_offset <= n_max_synapses, "Used more synapses than were allocated");
@@ -164,25 +165,25 @@ _network_link_layer(Memory* memory, NetworkLayerList* chain, Layer* layer) {
 
 
 internal void
-network_add_layer(State* state, Network* network, Layer* layer,
-                  b32 is_input, b32 is_output) {
-    check(state != NULL, "state is NULL");
+network_add_layer(Network* network, Layer* layer,
+                  b32 is_input, b32 is_output, Memory* memory) {
     check(network != NULL, "network is NULL");
     check(network->is_built == FALSE, "layers cannot be added if the network is built");
     check(layer != NULL, "layer is NULL");
+    check(memory != NULL, "memory is NULL");
 
-    b32 res = _network_link_layer(state->permanent_storage, &network->layers, layer);
+    b32 res = _network_link_layer(memory, &network->layers, layer);
     check(res == TRUE, "Couldn't link layer in network->layers");
     ++(network->n_layers);
 
     if (is_input == TRUE) {
-        res = _network_link_layer(state->permanent_storage, &network->in_layers, layer);
+        res = _network_link_layer(memory, &network->in_layers, layer);
         check(res == TRUE, "Couldn't link layer in network->in_layers");
         ++(network->n_in_layers);
     }
 
     if (is_output == TRUE) {
-        res = _network_link_layer(state->permanent_storage, &network->out_layers, layer);
+        res = _network_link_layer(memory, &network->out_layers, layer);
         check(res == TRUE, "Couldn't link layer in network->out_layers");
         ++(network->n_out_layers);
     }

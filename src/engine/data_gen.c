@@ -2,12 +2,12 @@
 * DATA GENERATOR
 ***********************/
 internal DataGen*
-data_gen_create_constant_current(State* state, f32 value, u32 n_samples, u32 sample_duration) {
-    check(state != NULL, "state is NULL");
+data_gen_create_constant_current(Memory* memory, f32 value, u32 n_samples, u32 sample_duration) {
+    check(memory != NULL, "memory is NULL");
     check(n_samples > 0, "n_samples is 0");
     check(sample_duration > 0, "sample_duration is 0");
 
-    DataGen* data = (DataGen*)memory_push(state->permanent_storage, sizeof(*data));
+    DataGen* data = (DataGen*)memory_push(memory, sizeof(*data));
     check_memory(data);
 
     data->type = DATA_GEN_CONSTANT_CURRENT;
@@ -23,14 +23,14 @@ data_gen_create_constant_current(State* state, f32 value, u32 n_samples, u32 sam
 
 
 internal DataGen*
-data_gen_create_random_spikes(State* state, f32 chance, u32 n_samples, u32 sample_duration) {
-    check(state != NULL, "state is NULL");
+data_gen_create_random_spikes(Memory* memory, f32 chance, u32 n_samples, u32 sample_duration) {
+    check(memory != NULL, "memory is NULL");
     check(n_samples > 0, "n_samples is 0");
     check(sample_duration > 0, "sample_duration is 0");
     check(chance >= 0.0f, "chance should be at least 0, its %f", chance);
     check(chance <= 1.0f, "chance should be at most 1, its %f", chance);
 
-    DataGen* data = (DataGen*) memory_push(state->permanent_storage, sizeof(*data));
+    DataGen* data = (DataGen*) memory_push(memory, sizeof(*data));
     check_memory(data);
 
     data->type = DATA_GEN_RANDOM_SPIKES;
@@ -46,7 +46,7 @@ data_gen_create_random_spikes(State* state, f32 chance, u32 n_samples, u32 sampl
 
 
 internal DataGen*
-data_gen_create_spike_pulses(State* state,
+data_gen_create_spike_pulses(Memory* memory,
                              u32 n_samples,
                              u32 sample_duration,
                              u32 first_pulse_time,
@@ -54,7 +54,7 @@ data_gen_create_spike_pulses(State* state,
                              u32 between_pulses_duration,
                              f32 pulse_spike_chance,
                              f32 between_pulses_spike_chance) {
-    check(state != NULL, "state is NULL");
+    check(memory != NULL, "memory is NULL");
     check(n_samples > 0, "n_samples is 0");
     check(sample_duration > 0, "sample_duration is 0");
     check(pulse_duration > 0, "pulse_duration is 0");
@@ -67,7 +67,7 @@ data_gen_create_spike_pulses(State* state,
           "between_pulses_spike_chance is %f not in [0, 1]",
           between_pulses_spike_chance);
 
-    DataGen* data = (DataGen*) memory_push(state->permanent_storage, sizeof(*data));
+    DataGen* data = (DataGen*) memory_push(memory, sizeof(*data));
     check_memory(data);
 
     data->type = DATA_GEN_SPIKE_PULSES;

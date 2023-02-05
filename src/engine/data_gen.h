@@ -41,15 +41,15 @@ typedef struct DataGen {
 } DataGen;
 
 
-internal DataGen* data_gen_create_constant_current(State* state,
+internal DataGen* data_gen_create_constant_current(Memory* memory,
                                                    f32 value,
                                                    u32 n_samples,
                                                    u32 sample_duration);
-internal DataGen* data_gen_create_random_spikes(State* state,
+internal DataGen* data_gen_create_random_spikes(Memory* memory,
                                                 f32 chance,
                                                 u32 n_samples,
                                                 u32 sample_duration);
-internal DataGen* data_gen_create_spike_pulses(State* state,
+internal DataGen* data_gen_create_spike_pulses(Memory* memory,
                                                u32 n_samples,
                                                u32 sample_duration,
                                                u32 first_pulse_time,

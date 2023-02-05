@@ -23,12 +23,10 @@ synapse_type_get_c_str(SynapseType type) {
 * Synapse Class
 *******************/
 internal SynapseCls*
-synapse_cls_create(State* state,
+synapse_cls_create(Memory* memory,
                    const char* name, SynapseType type,
                    f32 rev_potential, f32 amp, f32 tau_ms, u32 delay) {
-    SynapseCls* cls = NULL;
-
-    check(state != NULL, "state is NULL");
+    check(memory != NULL, "Memory is NULL");
     check(name != NULL, "name is NULL");
     check(type == SYNAPSE_CONDUCTANCE || type == SYNAPSE_VOLTAGE,
           "invalid synapse type %s",
@@ -41,10 +39,10 @@ synapse_cls_create(State* state,
     check(delay > 0 && delay <= SYNAPSE_QUEUE_CAPACITY,
           "delay needs to be in [0, %u] not %llu", delay, SYNAPSE_QUEUE_CAPACITY);
 
-    cls = (SynapseCls*)memory_push(state->permanent_storage, sizeof(*cls));
+    SynapseCls* cls = (SynapseCls*)memory_push(memory, sizeof(*cls));
     check_memory(cls);
 
-    cls->name = string_create(state->permanent_storage, name);
+    cls->name = string_create(memory, name);
     check_memory(cls->name);
 
     cls->type = type;
@@ -63,14 +61,11 @@ synapse_cls_create(State* state,
 * Synapse
 *******************/
 internal Synapse*
-synapse_create(State* state, SynapseCls* cls, f32 weight) {
-    Synapse* synapse = NULL;
-
-    check(state != NULL, "state is NULL");
+synapse_create(Memory* memory, SynapseCls* cls, f32 weight) {
+    check(memory != NULL, "memory is NULL");
     check(cls != NULL, "cls is NULL");
 
-    // Alloc also the queue after the synapse for max cache
-    synapse = (Synapse*)memory_push(state->permanent_storage, sizeof(*synapse));
+    Synapse* synapse = (Synapse*)memory_push(memory, sizeof(*synapse));
     check_memory(synapse);
 
     synapse_init(synapse, cls, weight);

@@ -36,8 +36,8 @@ typedef struct NeuronCls {
 #define NEURON_LIF_FREE_FACTOR (NEURON_LIF_VOLTAGE_REST / (NEURON_LIF_TAU))
 
 
-internal NeuronCls* neuron_cls_create_lif(State* state, const char* name);
-internal NeuronCls* neuron_cls_create_lif_refract(State* state,
+internal NeuronCls* neuron_cls_create_lif(Memory* memory, const char* name);
+internal NeuronCls* neuron_cls_create_lif_refract(Memory* memory,
                                                   const char* name,
                                                   u32 refract_time);
 
@@ -72,7 +72,7 @@ struct Neuron {
 };
 
 
-internal Neuron* neuron_create(State* state,  NeuronCls* cls);
+internal Neuron* neuron_create(Memory* memory,  NeuronCls* cls);
 internal void neuron_init(Neuron* neuron, NeuronCls* cls);
 
 internal void neuron_step(Neuron* neuron, u32 time);
