@@ -32,13 +32,14 @@ typedef struct Network {
 } Network;
 
 
-internal Network* network_create(State* state, const char* name);
+internal Network* network_create(Memory* memory, const char* name);
 
 internal void network_show(Network* network);
-internal b32 network_build(State* state, Network* network);
+internal b32 network_build(Network* network, Memory* memory);
 
-internal void network_add_layer(State* state, Network* network, Layer* layer,
-                                b32 is_input, b32 is_output);
+internal void network_add_layer(Network* network, Layer* layer,
+                                b32 is_input, b32 is_output,
+                                Memory* memory);
 internal void network_infer(Network* network, Inputs* inputs, u32 time,
                            Memory* memory, ThreadPool* pool);
 internal void network_learn(Network* network, Inputs* inputs, u32 time,

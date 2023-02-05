@@ -22,7 +22,7 @@ typedef struct SynapseCls {
 } SynapseCls;
 
 
-internal SynapseCls* synapse_cls_create(State* state,
+internal SynapseCls* synapse_cls_create(Memory* memory,
                                         const char* name, SynapseType type,
                                         f32 rev_potential, f32 amp,
                                         f32 tau_ms, u32 delay);
@@ -43,7 +43,7 @@ struct Synapse {
 };
 
 
-internal Synapse* synapse_create(State* state, SynapseCls* cls, f32 weight);
+internal Synapse* synapse_create(Memory* memory, SynapseCls* cls, f32 weight);
 internal void synapse_init(Synapse* synapse, SynapseCls* cls, f32 weight);
 
 internal void synapse_add_spike_time(Synapse* synapse, u32 spike_time);

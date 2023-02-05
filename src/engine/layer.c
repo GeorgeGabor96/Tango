@@ -12,22 +12,19 @@ layer_type_get_c_str(LayerType type) {
 *   LAYER
 ****************/
 internal Layer*
-layer_create(State* state, const char* name, LayerType type, u32 n_neurons, NeuronCls* cls) {
-    Layer* layer = NULL;
-    u32 i = 0;
-
-    check(state != NULL, "state is NULL");
+layer_create(Memory* memory, const char* name, LayerType type, u32 n_neurons, NeuronCls* cls) {
+    check(memory != NULL, "memory is NULL");
     check(name != NULL, "name is NULL");
     check(type == LAYER_DENSE, "invalid layer type %s",
           layer_type_get_c_str(type));
     check(n_neurons > 0, "n_neurons is 0");
     check(cls != NULL, "cls is NULL");
 
-    layer = (Layer*) memory_push(state->permanent_storage, sizeof(*layer));
+    Layer* layer = (Layer*) memory_push(memory, sizeof(*layer));
     check_memory(layer);
 
     layer->type = type;
-    layer->name = string_create(state->permanent_storage, name);
+    layer->name = string_create(memory, name);
     check_memory(layer->name);
     layer->neuron_cls = cls;
     layer->inputs = NULL;
@@ -298,7 +295,7 @@ layer_show(Layer* layer) {
 
 
 internal b32
-_layer_link_dense(State* state, Layer* layer, LayerLink* link, Synapse* synapses, u32 offset) {
+_layer_link_dense(Layer* layer, LayerLink* link, Synapse* synapses, u32 offset, Memory* memory) {
     u32 neuron_i = 0;
     Neuron* neuron = NULL;
     Layer* in_layer = link->layer;
@@ -309,7 +306,7 @@ _layer_link_dense(State* state, Layer* layer, LayerLink* link, Synapse* synapses
     u32 n_synapses_per_neuron = (u32)(chance * in_layer->n_neurons);
 
     for (neuron_i = 0; neuron_i < layer->n_neurons; ++neuron_i) {
-        synapse_refs = neuron_create_synapses_ref_array(state->permanent_storage, n_synapses_per_neuron);
+        synapse_refs = neuron_create_synapses_ref_array(memory, n_synapses_per_neuron);
         check_memory(synapse_refs);
 
         neuron = layer->neurons + neuron_i;
@@ -319,7 +316,7 @@ _layer_link_dense(State* state, Layer* layer, LayerLink* link, Synapse* synapses
 
     n_synapses_per_neuron = (u32)(chance * layer->n_neurons);
     for (neuron_i = 0; neuron_i < in_layer->n_neurons; ++neuron_i) {
-        synapse_refs = neuron_create_synapses_ref_array(state->permanent_storage, n_synapses_per_neuron);
+        synapse_refs = neuron_create_synapses_ref_array(memory, n_synapses_per_neuron);
         check_memory(synapse_refs);
 
         neuron = in_layer->neurons + neuron_i;
@@ -360,16 +357,16 @@ _layer_link_dense(State* state, Layer* layer, LayerLink* link, Synapse* synapses
 }
 
 
-internal b32
-layer_link_synapses(State* state, Layer* layer, LayerLink* link, Synapse* synapses, u32 offset) {
-    check(state != NULL, "state is NULL");
+internal u32
+layer_link_synapses(Layer* layer, LayerLink* link, Synapse* synapses, u32 offset, Memory* memory) {
     check(layer != NULL, "layer is NULL");
     check(link != NULL, "link is NULL");
     check(synapses != NULL, "synapses is NULL");
     check(offset <= (u32)-1, "offset is too big %u", offset);
+    check(memory != NULL, "memory is NULL");
 
     if (layer->type == LAYER_DENSE) {
-        offset = _layer_link_dense(state, layer, link, synapses, offset);
+        offset = _layer_link_dense(layer, link, synapses, offset, memory);
     } else {
         log_error("Unknown layer type %u", layer->type);
     }
@@ -394,7 +391,7 @@ layer_init_neurons(Layer* layer) {
 }
 
 
-LayerLink* _layer_link_create(Memory* memory, Layer* layer, SynapseCls* cls, f32 weight, f32 chance) {
+LayerLink* _layer_link_create(Layer* layer, SynapseCls* cls, f32 weight, f32 chance, Memory* memory) {
     LayerLink* link = (LayerLink*) memory_push(memory, sizeof(*link));
     check_memory(link);
     link->layer = layer;
@@ -414,21 +411,21 @@ LayerLink* _layer_link_add(LayerLink* chain, LayerLink* link) {
 
 
 internal b32
-layer_link(State* state, Layer* layer, Layer* in_layer, SynapseCls* cls, f32 weight, f32 chance) {
+layer_link(Layer* layer, Layer* in_layer, SynapseCls* cls, f32 weight, f32 chance, Memory* memory) {
     b32 status = FALSE;
-    check(state != NULL, "state is NULL");
     check(layer != NULL, "layer is NULL");
     check(in_layer != NULL, "input_layer is NULL");
     check(cls != NULL, "cls is NULL");
     check(chance >= 0.0f && chance <= 1.0f, "chance should be in [0, 1]");
+    check(memory != NULL, "memory is NULL");
 
     // NOTE: Save references between layers
-    LayerLink* link = _layer_link_create(state->permanent_storage, in_layer, cls, weight, chance);
+    LayerLink* link = _layer_link_create(in_layer, cls, weight, chance, memory);
     check_memory(link);
     layer->inputs = _layer_link_add(layer->inputs, link);
     layer->n_inputs++;
 
-    link = _layer_link_create(state->permanent_storage, layer, cls, weight, chance);
+    link = _layer_link_create(layer, cls, weight, chance, memory);
     check_memory(link);
     layer->outputs = _layer_link_add(layer->outputs, link);
     in_layer->n_outputs++;

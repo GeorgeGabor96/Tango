@@ -70,17 +70,17 @@ typedef struct LayerTask {
 
 
 // NOTE: The layer takes ownership of the name
-internal Layer* layer_create(State* state, const char* name, LayerType type,
+internal Layer* layer_create(Memory* memory, const char* name, LayerType type,
                              u32 n_neurons, NeuronCls* cls);
 
 internal void layer_show(Layer* layer);
 internal u32 layer_get_n_in_synapses(Layer* layer);
 
-internal b32 layer_link(State* state,
-                         Layer* layer, Layer* input_layer,
-                         SynapseCls* cls, f32 weight, f32 chance);
+internal b32 layer_link(Layer* layer, Layer* input_layer,
+                        SynapseCls* cls, f32 weight, f32 chance,
+                        Memory* memory);
 
-internal u32 layer_link_synapses(State* state, Layer* layer, LayerLink* link, Synapse* synapses, u32 offset);
+internal u32 layer_link_synapses(Layer* layer, LayerLink* link, Synapse* synapses, u32 offset, Memory* memory);
 internal void layer_init_neurons(Layer* layer);
 
 internal void layer_process_neurons(void* task);

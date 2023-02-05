@@ -52,6 +52,7 @@ typedef struct DumperData {
 
 typedef struct Dumper {
     String* output_folder;
+    Network* network;
 
     u32 sample_step;
     u32 sample_count;
@@ -85,26 +86,24 @@ typedef struct Callback {
 /********************
 * Callback functions
 ********************/
-internal void callback_begin_sample(State* state,
-                                    Callback* callback,
-                                    Network* network,
-                                    u32 sample_duration);
-internal void callback_update(State* state, Callback* callback, Network* network);
-internal void callback_end_sample(State* state, Callback* callback, Network* network);
+internal void callback_begin_sample(Callback* callback,
+                                    u32 sample_duration,
+                                    Memory* memory);
+internal void callback_update(Callback* callback, Memory* memory);
+internal void callback_end_sample(Callback* callback, Memory* memory);
 
 
 /**************************
 * Network Dumper functions
 **************************/
-internal Callback* callback_dumper_create(State* state,
+internal Callback* callback_dumper_create(Memory* memory,
                                           const char* output_folder,
                                           Network* network);
-internal void callback_dumper_begin_sample(State* state,
-                                           Callback* callback,
-                                           Network* network,
-                                           u32 sample_duration);
-internal void callback_dumper_update(State* state, Callback* callback, Network* network);
-internal void callback_dumper_end_sample(State* state, Callback* callbac, Network* network);
+internal void callback_dumper_begin_sample(Callback* callback,
+                                           u32 sample_duration,
+                                           Memory* memory);
+internal void callback_dumper_update(Callback* callback, Memory* memory);
+internal void callback_dumper_end_sample(Callback* callback, Memory* memory);
 
 
 #endif // __ENGINE_CALLBACK_H__
