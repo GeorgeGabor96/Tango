@@ -32,7 +32,7 @@ void build_network(void* exp) {
         last_inhi_name = inhi_name;
     }
 
-    tango_create_layer(exp, "output_exci", LAYER_DENSE, 100, "LIF refract cls");
+    tango_create_layer(exp, "output_exci", LAYER_DENSE, 100, "LIF refract cls", FALSE, TRUE);
     tango_link_layers(exp, "output_exci", last_exci_name, "AMPA", 1, connect_chance);
     tango_link_layers(exp, "output_exci", last_inhi_name, "GABA_A", 1, connect_chance);
 

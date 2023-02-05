@@ -40,5 +40,11 @@ b32 tango_create_data_spike_pulses(void* instance,
 
 b32 tango_create_callback_dumper(void* instance);
 
+void tango_learn(void* instance);
+void tango_infer(void* instance);
+
+
+#include "tango.c"
+
 
 #endif // __TANGO_H__

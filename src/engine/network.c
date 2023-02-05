@@ -11,6 +11,12 @@ network_create(Memory* memory, const char* name) {
     network->name = string_create(memory, name);
     check(network->name != NULL, "network->name is NULL");
 
+    network->neuron_cls = NULL;
+    network->synapse_cls = NULL;
+
+    network->n_neuron_cls = 0;
+    network->n_synapse_cls = 0;
+
     network->layers.first = NULL;
     network->layers.last = NULL;
     network->in_layers.first = NULL;
@@ -166,6 +172,40 @@ _network_link_layer(Memory* memory, NetworkLayerList* chain, Layer* layer) {
 
 
 internal void
+network_add_neuron_cls(Network* network, NeuronCls* cls, Memory* memory) {
+    check(network != NULL, "network is NULL");
+    check(cls != NULL, "cls is NULL");
+    check(memory != NULL, "memory is NULL");
+
+    NetworkNeuronClsLink* link = (NetworkNeuronClsLink*)memory_push(memory, sizeof(*link));
+    check_memory(link);
+    link->cls = cls;
+    link->next = network->neuron_cls ? network->neuron_cls : NULL;
+    network->neuron_cls = link;
+
+    error:
+    return;
+}
+
+
+internal void
+network_add_synapse_cls(Network* network, SynapseCls* cls, Memory* memory) {
+    check(network != NULL, "network is NULL");
+    check(cls != NULL, "cls is NULL");
+    check(memory != NULL, "memory is NULL");
+
+    NetworkSynapseClsLink* link = (NetworkSynapseClsLink*) memory_push(memory, sizeof(*link));
+    check_memory(link);
+    link->cls = cls;
+    link->next = network->synapse_cls ? network->synapse_cls : NULL;
+    network->synapse_cls = link;
+
+    error:
+    return;
+}
+
+
+internal void
 network_add_layer(Network* network, Layer* layer,
                   b32 is_input, b32 is_output, Memory* memory) {
     check(network != NULL, "network is NULL");
@@ -191,6 +231,51 @@ network_add_layer(Network* network, Layer* layer,
 
     error:
     return;
+}
+
+
+internal NeuronCls* network_get_neuron_cls(Network* network, String* neuron_cls_name) {
+    check(network != NULL, "network is NULL");
+    check(neuron_cls_name != NULL, "neuron_cls_name");
+
+    NetworkNeuronClsLink* it = NULL;
+    for (it = network->neuron_cls; it != NULL; it = it->next) {
+        if (string_equal(neuron_cls_name, it->cls->name))
+            return it->cls;
+    }
+
+    error:
+    return NULL;
+}
+
+
+internal SynapseCls* network_get_synapse_cls(Network* network, String* synapse_cls_name) {
+    check(network != NULL, "network is NULL");
+    check(synapse_cls_name != NULL, "synapse_cls_name");
+
+    NetworkSynapseClsLink* it = NULL;
+    for (it = network->synapse_cls; it != NULL; it = it->next) {
+        if (string_equal(synapse_cls_name, it->cls->name))
+            return it->cls;
+    }
+
+    error:
+    return NULL;
+}
+
+
+internal Layer* network_get_layer(Network* network, String* layer_name) {
+    check(network != NULL, "network is NULL");
+    check(layer_name != NULL, "layer_name is NULL");
+
+    NetworkLayerLink* it = NULL;
+    for (it = network->layers.first; it != NULL; it = it->next) {
+        if (string_equal(layer_name, it->layer->name))
+            return it->layer;
+    }
+
+    error:
+    return NULL;
 }
 
 
