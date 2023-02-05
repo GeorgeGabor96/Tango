@@ -2,8 +2,8 @@
 
 internal const char*
 timing_counter_name(TimingCounterType type) {
-    if (type == TIMER_SIMULATOR_INFER) return "SIMULATOR_INFER";
-    if (type == TIMER_SIMULATOR_LEARN) return "SIMULATOR_LEARN";
+    if (type == TIMER_EXPERIMENT_INFER) return "EXPERIMENT_INFER";
+    if (type == TIMER_EXPERIMENT_LEARN) return "EXPERIMENT_LEARN";
 
     if (type == TIMER_NETWORK_INFER) return "NETWORK_INFER";
     if (type == TIMER_NETWORK_LEARN) return "NETWORK_LEARN";
@@ -62,10 +62,10 @@ timing_report(Memory* memory, const char* output_folder_c_str) {
     else {
         fp = fopen(string_get_c_str(out_file), "w");
         if (fp == NULL) {
-            printf("[WARNING] Could not open %s\n", string_get_c_str(out_file));
+            log_warning("Could not open %s\n", string_get_c_str(out_file));
             fp = stdout;
         } else {
-            printf("[INFO] Saving timings in %s\n", string_get_c_str(out_file));
+            log_info("Saving timings in %s\n", string_get_c_str(out_file));
         }
     }
     fprintf(fp, "---------------TIMING REPORT----------------\n");

@@ -44,8 +44,27 @@ experiment_create(u32 n_workers, u32 seed, const char* output_folder) {
 
 
 internal void
+_experiment_dump_config(Experiment* experiment) {
+    String* config_file = string_path_join_c_str(experiment->transient_memory,
+                                                experiment->output_folder,
+                                                "config.txt");
+    check_memory(config_file);
+
+    FILE* fp = fopen(string_get_c_str(config_file), "w");
+    check(fp != NULL, "Could not open %s\n", string_get_c_str(config_file));
+
+    fprintf(fp, "SEED: %u\n", experiment->random->seed);
+    fprintf(fp, "N_WORKERS: %u\n", experiment->pool->n_threads);
+
+    error:
+    return;
+}
+
+internal void
 experiment_destroy(Experiment* experiment) {
     check(experiment != NULL, "experiment is NULL");
+
+    _experiment_dump_config(experiment);
 
     timing_report(experiment->transient_memory,
                   string_get_c_str(experiment->output_folder));
@@ -162,16 +181,16 @@ _experiment_run(Experiment* experiment, Mode mode) {
 
 internal void
 experiment_infer(Experiment* exp) {
-    TIMING_COUNTER_START(SIMULATOR_INFER);
+    TIMING_COUNTER_START(EXPERIMENT_INFER);
     _experiment_run(exp, MODE_INFER);
-    TIMING_COUNTER_END(SIMULATOR_INFER);
+    TIMING_COUNTER_END(EXPERIMENT_INFER);
 }
 
 internal void
 experiment_learn(Experiment* exp) {
-    TIMING_COUNTER_START(SIMULATOR_LEARN);
+    TIMING_COUNTER_START(EXPERIMENT_LEARN);
     _experiment_run(exp, MODE_LEARNING);
-    TIMING_COUNTER_END(SIMULATOR_LEARN);
+    TIMING_COUNTER_END(EXPERIMENT_LEARN);
 }
 
 internal b32
