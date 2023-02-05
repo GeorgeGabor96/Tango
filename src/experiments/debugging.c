@@ -71,12 +71,11 @@ Network* get_network(Experiment* exp) {
 
 
 int main() {
-    Experiment* exp = experiment_create(4, 1234);
+    Experiment* exp = experiment_create(4, 1234, "D:\\repos\\Tango_outputs\\synfire_chain");
     Network* network = get_network(exp);
 
-    const char* output_folder = "D:\\repos\\Tango_outputs\\synfire_chain";
     DataGen* data = data_gen_create_spike_pulses(exp->permanent_memory, exp->random, 2, 1000, 100, 20, 50, 0.1f, 0.01f);
-    Callback* callback = callback_dumper_create(exp->permanent_memory, output_folder, network);
+    Callback* callback = callback_dumper_create(exp->permanent_memory, string_get_c_str(exp->output_folder), network);
 
     experiment_set_network(exp, network);
     experiment_set_data_gen(exp, data);
@@ -84,14 +83,7 @@ int main() {
 
     experiment_learn(exp);
 
-    timing_report(exp->transient_memory, output_folder);
-
     experiment_destroy(exp);
-
-    memory_report();
-    check(memory_is_empty() == TRUE, "We have memory leaks");
-
-    error:
 
     return 0;
 }

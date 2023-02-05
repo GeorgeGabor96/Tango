@@ -1,5 +1,5 @@
 internal Experiment*
-experiment_create(u32 n_workers, u32 seed) {
+experiment_create(u32 n_workers, u32 seed, const char* output_folder) {
     Memory* permanent_memory = NULL;
     Memory* transient_memory = NULL;
 
@@ -15,9 +15,15 @@ experiment_create(u32 n_workers, u32 seed) {
     Random* random = random_create(permanent_memory, seed);
     check_memory(random);
 
+    String* output_folder_s = string_create(permanent_memory, output_folder);
+    check_memory(output_folder);
+    b32 result = os_folder_create_str(output_folder_s);
+    check(result == TRUE, "Couldn't create folder %s", string_get_c_str(output_folder_s));
+
     Experiment* experiment = (Experiment*)memory_push(permanent_memory, sizeof(*experiment));
     check_memory(experiment);
 
+    experiment->output_folder = output_folder_s;
     experiment->permanent_memory = permanent_memory;
     experiment->transient_memory = transient_memory;
     experiment->pool = pool;
@@ -38,12 +44,38 @@ experiment_create(u32 n_workers, u32 seed) {
 
 
 internal void
+_experiment_dump_config(Experiment* experiment) {
+    String* config_file = string_path_join_c_str(experiment->transient_memory,
+                                                experiment->output_folder,
+                                                "config.txt");
+    check_memory(config_file);
+
+    FILE* fp = fopen(string_get_c_str(config_file), "w");
+    check(fp != NULL, "Could not open %s\n", string_get_c_str(config_file));
+
+    fprintf(fp, "SEED: %u\n", experiment->random->seed);
+    fprintf(fp, "N_WORKERS: %u\n", experiment->pool->n_threads);
+
+    error:
+    return;
+}
+
+internal void
 experiment_destroy(Experiment* experiment) {
     check(experiment != NULL, "experiment is NULL");
+
+    _experiment_dump_config(experiment);
+
+    timing_report(experiment->transient_memory,
+                  string_get_c_str(experiment->output_folder));
 
     thread_pool_stop(experiment->pool);
     memory_destroy(experiment->transient_memory);
     memory_destroy(experiment->permanent_memory);
+
+    memory_report();
+    if (!memory_is_empty())
+        log_warning("We have memory leaks");
 
     error:
     return;
@@ -149,16 +181,16 @@ _experiment_run(Experiment* experiment, Mode mode) {
 
 internal void
 experiment_infer(Experiment* exp) {
-    TIMING_COUNTER_START(SIMULATOR_INFER);
+    TIMING_COUNTER_START(EXPERIMENT_INFER);
     _experiment_run(exp, MODE_INFER);
-    TIMING_COUNTER_END(SIMULATOR_INFER);
+    TIMING_COUNTER_END(EXPERIMENT_INFER);
 }
 
 internal void
 experiment_learn(Experiment* exp) {
-    TIMING_COUNTER_START(SIMULATOR_LEARN);
+    TIMING_COUNTER_START(EXPERIMENT_LEARN);
     _experiment_run(exp, MODE_LEARNING);
-    TIMING_COUNTER_END(SIMULATOR_LEARN);
+    TIMING_COUNTER_END(EXPERIMENT_LEARN);
 }
 
 internal b32
