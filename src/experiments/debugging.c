@@ -1,89 +1,57 @@
 #include "tango.h"
 
 
-Network* get_network(Experiment* exp) {
+void build_network(void* exp) {
     f32 connect_chance = 0.25;
-    Memory* memory = exp->permanent_memory;
 
-    Network* network = network_create(memory, "Dummy network");
+    tango_create_neuron_cls_lif_refract(exp, "LIF refract cls", 5);
+    tango_create_synapse_cls(exp, "AMPA", SYNAPSE_VOLTAGE, 0.0f, 0.1f, 1, 10);
+    tango_create_synapse_cls(exp, "GABA_A", SYNAPSE_VOLTAGE, -90.0F, 0.1F, 6, 10);
 
-    NeuronCls* neuron_cls = neuron_cls_create_lif_refract(memory,
-                                                          "LIF refract cls", 5);
-    SynapseCls* synapse_cls_exci = synapse_cls_create(memory,
-                                                      "AMPA",
-                                                      SYNAPSE_VOLTAGE,
-                                                      0.0f, 0.1f, 1, 10);
-    SynapseCls* synapse_cls_inhi = synapse_cls_create(memory,
-                                                      "GABA_A",
-                                                      SYNAPSE_VOLTAGE,
-                                                      -90.0f, 0.1f, 6, 10);
-    Layer* layer_in_exci = layer_create(memory, "input_exci", LAYER_DENSE,
-                                        90, neuron_cls);
-    Layer* layer_in_inhi = layer_create(memory, "input_inhi", LAYER_DENSE,
-                                        10, neuron_cls);
+    tango_create_layer(exp, "input_exci", LAYER_DENSE, 90, "LIF refract cls", TRUE, FALSE);
+    tango_create_layer(exp, "input_inhi", LAYER_DENSE, 10, "LIF refract cls", TRUE, FALSE);
 
-    network_add_layer(network, layer_in_exci, TRUE, FALSE, memory);
-    network_add_layer(network, layer_in_inhi, TRUE, FALSE, memory);
-
-    Layer* last_layer_exci = layer_in_exci;
-    Layer* last_layer_inhi = layer_in_inhi;
+    char* last_exci_name = "input_exci";
+    char* last_inhi_name = "input_inhi";
 
     for (u32 i = 1; i < 10; ++i) {
-        char name_buffer[100] = { 0 };
-        sprintf(name_buffer, "layer_%d_exci", i);
-        Layer* cur_layer_exci = layer_create(memory, name_buffer, LAYER_DENSE,
-                                             90, neuron_cls);
-        sprintf(name_buffer, "layer_%d_inhi", i);
-        Layer* cur_layer_inhi = layer_create(memory, name_buffer, LAYER_DENSE,
-                                             10, neuron_cls);
+        char exci_name[100] = { 0 };
+        sprintf(exci_name, "layer_%d_exci", i);
+        tango_create_layer(exp, exci_name, LAYER_DENSE, 90, "LIF refract cls", FALSE, FALSE);
 
-        layer_link(cur_layer_exci, last_layer_exci,
-                   synapse_cls_exci, 1, connect_chance, memory);
-        layer_link(cur_layer_exci, last_layer_inhi,
-                   synapse_cls_inhi, 1, connect_chance, memory);
-        layer_link(cur_layer_inhi, last_layer_exci,
-                   synapse_cls_exci, 1, connect_chance, memory);
-        layer_link(cur_layer_inhi, last_layer_inhi,
-                   synapse_cls_inhi, 1, connect_chance, memory);
+        char inhi_name[100] = { 0 };
+        sprintf(inhi_name, "layer_%d_inhi", i);
+        tango_create_layer(exp, exci_name, LAYER_DENSE, 10, "LIF refract cls", FALSE, FALSE);
 
-        network_add_layer(network, cur_layer_exci, FALSE, FALSE, memory);
-        network_add_layer(network, cur_layer_inhi, FALSE, FALSE, memory);
+        tango_link_layers(exp, exci_name, last_exci_name, "AMPA", 1, connect_chance);
+        tango_link_layers(exp, exci_name, last_inhi_name, "GABA_A", 1, connect_chance);
+        tango_link_layers(exp, inhi_name, last_exci_name, "AMPA", 1, connect_chance);
+        tango_link_layers(exp, inhi_name, last_inhi_name, "GABA_A", 1, connect_chance);
 
-        last_layer_exci = cur_layer_exci;
-        last_layer_inhi = cur_layer_inhi;
+        last_exci_name = exci_name;
+        last_inhi_name = inhi_name;
     }
 
-    Layer* layer_out_exci = layer_create(memory, "output_exci", LAYER_DENSE,
-                                         100, neuron_cls);
-    layer_link(layer_out_exci, last_layer_exci, synapse_cls_exci,
-               1, connect_chance, memory);
-    layer_link(layer_out_exci, last_layer_inhi, synapse_cls_inhi,
-               1, connect_chance, memory);
+    tango_create_layer(exp, "output_exci", LAYER_DENSE, 100, "LIF refract cls");
+    tango_link_layers(exp, "output_exci", last_exci_name, "AMPA", 1, connect_chance);
+    tango_link_layers(exp, "output_exci", last_inhi_name, "GABA_A", 1, connect_chance);
 
-    network_add_layer(network, layer_out_exci, FALSE, TRUE, memory);
-
-    network_build(network, memory, exp->random);
-    network_show(network);
-
-    return network;
+    tango_build_network(exp);
+    tango_show_network(exp);
 }
 
 
 
 int main() {
-    Experiment* exp = experiment_create(4, 1234, "D:\\repos\\Tango_outputs\\synfire_chain");
-    Network* network = get_network(exp);
+    void* exp = tango_create(4, 1234, "D:\\repos\\Tango_outputs\\synfire_chain");
+    build_network(exp);
 
-    DataGen* data = data_gen_create_spike_pulses(exp->permanent_memory, exp->random, 2, 1000, 100, 20, 50, 0.1f, 0.01f);
-    Callback* callback = callback_dumper_create(exp->permanent_memory, string_get_c_str(exp->output_folder), network);
+    tango_create_data_spike_pulses(exp, 2, 1000, 100, 20, 50, 0.1f, 0.01f);
+    tango_create_callback_dumper(exp);
 
-    experiment_set_network(exp, network);
-    experiment_set_data_gen(exp, data);
-    experiment_add_callback(exp, callback);
+    tango_learn(exp);
 
-    experiment_learn(exp);
-
-    experiment_destroy(exp);
+    tango_destroy(exp);
 
     return 0;
 }
