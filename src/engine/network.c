@@ -90,7 +90,7 @@ network_build(Network* network, Memory* memory) {
         layer = layer_it->layer;
 
         for (in_layer_it = layer->inputs; in_layer_it != NULL; in_layer_it = in_layer_it->next) {
-            synapse_offset = layer_link_synapses(memory, layer, in_layer_it, network->synapses, synapse_offset);
+            synapse_offset = layer_link_synapses(layer, in_layer_it, network->synapses, synapse_offset, memory);
         }
     }
     check(synapse_offset <= n_max_synapses, "Used more synapses than were allocated");

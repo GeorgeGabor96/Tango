@@ -80,11 +80,13 @@ int main() {
     DataGen* data = data_gen_create_spike_pulses(exp->permanent_memory, 2, 1000, 100, 20, 50, 0.1f, 0.01f);
     Callback* callback = callback_dumper_create(exp->permanent_memory, output_folder, network);
 
+    experiment_set_network(exp, network);
+    experiment_set_data_gen(exp, data);
     experiment_add_callback(exp, callback);
 
     experiment_learn(exp);
 
-    timing_report(exp->transient_storage, output_folder);
+    timing_report(exp->transient_memory, output_folder);
 
     experiment_destroy(exp);
 

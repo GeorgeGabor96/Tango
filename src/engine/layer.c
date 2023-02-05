@@ -391,7 +391,7 @@ layer_init_neurons(Layer* layer) {
 }
 
 
-LayerLink* _layer_link_create(Memory* memory, Layer* layer, SynapseCls* cls, f32 weight, f32 chance) {
+LayerLink* _layer_link_create(Layer* layer, SynapseCls* cls, f32 weight, f32 chance, Memory* memory) {
     LayerLink* link = (LayerLink*) memory_push(memory, sizeof(*link));
     check_memory(link);
     link->layer = layer;
