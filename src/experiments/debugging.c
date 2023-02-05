@@ -62,7 +62,7 @@ Network* get_network(Experiment* exp) {
 
     network_add_layer(network, layer_out_exci, FALSE, TRUE, memory);
 
-    network_build(network, memory);
+    network_build(network, memory, exp->random);
     network_show(network);
 
     return network;
@@ -71,13 +71,11 @@ Network* get_network(Experiment* exp) {
 
 
 int main() {
-    random_init();
-
-    Experiment* exp = experiment_create(4);
+    Experiment* exp = experiment_create(4, 1234);
     Network* network = get_network(exp);
 
     const char* output_folder = "D:\\repos\\Tango_outputs\\synfire_chain";
-    DataGen* data = data_gen_create_spike_pulses(exp->permanent_memory, 2, 1000, 100, 20, 50, 0.1f, 0.01f);
+    DataGen* data = data_gen_create_spike_pulses(exp->permanent_memory, exp->random, 2, 1000, 100, 20, 50, 0.1f, 0.01f);
     Callback* callback = callback_dumper_create(exp->permanent_memory, output_folder, network);
 
     experiment_set_network(exp, network);

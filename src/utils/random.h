@@ -4,10 +4,16 @@
 #include "time.h"
 
 
-internal void random_init();
-internal b32 random_get_bool(f32 chance);
-internal f32 random_get_chance_f32();
-internal f64 random_get_chance_f64();
+typedef struct Random {
+    u32 seed;
+    u32 state;
+} Random;
+
+
+internal Random* random_create(Memory* memory, u32 seed);
+internal b32 random_get_bool(Random* random, f32 chance);
+internal f32 random_get_chance_f32(Random* random);
+internal f64 random_get_chance_f64(Random* random);
 
 
 #endif // __UTILS_RANDOM_H__

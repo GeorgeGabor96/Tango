@@ -15,10 +15,12 @@ typedef struct DataGenConstCurrent {
 } DataGenConstCurrent;
 
 typedef struct DataGenRandomSpikes {
+    Random* random;
     f32 chance;
 } DataGenRandomSpikes;
 
 typedef struct DataGenSpikePulses {
+    Random* random;
     u32 first_pulse_time;
     u32 pulse_duration;
     u32 between_pulses_duration;
@@ -46,10 +48,12 @@ internal DataGen* data_gen_create_constant_current(Memory* memory,
                                                    u32 n_samples,
                                                    u32 sample_duration);
 internal DataGen* data_gen_create_random_spikes(Memory* memory,
+                                                Random* random,
                                                 f32 chance,
                                                 u32 n_samples,
                                                 u32 sample_duration);
 internal DataGen* data_gen_create_spike_pulses(Memory* memory,
+                                               Random* random,
                                                u32 n_samples,
                                                u32 sample_duration,
                                                u32 first_pulse_time,

@@ -23,8 +23,9 @@ data_gen_create_constant_current(Memory* memory, f32 value, u32 n_samples, u32 s
 
 
 internal DataGen*
-data_gen_create_random_spikes(Memory* memory, f32 chance, u32 n_samples, u32 sample_duration) {
+data_gen_create_random_spikes(Memory* memory, Random* random, f32 chance, u32 n_samples, u32 sample_duration) {
     check(memory != NULL, "memory is NULL");
+    check(random != NULL, "random is NULL");
     check(n_samples > 0, "n_samples is 0");
     check(sample_duration > 0, "sample_duration is 0");
     check(chance >= 0.0f, "chance should be at least 0, its %f", chance);
@@ -36,6 +37,7 @@ data_gen_create_random_spikes(Memory* memory, f32 chance, u32 n_samples, u32 sam
     data->type = DATA_GEN_RANDOM_SPIKES;
     data->n_samples = n_samples;
     data->sample_duration = sample_duration;
+    data->random_spikes.random = random;
     data->random_spikes.chance = chance;
 
     return data;
@@ -47,6 +49,7 @@ data_gen_create_random_spikes(Memory* memory, f32 chance, u32 n_samples, u32 sam
 
 internal DataGen*
 data_gen_create_spike_pulses(Memory* memory,
+                             Random* random,
                              u32 n_samples,
                              u32 sample_duration,
                              u32 first_pulse_time,
@@ -55,6 +58,7 @@ data_gen_create_spike_pulses(Memory* memory,
                              f32 pulse_spike_chance,
                              f32 between_pulses_spike_chance) {
     check(memory != NULL, "memory is NULL");
+    check(random != NULL, "random is NULL");
     check(n_samples > 0, "n_samples is 0");
     check(sample_duration > 0, "sample_duration is 0");
     check(pulse_duration > 0, "pulse_duration is 0");
@@ -75,6 +79,7 @@ data_gen_create_spike_pulses(Memory* memory,
     data->sample_duration = sample_duration;
 
     DataGenSpikePulses* pulses = &(data->spike_pulses);
+    pulses->random = random;
     pulses->first_pulse_time = first_pulse_time;
     pulses->pulse_duration = pulse_duration;
     pulses->between_pulses_duration = between_pulses_duration;
@@ -158,10 +163,11 @@ data_network_inputs_create(Memory* memory, DataSample* sample, Network* network,
         layer = it->layer;
 
         if (sample->type == DATA_SAMPLE_RANDOM_SPIKES) {
+            DataGenRandomSpikes* random_spikes = &sample->data_gen->random_spikes;
             spikes = (b32*)memory_push(memory, layer->n_neurons * sizeof(b32));
             check_memory(spikes);
             for (j = 0; j < layer->n_neurons; ++j)
-                spikes[j] = random_get_bool(sample->data_gen->random_spikes.chance);
+                spikes[j] = random_get_bool(random_spikes->random, random_spikes->chance);
 
             input->type = INPUT_SPIKES;
             input->spikes.spikes = spikes;
@@ -196,9 +202,9 @@ data_network_inputs_create(Memory* memory, DataSample* sample, Network* network,
                 }
 
                 if (sample_pulses->in_pulse == TRUE) {
-                    spikes[j] = random_get_bool(data_pulses->pulse_spike_chance);
+                    spikes[j] = random_get_bool(data_pulses->random, data_pulses->pulse_spike_chance);
                 } else {
-                    spikes[j] = random_get_bool(data_pulses->between_pulses_spike_chance);
+                    spikes[j] = random_get_bool(data_pulses->random, data_pulses->between_pulses_spike_chance);
                 }
             }
 

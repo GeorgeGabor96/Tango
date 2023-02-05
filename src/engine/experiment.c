@@ -1,5 +1,5 @@
 internal Experiment*
-experiment_create(u32 n_workers) {
+experiment_create(u32 n_workers, u32 seed) {
     Memory* permanent_memory = NULL;
     Memory* transient_memory = NULL;
 
@@ -12,12 +12,16 @@ experiment_create(u32 n_workers) {
     ThreadPool* pool = thread_pool_create(n_workers, layer_process_neurons, permanent_memory);
     check_memory(pool);
 
+    Random* random = random_create(permanent_memory, seed);
+    check_memory(random);
+
     Experiment* experiment = (Experiment*)memory_push(permanent_memory, sizeof(*experiment));
     check_memory(experiment);
 
     experiment->permanent_memory = permanent_memory;
     experiment->transient_memory = transient_memory;
     experiment->pool = pool;
+    experiment->random = random;
 
     experiment->network = NULL;
     experiment->data = NULL;
@@ -69,8 +73,6 @@ _experiment_run(Experiment* experiment, Mode mode) {
     clock_t network_time_start = 0;
     clock_t network_time = 0;
     f64 network_time_s = 0.0;
-
-    random_init();
 
     total_time_start = clock();
     for (sample_idx = 0; sample_idx < experiment->data->n_samples; ++sample_idx) {

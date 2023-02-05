@@ -80,7 +80,7 @@ internal b32 layer_link(Layer* layer, Layer* input_layer,
                         SynapseCls* cls, f32 weight, f32 chance,
                         Memory* memory);
 
-internal u32 layer_link_synapses(Layer* layer, LayerLink* link, Synapse* synapses, u32 offset, Memory* memory);
+internal u32 layer_link_synapses(Layer* layer, LayerLink* link, Synapse* synapses, u32 offset, Memory* memory, Random* random);
 internal void layer_init_neurons(Layer* layer);
 
 internal void layer_process_neurons(void* task);
