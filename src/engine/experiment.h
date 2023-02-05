@@ -12,6 +12,7 @@ typedef struct Experiment {
     Memory* permanent_memory;
     Memory* transient_memory;
     ThreadPool* pool;
+    Random* random;
 
     Network* network;
     DataGen* data;
@@ -19,7 +20,7 @@ typedef struct Experiment {
 } Experiment;
 
 
-internal Experiment* experiment_create(u32 n_workers);
+internal Experiment* experiment_create(u32 n_workers, u32 seed);
 internal void experiment_destroy(Experiment* experiment);
 internal void experiment_infer(Experiment* experiment);
 internal void experiment_learn(Experiment* experiment);

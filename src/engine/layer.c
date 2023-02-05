@@ -295,7 +295,7 @@ layer_show(Layer* layer) {
 
 
 internal b32
-_layer_link_dense(Layer* layer, LayerLink* link, Synapse* synapses, u32 offset, Memory* memory) {
+_layer_link_dense(Layer* layer, LayerLink* link, Synapse* synapses, u32 offset, Memory* memory, Random* random) {
     u32 neuron_i = 0;
     Neuron* neuron = NULL;
     Layer* in_layer = link->layer;
@@ -332,7 +332,7 @@ _layer_link_dense(Layer* layer, LayerLink* link, Synapse* synapses, u32 offset, 
     Synapse* synapse = NULL;
     for (out_neuron_i = 0; out_neuron_i < layer->n_neurons; ++out_neuron_i) {
         for (in_neuron_i = 0; in_neuron_i < in_layer->n_neurons; ++in_neuron_i) {
-            if (random_get_chance_f32() > link->chance) continue;
+            if (random_get_chance_f32(random) > link->chance) continue;
 
             synapse = synapses + offset;
             synapse_init(synapse, link->cls, link->weight);
@@ -358,15 +358,16 @@ _layer_link_dense(Layer* layer, LayerLink* link, Synapse* synapses, u32 offset, 
 
 
 internal u32
-layer_link_synapses(Layer* layer, LayerLink* link, Synapse* synapses, u32 offset, Memory* memory) {
+layer_link_synapses(Layer* layer, LayerLink* link, Synapse* synapses, u32 offset, Memory* memory, Random* random) {
     check(layer != NULL, "layer is NULL");
     check(link != NULL, "link is NULL");
     check(synapses != NULL, "synapses is NULL");
     check(offset <= (u32)-1, "offset is too big %u", offset);
     check(memory != NULL, "memory is NULL");
+    check(random != NULL, "random is NULL");
 
     if (layer->type == LAYER_DENSE) {
-        offset = _layer_link_dense(layer, link, synapses, offset, memory);
+        offset = _layer_link_dense(layer, link, synapses, offset, memory, random);
     } else {
         log_error("Unknown layer type %u", layer->type);
     }

@@ -37,10 +37,11 @@ network_create(Memory* memory, const char* name) {
 
 
 internal b32
-network_build(Network* network, Memory* memory) {
+network_build(Network* network, Memory* memory, Random* random) {
     check(network != NULL, "network is NULL");
     check(network->is_built == FALSE, "layers cannot be added if the network is built");
     check(memory != NULL, "memory is NULL");
+    check(random != NULL, "random is NULL");
 
     u32 n_neurons = 0;
     u32 n_max_synapses = 0;
@@ -90,7 +91,7 @@ network_build(Network* network, Memory* memory) {
         layer = layer_it->layer;
 
         for (in_layer_it = layer->inputs; in_layer_it != NULL; in_layer_it = in_layer_it->next) {
-            synapse_offset = layer_link_synapses(layer, in_layer_it, network->synapses, synapse_offset, memory);
+            synapse_offset = layer_link_synapses(layer, in_layer_it, network->synapses, synapse_offset, memory, random);
         }
     }
     check(synapse_offset <= n_max_synapses, "Used more synapses than were allocated");

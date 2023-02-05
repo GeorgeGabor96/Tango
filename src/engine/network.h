@@ -35,7 +35,7 @@ typedef struct Network {
 internal Network* network_create(Memory* memory, const char* name);
 
 internal void network_show(Network* network);
-internal b32 network_build(Network* network, Memory* memory);
+internal b32 network_build(Network* network, Memory* memory, Random* random);
 
 internal void network_add_layer(Network* network, Layer* layer,
                                 b32 is_input, b32 is_output,
