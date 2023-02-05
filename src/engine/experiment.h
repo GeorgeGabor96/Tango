@@ -9,6 +9,7 @@ typedef struct CallbackLink {
 
 
 typedef struct Experiment {
+    String* output_folder;
     Memory* permanent_memory;
     Memory* transient_memory;
     ThreadPool* pool;
@@ -20,7 +21,7 @@ typedef struct Experiment {
 } Experiment;
 
 
-internal Experiment* experiment_create(u32 n_workers, u32 seed);
+internal Experiment* experiment_create(u32 n_workers, u32 seed, const char* output_folder);
 internal void experiment_destroy(Experiment* experiment);
 internal void experiment_infer(Experiment* experiment);
 internal void experiment_learn(Experiment* experiment);
