@@ -65,6 +65,8 @@ b32 tango_link_layers(void* instance,
                       const char* layer_name, const char* in_layer_name,
                       const char* synapse_cls_name, f32 synapse_weight,
                       f32 connect_chance) {
+    //TODO: add a warning or something if layer_name is in_layer_name
+
     Experiment* exp = (Experiment*)instance;
     String* name = string_create(exp->transient_memory, synapse_cls_name);
     SynapseCls* cls = network_get_synapse_cls(exp->network, name);

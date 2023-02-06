@@ -11,8 +11,10 @@ void build_network(void* exp) {
     tango_create_layer(exp, "input_exci", LAYER_DENSE, 90, "LIF refract cls", TRUE, FALSE);
     tango_create_layer(exp, "input_inhi", LAYER_DENSE, 10, "LIF refract cls", TRUE, FALSE);
 
-    char* last_exci_name = "input_exci";
-    char* last_inhi_name = "input_inhi";
+    char last_exci_name[100] = { 0 };
+    sprintf(last_exci_name, "input_exci");
+    char last_inhi_name[100] = { 0 };
+    sprintf(last_inhi_name, "input_inhi");
 
     for (u32 i = 1; i < 10; ++i) {
         char exci_name[100] = { 0 };
@@ -28,8 +30,8 @@ void build_network(void* exp) {
         tango_link_layers(exp, inhi_name, last_exci_name, "AMPA", 1, connect_chance);
         tango_link_layers(exp, inhi_name, last_inhi_name, "GABA_A", 1, connect_chance);
 
-        last_exci_name = exci_name;
-        last_inhi_name = inhi_name;
+        sprintf(last_exci_name, "layer_%d_exci", i);
+        sprintf(last_inhi_name, "layer_%d_inhi", i);
     }
 
     tango_create_layer(exp, "output_exci", LAYER_DENSE, 100, "LIF refract cls", FALSE, TRUE);
