@@ -1,15 +1,11 @@
 internal Network*
-network_create(Memory* memory, const char* name) {
+network_create(Memory* memory) {
     check(memory != NULL, "memory is NULL");
-    check(name != NULL, "name is NULL");
 
     Network* network = NULL;
 
     network = (Network*)memory_push(memory, sizeof(*network));
     check_memory(network);
-
-    network->name = string_create(memory, name);
-    check(network->name != NULL, "network->name is NULL");
 
     network->neuron_cls = NULL;
     network->synapse_cls = NULL;
@@ -123,8 +119,6 @@ network_show(Network* network) {
     NetworkLayerLink* it = NULL;
 
     printf("-----------------------NETWORK---------------------\n");
-    printf("Name: %s\n\n", string_get_c_str(network->name));
-
     printf("Layers:\n");
     for (it = network->layers.first; it != NULL; it = it->next) {
         layer = it->layer;

@@ -12,7 +12,7 @@ layer_type_get_c_str(LayerType type) {
 *   LAYER
 ****************/
 internal Layer*
-layer_create(Memory* memory, const char* name, LayerType type, u32 n_neurons, NeuronCls* cls) {
+layer_create(Memory* memory, String* name, LayerType type, u32 n_neurons, NeuronCls* cls) {
     check(memory != NULL, "memory is NULL");
     check(name != NULL, "name is NULL");
     check(type == LAYER_DENSE, "invalid layer type %s",
@@ -24,8 +24,7 @@ layer_create(Memory* memory, const char* name, LayerType type, u32 n_neurons, Ne
     check_memory(layer);
 
     layer->type = type;
-    layer->name = string_create(memory, name);
-    check_memory(layer->name);
+    layer->name = name;
     layer->neuron_cls = cls;
     layer->inputs = NULL;
     layer->outputs = NULL;
@@ -428,7 +427,7 @@ layer_link(Layer* layer, Layer* in_layer, SynapseCls* cls, f32 weight, f32 chanc
 
     link = _layer_link_create(layer, cls, weight, chance, memory);
     check_memory(link);
-    layer->outputs = _layer_link_add(layer->outputs, link);
+    in_layer->outputs = _layer_link_add(layer->outputs, link);
     in_layer->n_outputs++;
 
     error:

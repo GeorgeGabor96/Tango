@@ -30,8 +30,10 @@ b32 tango_build_network(void* instance);
 void tango_show_network(void* instance);
 
 
-b32 tango_create_data_constant_current(void* instance);
-b32 tango_create_data_random_spikes(void* instance);
+b32 tango_create_data_constant_current(void* instance, f32 value,
+                                       u32 n_samples, u32 sample_duration);
+b32 tango_create_data_random_spikes(void* instance, f32 chance,
+                                    u32 n_samples, u32 sample_duration);
 b32 tango_create_data_spike_pulses(void* instance,
                                    u32 n_samples, u32 sample_duration,
                                    u32 first_pulse_time, u32 pulse_duration,

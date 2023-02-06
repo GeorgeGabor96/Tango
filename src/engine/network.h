@@ -23,8 +23,6 @@ typedef struct NetworkSynapseClsLink {
 } NetworkSynapseClsLink;
 
 typedef struct Network {
-    String* name;
-
     NetworkNeuronClsLink* neuron_cls;
     NetworkSynapseClsLink* synapse_cls;
 
@@ -48,7 +46,7 @@ typedef struct Network {
 } Network;
 
 
-internal Network* network_create(Memory* memory, const char* name);
+internal Network* network_create(Memory* memory);
 
 internal void network_show(Network* network);
 internal b32 network_build(Network* network, Memory* memory, Random* random);
