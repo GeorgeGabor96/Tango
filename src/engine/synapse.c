@@ -189,7 +189,41 @@ synapse_clear(Synapse* synapse) {
 
 internal f32
 _synapse_stdp_potentiation_weight_update(u32 interval) {
-    return 0.1f;
+    static const f32 values[] = {
+        0,
+        0.5f,
+        0.475f,
+        0.45f,
+        0.4f,
+        0.35f,
+        0.3f,
+        0.25f,
+        0.225f,
+        0.2f,
+        0.175f,
+        0.15f,
+        0.125f,
+        0.1f,
+        0.09f,
+        0.08f,
+        0.07f,
+        0.06f,
+        0.95f,
+        0.94f,
+    };
+
+    // TODO: Why does it break when the array is too big or too small
+
+    u32 n_values = sizeof(values) / sizeof(f32);
+    check(n_values == SYNAPSE_POTENTIATION_INTERVAL,
+          "number of potentiation values %u is not SYNAPSE_POTENTIATION_INTERVAL %u", n_values, SYNAPSE_POTENTIATION_INTERVAL);
+    if (interval >= SYNAPSE_POTENTIATION_INTERVAL)
+        return 0.0f;
+
+    return values[interval];
+
+    error:
+    return 0.0f;
 }
 
 internal void
@@ -199,6 +233,7 @@ synapse_stdp_potentiation_update(Synapse* synapse, u32 in_spike_time, u32 out_sp
     // NOTE: the input neuron should have spiked
     if (in_spike_time == NEURON_INVALID_SPIKE_TIME) return;
 
+    // TODO: Should I also remove the synapse delay????
     u32 interval_value = out_spike_time - in_spike_time;
     // NOTE: the interval between the spike should be big enough and it should not be 0
     if (interval_value > SYNAPSE_POTENTIATION_INTERVAL ||
@@ -218,7 +253,39 @@ synapse_stdp_potentiation_update(Synapse* synapse, u32 in_spike_time, u32 out_sp
 
 internal f32
 _synapse_stdp_depression_weight_update(u32 interval) {
-    return -0.001f;
+    static const f32 values[] = {
+        0,
+        0.5f,
+        0.475f,
+        0.45f,
+        0.4f,
+        0.35f,
+        0.3f,
+        0.25f,
+        0.225f,
+        0.2f,
+        0.175f,
+        0.15f,
+        0.125f,
+        0.1f,
+        0.09f,
+        0.08f,
+        0.07f,
+        0.06f,
+        0.95f,
+        0.94f,
+    };
+
+    u32 n_values = sizeof(values) / sizeof(f32);
+    check(n_values == SYNAPSE_DEPRESSION_INTERVAL,
+          "number of potentiation values %u is not SYNAPSE_DEPRESSION_INTERVAL %u", n_values, SYNAPSE_DEPRESSION_INTERVAL);
+    if (interval >= SYNAPSE_DEPRESSION_INTERVAL)
+        return 0.0f;
+
+    return -values[interval];
+
+    error:
+    return 0.0f;
 }
 
 internal void

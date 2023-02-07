@@ -56,7 +56,7 @@ internal void synapse_clear(Synapse* synapse);
 #define SYNAPSE_WEIGHT_MAX 2.0f
 
 #define SYNAPSE_POTENTIATION_INTERVAL (u32)20
-#define SYNAPSE_DEPRESSION_INTERVAL (u32) 30
+#define SYNAPSE_DEPRESSION_INTERVAL (u32)20
 
 internal void synapse_stdp_potentiation_update(Synapse* synapse, u32 in_spike_time, u32 out_spike_time);
 
