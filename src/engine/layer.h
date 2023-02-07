@@ -70,7 +70,7 @@ typedef struct LayerTask {
 
 
 // NOTE: The layer takes ownership of the name
-internal Layer* layer_create(Memory* memory, const char* name, LayerType type,
+internal Layer* layer_create(Memory* memory, String* name, LayerType type,
                              u32 n_neurons, NeuronCls* cls);
 
 internal void layer_show(Layer* layer);

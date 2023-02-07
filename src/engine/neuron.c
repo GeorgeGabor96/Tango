@@ -34,15 +34,14 @@ neuron_type_get_c_str(NeuronType type) {
 *   NEURON CLASS
 ********************/
 internal NeuronCls*
-neuron_cls_create_lif(Memory* memory, const char* name) {
+neuron_cls_create_lif(Memory* memory, String* name) {
     check(memory != NULL, "memory is NULL");
     check(name != NULL, "name is NULL");
 
     NeuronCls* neuron_cls = (NeuronCls*)memory_push(memory, sizeof(*neuron_cls));
     check_memory(neuron_cls);
 
-    neuron_cls->name = string_create(memory, name);
-    check_memory(neuron_cls->name);
+    neuron_cls->name = name;
     neuron_cls->type = NEURON_LIF_REFRACT;
 
     return neuron_cls;
@@ -53,16 +52,14 @@ neuron_cls_create_lif(Memory* memory, const char* name) {
 
 
 internal NeuronCls*
-neuron_cls_create_lif_refract(Memory* memory, const char* name, u32 refract_time) {
+neuron_cls_create_lif_refract(Memory* memory, String* name, u32 refract_time) {
     check(memory != NULL, "memory is NULL");
     check(name != NULL, "name is NULL");
 
     NeuronCls* neuron_cls = (NeuronCls*)memory_push(memory, sizeof(NeuronCls));
     check_memory(neuron_cls);
 
-    neuron_cls->name = string_create(memory, name);
-    check_memory(neuron_cls->name);
-
+    neuron_cls->name = name;
     neuron_cls->type = NEURON_LIF_REFRACT;
     neuron_cls->lif_refract_cls.refract_time = refract_time;
 

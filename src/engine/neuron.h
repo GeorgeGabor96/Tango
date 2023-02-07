@@ -36,9 +36,9 @@ typedef struct NeuronCls {
 #define NEURON_LIF_FREE_FACTOR (NEURON_LIF_VOLTAGE_REST / (NEURON_LIF_TAU))
 
 
-internal NeuronCls* neuron_cls_create_lif(Memory* memory, const char* name);
+internal NeuronCls* neuron_cls_create_lif(Memory* memory, String* name);
 internal NeuronCls* neuron_cls_create_lif_refract(Memory* memory,
-                                                  const char* name,
+                                                  String* name,
                                                   u32 refract_time);
 
 typedef struct SynapseRefArray {
