@@ -23,8 +23,8 @@ typedef struct NetworkSynapseClsLink {
 } NetworkSynapseClsLink;
 
 typedef struct Network {
-    NetworkNeuronClsLink* neuron_cls;
-    NetworkSynapseClsLink* synapse_cls;
+    NetworkNeuronClsLink* neuron_classes;
+    NetworkSynapseClsLink* synapse_classes;
 
     u32 n_neuron_cls;
     u32 n_synapse_cls;

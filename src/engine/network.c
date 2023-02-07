@@ -7,8 +7,8 @@ network_create(Memory* memory) {
     network = (Network*)memory_push(memory, sizeof(*network));
     check_memory(network);
 
-    network->neuron_cls = NULL;
-    network->synapse_cls = NULL;
+    network->neuron_classes = NULL;
+    network->synapse_classes = NULL;
 
     network->n_neuron_cls = 0;
     network->n_synapse_cls = 0;
@@ -174,8 +174,8 @@ network_add_neuron_cls(Network* network, NeuronCls* cls, Memory* memory) {
     NetworkNeuronClsLink* link = (NetworkNeuronClsLink*)memory_push(memory, sizeof(*link));
     check_memory(link);
     link->cls = cls;
-    link->next = network->neuron_cls ? network->neuron_cls : NULL;
-    network->neuron_cls = link;
+    link->next = network->neuron_classes ? network->neuron_classes : NULL;
+    network->neuron_classes = link;
 
     error:
     return;
@@ -191,8 +191,8 @@ network_add_synapse_cls(Network* network, SynapseCls* cls, Memory* memory) {
     NetworkSynapseClsLink* link = (NetworkSynapseClsLink*) memory_push(memory, sizeof(*link));
     check_memory(link);
     link->cls = cls;
-    link->next = network->synapse_cls ? network->synapse_cls : NULL;
-    network->synapse_cls = link;
+    link->next = network->synapse_classes ? network->synapse_classes : NULL;
+    network->synapse_classes = link;
 
     error:
     return;
@@ -233,7 +233,7 @@ internal NeuronCls* network_get_neuron_cls(Network* network, String* neuron_cls_
     check(neuron_cls_name != NULL, "neuron_cls_name");
 
     NetworkNeuronClsLink* it = NULL;
-    for (it = network->neuron_cls; it != NULL; it = it->next) {
+    for (it = network->neuron_classes; it != NULL; it = it->next) {
         if (string_equal(neuron_cls_name, it->cls->name))
             return it->cls;
     }
@@ -248,7 +248,7 @@ internal SynapseCls* network_get_synapse_cls(Network* network, String* synapse_c
     check(synapse_cls_name != NULL, "synapse_cls_name");
 
     NetworkSynapseClsLink* it = NULL;
-    for (it = network->synapse_cls; it != NULL; it = it->next) {
+    for (it = network->synapse_classes; it != NULL; it = it->next) {
         if (string_equal(synapse_cls_name, it->cls->name))
             return it->cls;
     }

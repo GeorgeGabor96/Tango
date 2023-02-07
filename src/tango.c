@@ -1,5 +1,7 @@
 // TODO: for extreme privacy we can return a handle and internally get the exp from it
 
+// TODO: most of the function return a b32, but they return TRUE always, maybe in the future it will make sense to actually be posible to return FALSE
+
 void* tango_create(u32 n_workers, u32 seed, const char* output_folder) {
     Experiment* exp = experiment_create(n_workers, seed, output_folder);
     exp->network = network_create(exp->permanent_memory);
@@ -65,7 +67,10 @@ b32 tango_link_layers(void* instance,
                       const char* layer_name, const char* in_layer_name,
                       const char* synapse_cls_name, f32 synapse_weight,
                       f32 connect_chance) {
-    //TODO: add a warning or something if layer_name is in_layer_name
+    // NOTE: this is okay for now but in the future we should create strings and
+    // NOTE: use that stack point reset trick to create them
+    if (strcmp(layer_name, in_layer_name) == 0)
+        log_warning("The layer_name '%s' == in_layer_name '%s'. Make sure this is what you want", layer_name, in_layer_name);
 
     Experiment* exp = (Experiment*)instance;
     String* name = string_create(exp->transient_memory, synapse_cls_name);
