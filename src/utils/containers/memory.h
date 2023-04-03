@@ -28,6 +28,7 @@ internal Memory* memory_create(sz memory_size, b32 allow_bigger);
 internal void memory_destroy(Memory* arena);
 internal void memory_clear(Memory* arena);
 internal void* memory_push(Memory* arena, sz size);
+internal void* memory_push_zero(Memory* arena, sz size);
 
 
 #endif // __UTILS_CONTAINERS_MEMORY_H__

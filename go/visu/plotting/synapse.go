@@ -4,8 +4,8 @@ import (
 	"errors"
 	"fmt"
 	"image/color"
-	"tango/go/experiment"
 	"tango/go/utils"
+	"tango/go/visu/experiment"
 
 	"gonum.org/v1/plot"
 	"gonum.org/v1/plot/plotter"

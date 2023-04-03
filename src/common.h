@@ -20,6 +20,7 @@ typedef int16_t i16;
 typedef int8_t i8;
 
 typedef u32 b32;
+typedef u8 b8;
 
 typedef float f32;
 typedef double f64;

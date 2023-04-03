@@ -11,6 +11,8 @@
 #include "engine/data_gen.h"
 #include "engine/callback.h"
 #include "engine/experiment.h"
+#include "engine/input/spike_times.h"
+#include "engine/input/spike_matrix.h"
 
 #include "engine/neuron.c"
 #include "engine/synapse.c"
@@ -19,6 +21,7 @@
 #include "engine/data_gen.c"
 #include "engine/callback.c"
 #include "engine/experiment.c"
-
+#include "engine/input/spike_times.c"
+#include "engine/input/spike_matrix.h"
 
 #endif // __ENGINE_H__
