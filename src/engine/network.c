@@ -87,7 +87,7 @@ network_build(Network* network, Memory* memory, Random* random) {
     }
     check(neuron_offset <= n_neurons, "Used more neurons than were allocated");
 
-    // allocate synapses to each pair of layers
+    // allocate synapses to each pair of layers and link them
     u32 synapse_offset = 0;
     for (layer_it = network->layers.first; layer_it != NULL; layer_it = layer_it->next) {
         layer = layer_it->layer;

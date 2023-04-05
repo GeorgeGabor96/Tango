@@ -93,6 +93,63 @@ data_gen_create_spike_pulses(Memory* memory,
 }
 
 
+internal DataGen*
+data_gen_create_roc(Memory* memory,
+                    u32 duration,
+                    const char* encodings_path,
+                    const char* listing_file) {
+    check(memory != NULL, "memory is NULL");
+    check(duration > 0, "duration is 0");
+    check(encodings_path != NULL, "encodings_path is NULL");
+    check(listing_file != NULL, "listing_file is NULL");
+
+    DataGen* data = (DataGen*)memory_push(memory, sizeof(*data));
+    check_memory(data);
+
+    // NOTE: read the samples
+    FILE* fp = fopen(listing_file, "r");
+    check(fp != NULL, "couldn't open listing file %s", listing_file);
+    char buffer[128] = { 0 }; // Names should not be this long
+    u32 n_samples = 0;
+    StringNode* sample_name_list = NULL;
+
+    while (!feof(fp)) {
+        fscanf(fp, "%s\n", buffer);
+        String* sample_name = string_create(memory, buffer);
+        check_memory(sample_name);
+
+        StringNode* node = (StringNode*)memory_push(memory, sizeof(*node));
+        check_memory(node);
+
+        node->name = sample_name;
+        node->next = NULL;
+
+        if (sample_name_list == NULL) {
+            sample_name_list = node;
+        } else {
+            node->next = sample_name_list;
+            sample_name_list = node;
+        }
+        ++n_samples;
+    }
+
+    String* encodings_path_str = string_create(memory, encodings_path);
+    check_memory(encodings_path_str);
+
+    data->type = DATA_GEN_ROC;
+    data->sample_duration = duration;
+    data->n_samples = n_samples;
+    data->roc.first_file_name = sample_name_list;
+    data->roc.current_sample = sample_name_list;
+    data->roc.encodings_path = encodings_path_str;
+
+    return data;
+
+    error:
+    return NULL;
+}
+
+
 /***********************
 * DATA SAMPLE
 ***********************/
@@ -124,6 +181,27 @@ data_gen_sample_create(Memory* memory, DataGen* data, u32 idx) {
         }
         sample_pulses->next_pulse_time = data_pulses->first_pulse_time;
         sample_pulses->next_between_pulses_time = data_pulses->first_pulse_time + data_pulses->pulse_duration;
+    } else if (data->type == DATA_GEN_ROC) {
+        sample->type = DATA_SAMPLE_ROC;
+
+        DataGenRoc* data_roc = &(data->roc);
+        DataSampleRoc* sample_roc = &(sample->roc_spikes);
+
+        if (data_roc->current_sample == NULL) {
+            log_error("NO MORE SAMPLES. Shouldn't be called this much");
+        }
+        String* sample_path = string_path_join(memory, data_roc->encodings_path, data_roc->current_sample->name);
+        data_roc->current_sample = data_roc->current_sample->next;
+
+        InputSpikeTimes* spike_times = input_spike_times_read(memory, string_get_c_str(sample_path));
+        check_memory(spike_times);
+        // TODO: daca ai duration mai mare ca time sa pui duration in loc la time
+
+        InputSpikeMatrix* matrix = input_spike_matrix_create_from_spike_times(memory, spike_times);
+
+        sample_roc->spikes = matrix;
+
+
     } else {
         log_error("Unknown Generator type %u", data->type);
     }
@@ -209,6 +287,22 @@ data_network_inputs_create(Memory* memory, DataSample* sample, Network* network,
             }
 
             input->type = INPUT_SPIKES;
+            input->spikes.spikes = spikes;
+            input->spikes.n_spikes = layer->n_neurons;
+        } else if (sample->type == DATA_SAMPLE_ROC) {
+            // TODO: aici poate fi bug ca eu am un singur layer per sample, maybe add a check or something
+            DataSampleRoc* roc_sample = &(sample->roc_spikes);
+
+            input->type = INPUT_SPIKES;
+            // TODO: why spikes is b32 not b8?
+            // TODO: check that the number of spikes we got is the same as n_neurons
+            b32* spikes = NULL;
+            if (time < roc_sample->spikes->time) {
+                spikes = input_spike_matrix_get_spike_data_for_time(roc_sample->spikes, time);
+            } else {
+                spikes = (b32*)memory_push_zero(memory, layer->n_neurons * sizeof(b32));
+                check_memory(spikes);
+            }
             input->spikes.spikes = spikes;
             input->spikes.n_spikes = layer->n_neurons;
         }
