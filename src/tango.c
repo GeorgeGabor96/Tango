@@ -146,8 +146,8 @@ b32 tango_create_data_spike_pulses(void* instance,
 b32 tango_create_callback_dumper(void* instance) {
     Experiment* exp = (Experiment*)instance;
     Callback* dumper = callback_dumper_create(exp->permanent_memory,
-            // TODO: use string to be consistent
-            string_get_c_str(exp->output_folder), exp->network);
+                                              exp->output_folder,
+                                              exp->network);
     experiment_add_callback(exp, dumper);
     return TRUE;
 }

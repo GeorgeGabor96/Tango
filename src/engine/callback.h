@@ -97,7 +97,7 @@ internal void callback_end_sample(Callback* callback, Memory* memory);
 * Network Dumper functions
 **************************/
 internal Callback* callback_dumper_create(Memory* memory,
-                                          const char* output_folder,
+                                          String* output_folder,
                                           Network* network);
 internal void callback_dumper_begin_sample(Callback* callback,
                                            u32 sample_duration,

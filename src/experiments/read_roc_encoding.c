@@ -4,19 +4,9 @@
 int main() {
     Experiment* exp = experiment_create(0, 123, "D:\\repos\\Tango_outputs\\roc_encoding");
 
-
     Memory* memory = exp->permanent_memory;
-    InputSpikeTimes* encoding = input_spike_times_read(memory, "d:/datasets/MNIST/encoding/img_train/9999.bin");
 
-    /*
-    printf("Type %s\nHeight %u Width %u\n", input_spike_times_get_type_c_str(encoding->type), encoding->image_info.height, encoding->image_info.width);
-    printf("N Spikes %u\n", encoding->n_spike_times);
-    for (u32 i = 0; i < encoding->n_spike_times; ++i) {
-        printf("%u %u\n", encoding->spike_times[i].neuron_i, encoding->spike_times[i].spike_time);
-    }
-    */
-
-    DataGen* roc_data = data_gen_create_roc(memory, 500, "d:/datasets/MNIST/encoding/img_train", "d:/datasets/MNIST/encoding/test_listing.txt");
+    DataGen* spike_train_data = data_gen_create_spike_train(memory, 500, "d:/datasets/MNIST/encoding/img_train", "d:/datasets/MNIST/encoding/test_listing.txt");
     /*
     for (StringNode* node = roc_data->roc.first_file_name;
          node != NULL;
@@ -42,10 +32,10 @@ int main() {
 
     network_show(net);
 
-    Callback* cb = callback_dumper_create(memory, string_get_c_str(exp->output_folder), net);
+    Callback* cb = callback_dumper_create(memory, exp->output_folder, net);
 
     experiment_set_network(exp, net);
-    experiment_set_data_gen(exp, roc_data);
+    experiment_set_data_gen(exp, spike_train_data);
     experiment_add_callback(exp, cb);
 
     experiment_infer(exp);

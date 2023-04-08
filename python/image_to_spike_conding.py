@@ -16,6 +16,8 @@ def read_img_as_gray(img_path):
 class ImgSpikePairs:
     def __init__(self, w, h, spike_pairs):
         self.type = 0
+        self.n_neurons = w * h
+        self.time_max = 256
         self.w = w
         self.h = h
         self.spike_pairs = spike_pairs
@@ -39,9 +41,13 @@ def encode_spikes_with_roc(img):
 def write_spike_pairs(spike_pairs, out_path):
     os.makedirs(os.path.basename(out_path), exist_ok=True)
     with open(out_path, 'wb') as fp:
+        fp.write(spike_pairs.time_max.to_bytes(4, 'little'))
+        fp.write(spike_pairs.n_neurons.to_bytes(4, 'little'))
+
         fp.write(spike_pairs.type.to_bytes(4, 'little'))
         fp.write(spike_pairs.h.to_bytes(4, 'little'))
         fp.write(spike_pairs.w.to_bytes(4, 'little'))
+
         fp.write(len(spike_pairs.spike_pairs).to_bytes(4, 'little'))
         for spike_pair in spike_pairs.spike_pairs:
             fp.write(spike_pair[0].to_bytes(4, 'little'))

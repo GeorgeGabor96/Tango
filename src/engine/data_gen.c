@@ -94,10 +94,10 @@ data_gen_create_spike_pulses(Memory* memory,
 
 
 internal DataGen*
-data_gen_create_roc(Memory* memory,
-                    u32 duration,
-                    const char* encodings_path,
-                    const char* listing_file) {
+data_gen_create_spike_train(Memory* memory,
+                            u32 duration,
+                            const char* encodings_path,
+                            const char* listing_file) {
     check(memory != NULL, "memory is NULL");
     check(duration > 0, "duration is 0");
     check(encodings_path != NULL, "encodings_path is NULL");
@@ -136,12 +136,12 @@ data_gen_create_roc(Memory* memory,
     String* encodings_path_str = string_create(memory, encodings_path);
     check_memory(encodings_path_str);
 
-    data->type = DATA_GEN_ROC;
+    data->type = DATA_GEN_SPIKE_TRAIN;
     data->sample_duration = duration;
     data->n_samples = n_samples;
-    data->roc.first_file_name = sample_name_list;
-    data->roc.current_sample = sample_name_list;
-    data->roc.encodings_path = encodings_path_str;
+    data->spike_train.first_file_name = sample_name_list;
+    data->spike_train.current_sample = sample_name_list;
+    data->spike_train.encodings_path = encodings_path_str;
 
     return data;
 
@@ -181,26 +181,21 @@ data_gen_sample_create(Memory* memory, DataGen* data, u32 idx) {
         }
         sample_pulses->next_pulse_time = data_pulses->first_pulse_time;
         sample_pulses->next_between_pulses_time = data_pulses->first_pulse_time + data_pulses->pulse_duration;
-    } else if (data->type == DATA_GEN_ROC) {
-        sample->type = DATA_SAMPLE_ROC;
+    } else if (data->type == DATA_GEN_SPIKE_TRAIN) {
+        sample->type = DATA_SAMPLE_SPIKE_TRAIN;
 
-        DataGenRoc* data_roc = &(data->roc);
-        DataSampleRoc* sample_roc = &(sample->roc_spikes);
+        DataGenSpikeTrain* data_spike_train = &(data->spike_train);
+        DataSampleSpikeTrain* sample_spike_train = &(sample->spike_train);
 
-        if (data_roc->current_sample == NULL) {
+        if (data_spike_train->current_sample == NULL) {
             log_error("NO MORE SAMPLES. Shouldn't be called this much");
         }
-        String* sample_path = string_path_join(memory, data_roc->encodings_path, data_roc->current_sample->name);
-        data_roc->current_sample = data_roc->current_sample->next;
+        String* sample_path = string_path_join(memory, data_spike_train->encodings_path, data_spike_train->current_sample->name);
+        data_spike_train->current_sample = data_spike_train->current_sample->next;
 
-        InputSpikeTimes* spike_times = input_spike_times_read(memory, string_get_c_str(sample_path));
-        check_memory(spike_times);
-        // TODO: daca ai duration mai mare ca time sa pui duration in loc la time
-
-        InputSpikeMatrix* matrix = input_spike_matrix_create_from_spike_times(memory, spike_times);
-
-        sample_roc->spikes = matrix;
-
+        SpikeTrain* spikes = spike_train_read(memory, sample_path);
+        check_memory(spikes);
+        sample_spike_train->spikes = spikes;
 
     } else {
         log_error("Unknown Generator type %u", data->type);
@@ -289,16 +284,19 @@ data_network_inputs_create(Memory* memory, DataSample* sample, Network* network,
             input->type = INPUT_SPIKES;
             input->spikes.spikes = spikes;
             input->spikes.n_spikes = layer->n_neurons;
-        } else if (sample->type == DATA_SAMPLE_ROC) {
-            // TODO: aici poate fi bug ca eu am un singur layer per sample, maybe add a check or something
-            DataSampleRoc* roc_sample = &(sample->roc_spikes);
+        } else if (sample->type == DATA_SAMPLE_SPIKE_TRAIN) {
+            check(network->n_in_layers == 1,
+                  "For spike train data generation there needs to be exactly one input layer");
+
+            DataSampleSpikeTrain* spike_train = &(sample->spike_train);
+            check(layer->n_neurons == spike_train->spikes->n_neurons,
+                  "For spike train data generation the number of neurons in the train and in the input layer should be the same");
 
             input->type = INPUT_SPIKES;
             // TODO: why spikes is b32 not b8?
-            // TODO: check that the number of spikes we got is the same as n_neurons
             b32* spikes = NULL;
-            if (time < roc_sample->spikes->time) {
-                spikes = input_spike_matrix_get_spike_data_for_time(roc_sample->spikes, time);
+            if (time < spike_train->spikes->time_max) {
+                spikes = spike_train_get_for_time(spike_train->spikes, time);
             } else {
                 spikes = (b32*)memory_push_zero(memory, layer->n_neurons * sizeof(b32));
                 check_memory(spikes);
