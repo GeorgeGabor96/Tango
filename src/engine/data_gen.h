@@ -7,6 +7,7 @@ typedef enum {
     DATA_GEN_CONSTANT_CURRENT,
     DATA_GEN_RANDOM_SPIKES,
     DATA_GEN_SPIKE_PULSES,
+    DATA_GEN_SPIKE_TRAIN,
 } DataGenType;
 
 
@@ -29,6 +30,13 @@ typedef struct DataGenSpikePulses {
 } DataGenSpikePulses;
 
 
+typedef struct DataGenSpikeTrain {
+    StringNode* first_file_name;
+    StringNode* current_sample;
+    String* encodings_path;
+} DataGenSpikeTrain;
+
+
 typedef struct DataGen {
     DataGenType type;
     u32 n_samples;
@@ -39,6 +47,7 @@ typedef struct DataGen {
         DataGenConstCurrent const_current;
         DataGenRandomSpikes random_spikes;
         DataGenSpikePulses spike_pulses;
+        DataGenSpikeTrain spike_train;
     };
 } DataGen;
 
@@ -61,12 +70,17 @@ internal DataGen* data_gen_create_spike_pulses(Memory* memory,
                                                u32 between_pulses_duration,
                                                f32 pulse_spike_chance,
                                                f32 between_pulses_spike_chance);
+internal DataGen* data_gen_create_spike_train(Memory* memory,
+                                              u32 duration,
+                                              const char* encodings_path,
+                                              const char* listing_file);
 
 typedef enum {
     DATA_SAMPLE_INVALID,
     DATA_SAMPLE_RANDOM_SPIKES,
     DATA_SAMPLE_CONSTANT_CURRENT,
     DATA_SAMPLE_SPIKE_PULSES,
+    DATA_SAMPLE_SPIKE_TRAIN,
 } DataSampleType;
 
 
@@ -75,6 +89,10 @@ typedef struct DataSampleSpikePulses {
     u32 next_pulse_time;
     u32 next_between_pulses_time;
 } DataSampleSpikePulses;
+
+typedef struct DataSampleSpikeTrain {
+    SpikeTrain* spikes;
+} DataSampleSpikeTrain;
 
 
 typedef struct DataSample {
@@ -86,6 +104,7 @@ typedef struct DataSample {
         void* random_spikes;
         void* const_current;
         DataSampleSpikePulses spike_pulses;
+        DataSampleSpikeTrain spike_train;
     };
 } DataSample;
 

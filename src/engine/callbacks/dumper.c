@@ -123,28 +123,24 @@ _callback_dumper_save_meta(DumperMeta* meta) {
 
 
 internal Callback*
-callback_dumper_create(Memory* memory, const char* output_folder, Network* network) {
+callback_dumper_create(Memory* memory, String* output_folder, Network* network) {
     check(memory != NULL, "memory is NULL");
     check(output_folder != NULL, "output_folder is NULL");
     check(network != NULL, "network is NULL");
 
     Callback* callback = NULL;
-    String* output_folder_s = NULL;
-
-    output_folder_s = string_create(memory, output_folder);
-    check_memory(output_folder_s);
 
     callback = (Callback*)memory_push(memory, sizeof(*callback));
     check_memory(callback);
 
-    DumperMeta* meta = _callback_dumper_build_meta(network, memory, output_folder_s);
+    DumperMeta* meta = _callback_dumper_build_meta(network, memory, output_folder);
     check_memory(meta);
 
     DumperData* data = _callback_dumper_build_data(meta, memory);
     check_memory(data);
 
     callback->type = CALLBACK_NETWORK_DUMPER;
-    callback->dumper.output_folder = output_folder_s;
+    callback->dumper.output_folder = output_folder;
     callback->dumper.sample_step = 0;
     callback->dumper.sample_count = 0;
     callback->dumper.sample_duration = 0;
@@ -152,9 +148,9 @@ callback_dumper_create(Memory* memory, const char* output_folder, Network* netwo
     callback->dumper.data = data;
     callback->dumper.network = network;
 
-    b32 result = os_folder_create_str(output_folder_s);
+    b32 result = os_folder_create_str(output_folder);
     check(result == TRUE, "couldn't create folder %s",
-          string_get_c_str(output_folder_s));
+          string_get_c_str(output_folder));
 
     _callback_dumper_save_meta(meta);
 

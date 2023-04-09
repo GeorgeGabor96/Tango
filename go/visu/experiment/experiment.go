@@ -4,8 +4,8 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"tango/go/parser"
 	"tango/go/utils"
+	"tango/go/visu/parser"
 )
 
 type LayerMeta struct {

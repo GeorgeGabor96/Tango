@@ -140,3 +140,12 @@ memory_push(Memory* memory, sz size) {
     error:
     return (void*)memory_adr;
 }
+
+
+internal void*
+memory_push_zero(Memory* memory, sz size) {
+    void* adr = memory_push(memory, size);
+    // NOTE: this will not set exactly everything to 0, because we don't consider the reminder from alignment
+    if (adr) memset(adr, 0, size);
+    return adr;
+}

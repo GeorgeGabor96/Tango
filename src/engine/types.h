@@ -53,4 +53,11 @@ typedef struct Inputs {
 } Inputs;
 
 
+// Data structure types
+typedef struct StringNode {
+    String* name;
+    struct StringNode* next;
+} StringNode;
+
+
 #endif // __ENGINE_TYPES_H__

@@ -4,6 +4,7 @@
 
 #include "common.h"
 #include "engine/types.h"
+#include "engine/spike_train.h"
 #include "engine/neuron.h"
 #include "engine/synapse.h"
 #include "engine/layer.h"
@@ -12,6 +13,7 @@
 #include "engine/callback.h"
 #include "engine/experiment.h"
 
+#include "engine/spike_train.c"
 #include "engine/neuron.c"
 #include "engine/synapse.c"
 #include "engine/layer.c"
@@ -19,6 +21,5 @@
 #include "engine/data_gen.c"
 #include "engine/callback.c"
 #include "engine/experiment.c"
-
 
 #endif // __ENGINE_H__

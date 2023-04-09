@@ -93,6 +93,64 @@ data_gen_create_spike_pulses(Memory* memory,
 }
 
 
+internal DataGen*
+data_gen_create_spike_train(Memory* memory,
+                            u32 duration,
+                            const char* encodings_path,
+                            const char* listing_file) {
+    check(memory != NULL, "memory is NULL");
+    check(duration > 0, "duration is 0");
+    check(encodings_path != NULL, "encodings_path is NULL");
+    check(listing_file != NULL, "listing_file is NULL");
+
+    DataGen* data = (DataGen*)memory_push(memory, sizeof(*data));
+    check_memory(data);
+
+    // NOTE: read the samples
+    FILE* fp = fopen(listing_file, "r");
+    check(fp != NULL, "couldn't open listing file %s", listing_file);
+    char buffer[128] = { 0 }; // Names should not be this long
+    u32 n_samples = 0;
+    StringNode* sample_name_list = NULL;
+
+    while (!feof(fp)) {
+        fscanf(fp, "%s\n", buffer);
+        String* sample_name = string_create(memory, buffer);
+        check_memory(sample_name);
+
+        StringNode* node = (StringNode*)memory_push(memory, sizeof(*node));
+        check_memory(node);
+
+        node->name = sample_name;
+        node->next = NULL;
+
+        if (sample_name_list == NULL) {
+            sample_name_list = node;
+        } else {
+            node->next = sample_name_list;
+            sample_name_list = node;
+        }
+        ++n_samples;
+        memset(buffer, 0, sizeof(buffer));
+    }
+
+    String* encodings_path_str = string_create(memory, encodings_path);
+    check_memory(encodings_path_str);
+
+    data->type = DATA_GEN_SPIKE_TRAIN;
+    data->sample_duration = duration;
+    data->n_samples = n_samples;
+    data->spike_train.first_file_name = sample_name_list;
+    data->spike_train.current_sample = sample_name_list;
+    data->spike_train.encodings_path = encodings_path_str;
+
+    return data;
+
+    error:
+    return NULL;
+}
+
+
 /***********************
 * DATA SAMPLE
 ***********************/
@@ -124,6 +182,23 @@ data_gen_sample_create(Memory* memory, DataGen* data, u32 idx) {
         }
         sample_pulses->next_pulse_time = data_pulses->first_pulse_time;
         sample_pulses->next_between_pulses_time = data_pulses->first_pulse_time + data_pulses->pulse_duration;
+    } else if (data->type == DATA_GEN_SPIKE_TRAIN) {
+        sample->type = DATA_SAMPLE_SPIKE_TRAIN;
+
+        DataGenSpikeTrain* data_spike_train = &(data->spike_train);
+        DataSampleSpikeTrain* sample_spike_train = &(sample->spike_train);
+
+        if (data_spike_train->current_sample == NULL) {
+            log_error("NO MORE SAMPLES. Shouldn't be called this much");
+        }
+        String* sample_path = string_path_join(memory, data_spike_train->encodings_path, data_spike_train->current_sample->name);
+        check_memory(sample_path);
+        data_spike_train->current_sample = data_spike_train->current_sample->next;
+
+        SpikeTrain* spikes = spike_train_read(memory, sample_path);
+        check_memory(spikes);
+        sample_spike_train->spikes = spikes;
+
     } else {
         log_error("Unknown Generator type %u", data->type);
     }
@@ -167,7 +242,7 @@ data_network_inputs_create(Memory* memory, DataSample* sample, Network* network,
             spikes = (b32*)memory_push(memory, layer->n_neurons * sizeof(b32));
             check_memory(spikes);
             for (j = 0; j < layer->n_neurons; ++j)
-                spikes[j] = random_get_bool(random_spikes->random, random_spikes->chance);
+                spikes[j] = random_get_b8(random_spikes->random, random_spikes->chance);
 
             input->type = INPUT_SPIKES;
             input->spikes.spikes = spikes;
@@ -202,13 +277,30 @@ data_network_inputs_create(Memory* memory, DataSample* sample, Network* network,
                 }
 
                 if (sample_pulses->in_pulse == TRUE) {
-                    spikes[j] = random_get_bool(data_pulses->random, data_pulses->pulse_spike_chance);
+                    spikes[j] = random_get_b32(data_pulses->random, data_pulses->pulse_spike_chance);
                 } else {
-                    spikes[j] = random_get_bool(data_pulses->random, data_pulses->between_pulses_spike_chance);
+                    spikes[j] = random_get_b32(data_pulses->random, data_pulses->between_pulses_spike_chance);
                 }
             }
 
             input->type = INPUT_SPIKES;
+            input->spikes.spikes = spikes;
+            input->spikes.n_spikes = layer->n_neurons;
+        } else if (sample->type == DATA_SAMPLE_SPIKE_TRAIN) {
+            check(network->n_in_layers == 1,
+                  "For spike train data generation there needs to be exactly one input layer");
+
+            DataSampleSpikeTrain* spike_train = &(sample->spike_train);
+            check(layer->n_neurons == spike_train->spikes->n_neurons,
+                  "For spike train data generation the number of neurons in the train and in the input layer should be the same");
+
+            input->type = INPUT_SPIKES;
+            if (time < spike_train->spikes->time_max) {
+                spikes = spike_train_get_for_time(spike_train->spikes, time);
+            } else {
+                spikes = (b32*)memory_push_zero(memory, layer->n_neurons * sizeof(b32));
+                check_memory(spikes);
+            }
             input->spikes.spikes = spikes;
             input->spikes.n_spikes = layer->n_neurons;
         }

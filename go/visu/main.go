@@ -7,8 +7,8 @@ import (
 	"os"
 	"strings"
 	"sync"
-	"tango/go/experiment"
-	"tango/go/plotting"
+	"tango/go/visu/experiment"
+	"tango/go/visu/plotting"
 )
 
 type Arguments struct {
