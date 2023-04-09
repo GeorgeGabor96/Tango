@@ -131,6 +131,7 @@ data_gen_create_spike_train(Memory* memory,
             sample_name_list = node;
         }
         ++n_samples;
+        memset(buffer, 0, sizeof(buffer));
     }
 
     String* encodings_path_str = string_create(memory, encodings_path);
@@ -191,6 +192,7 @@ data_gen_sample_create(Memory* memory, DataGen* data, u32 idx) {
             log_error("NO MORE SAMPLES. Shouldn't be called this much");
         }
         String* sample_path = string_path_join(memory, data_spike_train->encodings_path, data_spike_train->current_sample->name);
+        check_memory(sample_path);
         data_spike_train->current_sample = data_spike_train->current_sample->next;
 
         SpikeTrain* spikes = spike_train_read(memory, sample_path);
@@ -293,7 +295,6 @@ data_network_inputs_create(Memory* memory, DataSample* sample, Network* network,
                   "For spike train data generation the number of neurons in the train and in the input layer should be the same");
 
             input->type = INPUT_SPIKES;
-            // TODO: why spikes is b32 not b8?
             if (time < spike_train->spikes->time_max) {
                 spikes = spike_train_get_for_time(spike_train->spikes, time);
             } else {
