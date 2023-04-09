@@ -24,8 +24,11 @@ SynapseRefArray* neuron_create_synapses_ref_array(Memory* memory, u32 capacity) 
 ********************/
 internal char*
 neuron_type_get_c_str(NeuronType type) {
+    if (type == NEURON_IF) return "NEURON_IF";
+    if (type == NEURON_IF_REFRACT) return "NEURON_IF_REFRACT";
+    if (type == NEURON_IF_ONE_SPIKE) return "NEURON_IF_ONE_SPIKE";
     if (type == NEURON_LIF) return "NEURON_LIF";
-    else if (type == NEURON_LIF_REFRACT) return "NEURON_LIF_REFRACT";
+    if (type == NEURON_LIF_REFRACT) return "NEURON_LIF_REFRACT";
     else return "NEURON_INVALID";
 }
 
@@ -33,8 +36,8 @@ neuron_type_get_c_str(NeuronType type) {
 /********************
 *   NEURON CLASS
 ********************/
-internal NeuronCls*
-neuron_cls_create_lif(Memory* memory, String* name) {
+inline internal NeuronCls*
+_neuron_cls_create(Memory* memory, String* name) {
     check(memory != NULL, "memory is NULL");
     check(name != NULL, "name is NULL");
 
@@ -42,7 +45,7 @@ neuron_cls_create_lif(Memory* memory, String* name) {
     check_memory(neuron_cls);
 
     neuron_cls->name = name;
-    neuron_cls->type = NEURON_LIF_REFRACT;
+    neuron_cls->type = NEURON_INVALID;
 
     return neuron_cls;
 
@@ -52,18 +55,61 @@ neuron_cls_create_lif(Memory* memory, String* name) {
 
 
 internal NeuronCls*
+neuron_cls_create_if(Memory* memory, String* name) {
+    NeuronCls* n_cls = _neuron_cls_create(memory, name);
+    check_memory(n_cls);
+
+    n_cls->type = NEURON_IF;
+    error:
+    return n_cls;
+}
+
+
+internal NeuronCls*
+neuron_cls_create_if_refract(Memory* memory, String* name, u32 refract_time) {
+    check(refract_time > 0, "refract_time is 0");
+    NeuronCls* n_cls = _neuron_cls_create(memory, name);
+    check_memory(n_cls);
+
+    n_cls->type = NEURON_IF_REFRACT;
+    n_cls->if_refract_cls.refract_time = refract_time;
+    return n_cls;
+
+    error:
+    return NULL;
+}
+
+
+internal NeuronCls* neuron_cls_create_if_one_spike(Memory* memory, String* name) {
+    NeuronCls* n_cls = _neuron_cls_create(memory, name);
+    check_memory(n_cls);
+
+    n_cls->type = NEURON_IF_ONE_SPIKE;
+    error:
+    return n_cls;
+}
+
+
+internal NeuronCls*
+neuron_cls_create_lif(Memory* memory, String* name) {
+    NeuronCls* n_cls = _neuron_cls_create(memory, name);
+    check_memory(n_cls);
+
+    n_cls->type = NEURON_LIF;
+    error:
+    return n_cls;
+}
+
+
+internal NeuronCls*
 neuron_cls_create_lif_refract(Memory* memory, String* name, u32 refract_time) {
-    check(memory != NULL, "memory is NULL");
-    check(name != NULL, "name is NULL");
+    check(refract_time > 0, "refract_time is 0");
+    NeuronCls* n_cls = _neuron_cls_create(memory, name);
+    check_memory(n_cls);
 
-    NeuronCls* neuron_cls = (NeuronCls*)memory_push(memory, sizeof(NeuronCls));
-    check_memory(neuron_cls);
-
-    neuron_cls->name = name;
-    neuron_cls->type = NEURON_LIF_REFRACT;
-    neuron_cls->lif_refract_cls.refract_time = refract_time;
-
-    return neuron_cls;
+    n_cls->type = NEURON_LIF_REFRACT;
+    n_cls->lif_refract_cls.refract_time = refract_time;
+    return n_cls;
 
     error:
     return NULL;
@@ -95,12 +141,7 @@ neuron_init(Neuron* neuron, NeuronCls* cls) {
     check(cls != NULL, "cls is NULL");
 
     neuron->cls = cls;
-
-    if (neuron->cls->type == NEURON_LIF) {
-        neuron->voltage = NEURON_LIF_VOLTAGE_REST;
-    } else if (neuron->cls->type == NEURON_LIF_REFRACT) {
-        neuron->voltage = NEURON_LIF_VOLTAGE_REST;
-    }
+    neuron->voltage = NEURON_VOLTAGE_REST[neuron->cls->type];
 
     neuron->epsc = 0.0f;
     neuron->ipsc = 0.0f;
@@ -144,6 +185,12 @@ _neuron_compute_psc(Neuron* neuron, u32 time) {
 }
 
 
+// TODO: this can be macros
+internal void
+_neuron_if_voltage_update(Neuron* neuron, f32 psc) {
+    neuron->voltage = neuron->voltage + psc;
+}
+
 internal void
 _neuron_lif_voltage_update(Neuron* neuron, f32 psc) {
     neuron->voltage = NEURON_LIF_VOLTAGE_FACTOR * neuron->voltage +
@@ -154,34 +201,40 @@ _neuron_lif_voltage_update(Neuron* neuron, f32 psc) {
 
 internal void
 _neuron_update(Neuron* neuron, u32 time, f32 psc) {
-    b32 spike = FALSE;
-
     NeuronCls* cls = neuron->cls;
+    NeuronType n_type = cls->type;
 
-    if (neuron->cls->type == NEURON_LIF) {
-        _neuron_lif_voltage_update(neuron, psc);
-        if (neuron->voltage >= NEURON_LIF_VOLTAGE_TH) {
-            neuron->voltage = NEURON_LIF_VOLTAGE_REST;
-            spike = TRUE;
-            neuron->last_spike_time = time;
+    if (n_type == NEURON_IF) {
+        _neuron_if_voltage_update(neuron, psc);
+    } else if (n_type == NEURON_IF_REFRACT) {
+        if (time - neuron->last_spike_time <= cls->if_refract_cls.refract_time) {
+            neuron->voltage = NEURON_IF_VOLTAGE_REST;
+        } else {
+            _neuron_if_voltage_update(neuron, psc);
         }
-    } else if (neuron->cls->type == NEURON_LIF_REFRACT) {
+    } else if (n_type == NEURON_IF_ONE_SPIKE) {
+        if (neuron->last_spike_time == NEURON_INVALID_SPIKE_TIME) {
+            _neuron_if_voltage_update(neuron, psc);
+        }
+    } else if (n_type == NEURON_LIF) {
+        _neuron_lif_voltage_update(neuron, psc);
+    } else if (n_type == NEURON_LIF_REFRACT) {
         // NOTE: Only update after refractory period
         if (time - neuron->last_spike_time <= cls->lif_refract_cls.refract_time) {
             neuron->voltage = NEURON_LIF_VOLTAGE_REST;
-            spike = FALSE;
         } else {
             _neuron_lif_voltage_update(neuron, psc);
-            if (neuron->voltage >= NEURON_LIF_VOLTAGE_TH) {
-                neuron->voltage = NEURON_LIF_VOLTAGE_REST;
-                spike = TRUE;
-                neuron->last_spike_time = time;
-            }
         }
     } else {
         log_error("INVALID neuron type %u", cls->type);
     }
-    neuron->spike = spike;
+
+    // TODO: maybe a table of fn pointers
+    //NEURON_UPDATE_FUNC[n_type](neuron, time, psc);
+    if (neuron->voltage >= NEURON_VOLTAGE_TH[n_type]) {
+        neuron->voltage = NEURON_VOLTAGE_REST[n_type];
+        neuron->spike = TRUE;
+    }
 }
 
 
@@ -243,14 +296,7 @@ neuron_step_force_spike(Neuron* neuron, u32 time) {
     _neuron_update_in_synapses(neuron, time);
     neuron->spike = TRUE;
     neuron->last_spike_time = time;
-
-    if (neuron->cls->type == NEURON_LIF) {
-        neuron->voltage = NEURON_LIF_VOLTAGE_REST;
-    } else if (neuron->cls->type == NEURON_LIF_REFRACT) {
-        neuron->voltage = NEURON_LIF_VOLTAGE_REST;
-    } else {
-        log_error("INVALID neuron type %u", neuron->cls->type);
-    }
+    neuron->voltage = NEURON_VOLTAGE_REST[neuron->cls->type];
     _neuron_update_out_synapses(neuron, time);
 
     TIMING_COUNTER_END(NEURON_STEP_FORCE_SPIKE);
@@ -282,12 +328,8 @@ neuron_clear(Neuron* neuron) {
     check(neuron != NULL, "neuron is NULL");
 
     neuron->spike = FALSE;
-    if (neuron->cls->type == NEURON_LIF)
-        neuron->voltage = NEURON_LIF_VOLTAGE_REST;
-    else if (neuron->cls->type == NEURON_LIF_REFRACT)
-        neuron->voltage = NEURON_LIF_VOLTAGE_REST;
-    else
-        log_error("Unknown neuron type %u", neuron->cls->type);
+    neuron->last_spike_time = NEURON_INVALID_SPIKE_TIME;
+    neuron->voltage = NEURON_VOLTAGE_REST[neuron->cls->type];
 
     u32 synapse_i = 0;
     Synapse* synapse = NULL;

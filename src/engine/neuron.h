@@ -3,25 +3,20 @@
 
 
 typedef enum {
+    NEURON_IF = 0,
+    NEURON_IF_REFRACT = 1,
+    NEURON_IF_ONE_SPIKE = 2,
+    NEURON_LIF = 3,
+    NEURON_LIF_REFRACT = 4,
+
+    NEURON_TYPES_CNT = 5,
     NEURON_INVALID,
-    NEURON_LIF,
-    NEURON_LIF_REFRACT
 } NeuronType;
 
 
-internal char* neuron_type_get_c_str(NeuronType type);
-
-
-typedef struct NeuronCls {
-    String* name;  // NOTE: take ownership of the name
-    NeuronType type;
-    union {
-        struct {
-            u32 refract_time;
-        } lif_refract_cls;
-    };
-} NeuronCls;
-
+// NOTE: IF constants
+#define NEURON_IF_VOLTAGE_TH -45.0f
+#define NEURON_IF_VOLTAGE_REST -65.0f
 
 // NOTE: LIF constants
 // TODO: This change very rarely for now, only when we have a config file of some sort we
@@ -35,7 +30,48 @@ typedef struct NeuronCls {
 #define NEURON_LIF_I_FACTOR (1 / NEURON_LIF_C)
 #define NEURON_LIF_FREE_FACTOR (NEURON_LIF_VOLTAGE_REST / (NEURON_LIF_TAU))
 
+float NEURON_VOLTAGE_REST[NEURON_TYPES_CNT] = {
+    NEURON_IF_VOLTAGE_REST,
+    NEURON_IF_VOLTAGE_REST,
+    NEURON_IF_VOLTAGE_REST,
+    NEURON_LIF_VOLTAGE_REST,
+    NEURON_LIF_VOLTAGE_REST
+};
 
+float NEURON_VOLTAGE_TH[NEURON_TYPES_CNT] = {
+    NEURON_IF_VOLTAGE_TH,
+    NEURON_IF_VOLTAGE_TH,
+    NEURON_IF_VOLTAGE_TH,
+    NEURON_LIF_VOLTAGE_TH,
+    NEURON_LIF_VOLTAGE_TH
+};
+
+internal char* neuron_type_get_c_str(NeuronType type);
+
+
+typedef struct NeuronClsIfRefract {
+    u32 refract_time;
+} NeuronClsIfRefract;
+
+typedef struct NeuronClsLifRefract {
+    u32 refract_time;
+} NeuronClsLifRefract;
+
+typedef struct NeuronCls {
+    String* name;  // NOTE: take ownership of the name
+    NeuronType type;
+    union {
+        NeuronClsIfRefract if_refract_cls;
+        NeuronClsLifRefract lif_refract_cls;
+    };
+} NeuronCls;
+
+
+internal NeuronCls* neuron_cls_create_if(Memory* memory, String* name);
+internal NeuronCls* neuron_cls_create_if_refract(Memory* memory,
+                                                 String* name,
+                                                 u32 refract_time);
+internal NeuronCls* neuron_cls_create_if_one_spike(Memory* memory, String* name);
 internal NeuronCls* neuron_cls_create_lif(Memory* memory, String* name);
 internal NeuronCls* neuron_cls_create_lif_refract(Memory* memory,
                                                   String* name,
