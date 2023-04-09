@@ -240,7 +240,7 @@ data_network_inputs_create(Memory* memory, DataSample* sample, Network* network,
             spikes = (b32*)memory_push(memory, layer->n_neurons * sizeof(b32));
             check_memory(spikes);
             for (j = 0; j < layer->n_neurons; ++j)
-                spikes[j] = random_get_bool(random_spikes->random, random_spikes->chance);
+                spikes[j] = random_get_b8(random_spikes->random, random_spikes->chance);
 
             input->type = INPUT_SPIKES;
             input->spikes.spikes = spikes;
@@ -275,9 +275,9 @@ data_network_inputs_create(Memory* memory, DataSample* sample, Network* network,
                 }
 
                 if (sample_pulses->in_pulse == TRUE) {
-                    spikes[j] = random_get_bool(data_pulses->random, data_pulses->pulse_spike_chance);
+                    spikes[j] = random_get_b32(data_pulses->random, data_pulses->pulse_spike_chance);
                 } else {
-                    spikes[j] = random_get_bool(data_pulses->random, data_pulses->between_pulses_spike_chance);
+                    spikes[j] = random_get_b32(data_pulses->random, data_pulses->between_pulses_spike_chance);
                 }
             }
 
@@ -294,7 +294,6 @@ data_network_inputs_create(Memory* memory, DataSample* sample, Network* network,
 
             input->type = INPUT_SPIKES;
             // TODO: why spikes is b32 not b8?
-            b32* spikes = NULL;
             if (time < spike_train->spikes->time_max) {
                 spikes = spike_train_get_for_time(spike_train->spikes, time);
             } else {

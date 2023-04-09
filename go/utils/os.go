@@ -1,7 +1,9 @@
 package utils
 
 import (
+	"bufio"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
@@ -19,7 +21,7 @@ func JoinWithCreate(p1 string, p2 string) string {
 	return joinFolder
 }
 
-func FileNamesWithExtension(dir string, ext string) []string {
+func GetFileNamesWithExtension(dir string, ext string) []string {
 	var fileNames []string
 	items, err := ioutil.ReadDir(dir)
 	if err != nil {
@@ -39,13 +41,13 @@ func FileNamesWithExtension(dir string, ext string) []string {
 	return fileNames
 }
 
-func FileNameFromPath(path string) string {
+func GetFileNameFromPath(path string) string {
 	tokens := strings.Split(path, string(filepath.Separator))
 	fileName := tokens[len(tokens)-1]
 	return fileName
 }
 
-func FolderFromPath(path string) string {
+func GetFolderFromPath(path string) string {
 	tokens := strings.Split(path, string(filepath.Separator))
 	folder := tokens[0]
 	for i := 1; i < len(tokens)-1; i++ {
@@ -87,4 +89,27 @@ func CreateFolder(folder string) bool {
 		return false
 	}
 	return true
+}
+
+func ReadListingFile(file string) ([]string, error) {
+	var items []string
+
+	fp, err := os.Open(file)
+	if err != nil {
+		log.Fatal(fmt.Sprintf("Couldn't read %s", file))
+		return nil, err
+	}
+	defer fp.Close()
+
+	scanner := bufio.NewScanner(fp)
+	// optionally, resize scanner's capacity for lines over 64K, see next example
+	for scanner.Scan() {
+		items = append(items, scanner.Text())
+	}
+
+	if err := scanner.Err(); err != nil {
+		log.Fatal(err)
+		return nil, err
+	}
+	return items, nil
 }

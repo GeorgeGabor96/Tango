@@ -6,7 +6,7 @@ int main() {
 
     Memory* memory = exp->permanent_memory;
 
-    DataGen* spike_train_data = data_gen_create_spike_train(memory, 500, "d:/datasets/MNIST/encoding/img_train", "d:/datasets/MNIST/encoding/test_listing.txt");
+    DataGen* spike_train_data = data_gen_create_spike_train(memory, 500, "d:/datasets/MNIST/encoding2/img_train", "d:/datasets/MNIST/encoding2/img_train/samples.txt");
     /*
     for (StringNode* node = roc_data->roc.first_file_name;
          node != NULL;
