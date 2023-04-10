@@ -238,14 +238,15 @@ NEURON_UPDATE_FN _NEURON_UPDATE_FNS[NEURON_TYPES_CNT] = {
 
 internal void
 _neuron_update(Neuron* neuron, u32 time, f32 psc) {
-    NeuronCls* cls = neuron->cls;
-    NeuronType n_type = cls->type;
+    NeuronType n_type = neuron->cls->type;
 
     _NEURON_UPDATE_FNS[n_type](neuron, psc, time);
     if (neuron->voltage >= NEURON_VOLTAGE_TH[n_type]) {
         neuron->voltage = NEURON_VOLTAGE_REST[n_type];
         neuron->spike = TRUE;
         neuron->last_spike_time = time;
+    } else {
+        neuron->spike = FALSE;
     }
 }
 
