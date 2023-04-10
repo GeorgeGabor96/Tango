@@ -11,6 +11,13 @@ typedef enum {
 
     NEURON_TYPES_CNT = 5,
     NEURON_INVALID,
+
+    /*********************************
+     * If adding a new type append to
+     * - NEURON_VOLTAGE_REST
+     * - NEURON_VOLTAGE_TH
+     * - _NEURON_UPDATE_FNS
+    *********************************/
 } NeuronType;
 
 

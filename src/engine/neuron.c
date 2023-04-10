@@ -188,12 +188,12 @@ _neuron_compute_psc(Neuron* neuron, u32 time) {
 /****************************
  * NOTE: Neuron Update stuff
  ***************************/
-#define NEURON_IF_VOLTAGE_UPDATE(neuron, psc) (neuron->voltage = neuron->voltage + psc)
-#define NEURON_LIF_VOLTAGE_UPDATE(neuron, psc) (neuron->voltage = NEURON_LIF_VOLTAGE_FACTOR * neuron->voltage + NEURON_LIF_I_FACTOR * psc + NEURON_LIF_FREE_FACTOR)
+#define _NEURON_IF_VOLTAGE_UPDATE(neuron, psc) (neuron->voltage = neuron->voltage + psc)
+#define _NEURON_LIF_VOLTAGE_UPDATE(neuron, psc) (neuron->voltage = NEURON_LIF_VOLTAGE_FACTOR * neuron->voltage + NEURON_LIF_I_FACTOR * psc + NEURON_LIF_FREE_FACTOR)
 
 internal void
 _neuron_if_voltage_update(Neuron* neuron, f32 psc, u32 time) {
-    NEURON_IF_VOLTAGE_UPDATE(neuron, psc);
+    _NEURON_IF_VOLTAGE_UPDATE(neuron, psc);
 }
 
 internal void
@@ -201,20 +201,20 @@ _neuron_if_refract_voltage_update(Neuron* neuron, f32 psc, u32 time) {
     if (time - neuron->last_spike_time <= neuron->cls->if_refract_cls.refract_time) {
         neuron->voltage = NEURON_IF_VOLTAGE_REST;
     } else {
-        NEURON_IF_VOLTAGE_UPDATE(neuron, psc);
+        _NEURON_IF_VOLTAGE_UPDATE(neuron, psc);
     }
 }
 
 internal void
 _neuron_if_one_spike_voltage_update(Neuron* neuron, f32 psc, u32 time) {
     if (neuron->last_spike_time == NEURON_INVALID_SPIKE_TIME) {
-        NEURON_IF_VOLTAGE_UPDATE(neuron, psc);
+        _NEURON_IF_VOLTAGE_UPDATE(neuron, psc);
     }
 }
 
 internal void
 _neuron_lif_voltage_update(Neuron* neuron, f32 psc, u32 time) {
-    NEURON_LIF_VOLTAGE_UPDATE(neuron, psc);
+    _NEURON_LIF_VOLTAGE_UPDATE(neuron, psc);
 }
 
 internal void
@@ -223,12 +223,12 @@ _neuron_lif_refract_voltage_update(Neuron* neuron, f32 psc, u32 time) {
     if (time - neuron->last_spike_time <= neuron->cls->lif_refract_cls.refract_time) {
         neuron->voltage = NEURON_LIF_VOLTAGE_REST;
     } else {
-        NEURON_LIF_VOLTAGE_UPDATE(neuron, psc);
+        _NEURON_LIF_VOLTAGE_UPDATE(neuron, psc);
     }
 }
 
 typedef void (*NEURON_UPDATE_FN)(Neuron* neuron, f32 psc, u32 time);
-NEURON_UPDATE_FN NEURON_UPDATE_FNS[NEURON_TYPES_CNT] = {
+NEURON_UPDATE_FN _NEURON_UPDATE_FNS[NEURON_TYPES_CNT] = {
     _neuron_if_voltage_update,
     _neuron_if_refract_voltage_update,
     _neuron_if_one_spike_voltage_update,
@@ -241,7 +241,7 @@ _neuron_update(Neuron* neuron, u32 time, f32 psc) {
     NeuronCls* cls = neuron->cls;
     NeuronType n_type = cls->type;
 
-    NEURON_UPDATE_FNS[n_type](neuron, psc, time);
+    _NEURON_UPDATE_FNS[n_type](neuron, psc, time);
     if (neuron->voltage >= NEURON_VOLTAGE_TH[n_type]) {
         neuron->voltage = NEURON_VOLTAGE_REST[n_type];
         neuron->spike = TRUE;
