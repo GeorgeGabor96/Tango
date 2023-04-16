@@ -5,11 +5,15 @@
 
 
 inline internal f64
-math_op_exp(f64 value) {
+math_exp_f64(f64 value) {
     f64 result = exp(value);
     return result;
 }
 
+inline internal f32
+math_exp_f32(f32 value) {
+    return (f32)math_exp_f64(value);
+}
 
 inline internal u32
 math_min_u32(u32 a, u32 b) {

@@ -3,6 +3,23 @@
 
 
 typedef enum {
+    SYNAPSE_LEARNING_DAN_POO,
+
+    SYNAPSE_LEARNING_INVALID,
+} SynapseLearningRule;
+
+
+internal const char* synapse_learning_rule_get_c_str(SynapseLearningRule rule);
+
+
+typedef struct SynapseLearningDanPoo {
+    f32 A;
+    f32 B;
+    f32 tau;
+} SynapseLearningDanPoo;
+
+
+typedef enum {
     SYNAPSE_INVALID,
     SYNAPSE_CONDUCTANCE,
     SYNAPSE_VOLTAGE,
@@ -19,6 +36,13 @@ typedef struct SynapseCls {
     f32 amp;
     f32 tau_exp;
     u32 delay;
+
+    f32 max_w;
+    f32 min_w;
+    SynapseLearningRule learning_rule;
+    union {
+        SynapseLearningDanPoo stdp_dan_poo;
+    };
 } SynapseCls;
 
 
@@ -26,6 +50,9 @@ internal SynapseCls* synapse_cls_create(Memory* memory,
                                         String* name, SynapseType type,
                                         f32 rev_potential, f32 amp,
                                         f32 tau_ms, u32 delay);
+
+internal void synapse_cls_add_learning_rule_dan_poo(SynapseCls* cls,
+f32 min_w, f32 max_w, f32 A, f32 B, f32 tau);
 
 
 #define SYNAPSE_QUEUE_CAPACITY (sizeof(u64) * 8 - 1)
@@ -52,14 +79,9 @@ internal void synapse_step(Synapse* synapse, u32 time);
 
 internal void synapse_clear(Synapse* synapse);
 
-// NOTE: for STDP
-#define SYNAPSE_WEIGHT_MAX 2.0f
 
-#define SYNAPSE_POTENTIATION_INTERVAL (u32)20
-#define SYNAPSE_DEPRESSION_INTERVAL (u32) 30
+internal void synapse_update_pre_post(Synapse* synapse, u32 pre_spike_time, u32 post_spike_time);
 
-internal void synapse_stdp_potentiation_update(Synapse* synapse, u32 in_spike_time, u32 out_spike_time);
-
-internal void synapse_stdp_depression_update(Synapse* synapse, u32 in_spike_time, u32 out_spike_time);
+internal void synapse_update_post_pre(Synapse* synapse, u32 pre_spike_time, u32 post_spike_time);
 
 #endif // __SYNAPSE_H__

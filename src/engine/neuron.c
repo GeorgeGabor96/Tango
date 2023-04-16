@@ -378,9 +378,9 @@ _neuron_learning_update_synapses(Neuron* neuron, u32 time) {
         for (synapse_i = 0; synapse_i < it->length; ++synapse_i) {
             synapse = it->synapses[synapse_i];
 
-            u32 in_spike_time = synapse->in_neuron->last_spike_time;
-            u32 out_spike_time = neuron->last_spike_time;
-            synapse_stdp_potentiation_update(synapse, in_spike_time, out_spike_time);
+            u32 pre_spike_time = synapse->in_neuron->last_spike_time;
+            u32 post_spike_time = neuron->last_spike_time;
+            synapse_update_pre_post(synapse, pre_spike_time, post_spike_time);
         }
     }
 
@@ -389,10 +389,10 @@ _neuron_learning_update_synapses(Neuron* neuron, u32 time) {
         for (synapse_i = 0; synapse_i < it->length; ++synapse_i) {
             synapse = it->synapses[synapse_i];
 
-            u32 in_spike_time = neuron->last_spike_time;
-            u32 out_spike_time = synapse->out_neuron->last_spike_time;
+            u32 pre_spike_time = neuron->last_spike_time;
+            u32 post_spike_time = synapse->out_neuron->last_spike_time;
 
-            synapse_stdp_depression_update(synapse, in_spike_time, out_spike_time);
+            synapse_update_post_pre(synapse, pre_spike_time, post_spike_time);
         }
     }
 }

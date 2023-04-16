@@ -64,15 +64,15 @@ func CreateActivityPlot(meta *experiment.Meta, sampleName string) {
 	}
 	plotting.ActivityPlot(meta, data)
 
-	plotting.SynapseConductancePlot(meta, data, 100)
-	plotting.SynapseWeightPlot(meta, data, 100)
-	plotting.SynapsesHistPlot(meta, data, 100)
+	plotting.SynapseConductancePlot(meta, data, 1000)
+	plotting.SynapseWeightPlot(meta, data, 1000)
+	plotting.SynapsesHistPlot(meta, data, 1000)
 
-	plotting.NeuronVoltagePlot(meta, data, 100)
-	plotting.NeuronSpikesPlot(meta, data, 100)
-	plotting.NeuronPscPlot(meta, data, 100)
-	plotting.NeuronEpscPlot(meta, data, 100)
-	plotting.NeuronIpscPlot(meta, data, 100)
+	plotting.NeuronVoltagePlot(meta, data, 1000)
+	plotting.NeuronSpikesPlot(meta, data, 1000)
+	plotting.NeuronPscPlot(meta, data, 1000)
+	plotting.NeuronEpscPlot(meta, data, 1000)
+	plotting.NeuronIpscPlot(meta, data, 1000)
 
 	fmt.Printf("[INFO] Finished processing sample %v\n", sampleName)
 }
