@@ -46,13 +46,12 @@ func main() {
 	for sampleName := range meta.Samples {
 		sampleNameCopy := strings.Clone(sampleName)
 		fmt.Println(sampleName)
-		CreateActivityPlot(meta, sampleNameCopy)
-		/*wg.Add(1)
+		wg.Add(1)
 
 		go func() {
 			CreateActivityPlot(meta, sampleNameCopy)
 			wg.Done()
-		}()*/
+		}()
 	}
 	wg.Wait()
 }
