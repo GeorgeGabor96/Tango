@@ -23,6 +23,7 @@ synapse_cls_add_learning_rule_dan_poo(SynapseCls* cls,
                                       f32 min_w, f32 max_w,
                                       f32 A, f32 B, f32 tau) {
     check(cls != NULL, "cls is NULL");
+    cls->learning_rule = SYNAPSE_LEARNING_DAN_POO;
     cls->min_w = min_w;
     cls->max_w = max_w;
     cls->stdp_dan_poo.A = A;
@@ -227,7 +228,8 @@ synapse_update_pre_post(Synapse* synapse, u32 pre_spike_time, u32 post_spike_tim
     // NOTE: the input neuron should have spiked
     if (pre_spike_time == NEURON_INVALID_SPIKE_TIME) return;
 
-    u32 interval_value = post_spike_time - pre_spike_time;
+    f32 interval_value = (f32)post_spike_time - (f32)pre_spike_time;
+    check(interval_value >= 0.0f, "interval value is negative");
     // TODO: if the pre neuron spikes and the post neuron spikes
     // the dt between them should be at least the synapse delay
     // right? I mean the pre spike will not even get the post neuron
@@ -260,7 +262,8 @@ synapse_update_post_pre(Synapse* synapse, u32 pre_spike_time, u32 post_spike_tim
     // NOTE: the out neuron should have spiked
     if (post_spike_time == NEURON_INVALID_SPIKE_TIME) return;
 
-    u32 interval_value = pre_spike_time - post_spike_time;
+    f32 interval_value = (f32)pre_spike_time - (f32)post_spike_time;
+    check(interval_value >= 0, "interval_value is negative");
     // TODO: if pre spikes after post
     if (interval_value < cls->delay)
         return;

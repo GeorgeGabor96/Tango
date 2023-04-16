@@ -123,6 +123,7 @@ _experiment_run(Experiment* experiment, Mode mode) {
                                   experiment->transient_memory);
 
         for (time = 0; time < sample->duration; ++time) {
+            printf("%d/%d\r", time, sample->duration);
             inputs = data_network_inputs_create(experiment->transient_memory,
                                                 sample,
                                                 experiment->network,
