@@ -41,7 +41,7 @@ callback_network_data_dumper_begin_sample(Callback* callback, u32 sample_duratio
     DumperData* data = &callback->dumper_data;
 
     char file_name[100];
-    sprintf(file_name, "sample_%d.bin", data->sample_count);
+    sprintf(file_name, "data_%d.bin", data->sample_count);
     String* file_name_s = string_create(memory, file_name);
     check_memory(file_name_s);
 

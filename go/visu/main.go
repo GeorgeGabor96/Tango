@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"strings"
 	"sync"
 	"tango/go/visu/experiment"
 	"tango/go/visu/plotting"
@@ -43,22 +42,22 @@ func main() {
 	meta, _ := experiment.BuildMeta(args.binFolder)
 
 	var wg sync.WaitGroup
-	for sampleName := range meta.Samples {
-		sampleNameCopy := strings.Clone(sampleName)
-		fmt.Println(sampleName)
+	for sampleI := 0; sampleI < len(meta.SamplesDuration); sampleI++ {
+		CreateActivityPlot(meta, sampleI)
+		continue
 		wg.Add(1)
 
-		go func() {
-			CreateActivityPlot(meta, sampleNameCopy)
+		go func(sampleI int) {
+			CreateActivityPlot(meta, sampleI)
 			wg.Done()
-		}()
+		}(sampleI)
 	}
 	wg.Wait()
 }
 
-func CreateActivityPlot(meta *experiment.Meta, sampleName string) {
-	fmt.Printf("[INFO] Begin processing sample %v\n", sampleName)
-	data, err := experiment.BuildData(meta, sampleName)
+func CreateActivityPlot(meta *experiment.Meta, sampleI int) {
+	fmt.Printf("[INFO] Begin processing sample %d\n", sampleI)
+	data, err := experiment.BuildData(meta, sampleI)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -74,5 +73,5 @@ func CreateActivityPlot(meta *experiment.Meta, sampleName string) {
 	plotting.NeuronEpscPlot(meta, data, 1000)
 	plotting.NeuronIpscPlot(meta, data, 1000)
 
-	fmt.Printf("[INFO] Finished processing sample %v\n", sampleName)
+	fmt.Printf("[INFO] Finished processing sample %d\n", sampleI)
 }

@@ -25,9 +25,9 @@ type Meta struct {
 	NNeurons  uint32
 	NSynapses uint32
 
-	Layers   []LayerMeta
-	Synapses []SynapseMeta
-	Samples  map[string]uint32
+	Layers          []LayerMeta
+	Synapses        []SynapseMeta
+	SamplesDuration []uint32
 }
 
 type NeuronData struct {
@@ -76,7 +76,7 @@ func BuildMeta(folder string) (*Meta, error) {
 	meta.NSynapses = nSynapses
 	meta.Layers = make([]LayerMeta, nLayers)
 	meta.Synapses = make([]SynapseMeta, nSynapses)
-	meta.Samples = make(map[string]uint32)
+	meta.SamplesDuration = make([]uint32, 0)
 
 	var layerI uint32
 	for layerI = 0; layerI < nLayers; layerI++ {
@@ -96,17 +96,18 @@ func BuildMeta(folder string) (*Meta, error) {
 	}
 
 	for !parser.IsFinished() {
-		meta.Samples[parser.String()] = parser.Uint32()
+		meta.SamplesDuration = append(meta.SamplesDuration, parser.Uint32())
 	}
 
 	return meta, nil
 }
 
-func BuildData(meta *Meta, fileName string) (*Data, error) {
-	duration, present := meta.Samples[fileName]
-	if !present {
-		return nil, errors.New("fileName not in meta info")
+func BuildData(meta *Meta, sampleI int) (*Data, error) {
+	if sampleI >= len(meta.SamplesDuration) {
+		return nil, errors.New("sampleI is too big")
 	}
+	duration := meta.SamplesDuration[sampleI]
+	fileName := fmt.Sprintf("data_%d.bin", sampleI)
 
 	filePath := utils.Join(meta.Folder, fileName)
 
