@@ -77,7 +77,6 @@ func ActivityPlot(meta *experiment.Meta, spikesData *experiment.SpikesData) erro
 
 	var pair utils.SpikeTimePair
 	var pairI uint32 = 0
-	var neuronLayerOffset uint32 = 0
 
 	for i := int(meta.NLayers - 1); i >= 0; i-- {
 		layerMeta := meta.Layers[i]
@@ -93,8 +92,7 @@ func ActivityPlot(meta *experiment.Meta, spikesData *experiment.SpikesData) erro
 		for pairI = 0; pairI < layerSpikes.NSpikes; pairI++ {
 			pair = layerSpikes.Pairs[pairI]
 			spikePts[pairI].X = float64(pair.TimeI)
-			neuronLayerOffset = pair.NeuronI - meta.Layers[i].NeuronStartIdx
-			spikePts[pairI].Y = float64(yOffset + neuronLayerOffset)
+			spikePts[pairI].Y = float64(yOffset + pair.NeuronI)
 		}
 
 		s, err := plotter.NewScatter(spikePts)

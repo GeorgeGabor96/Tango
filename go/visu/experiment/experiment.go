@@ -221,6 +221,9 @@ func BuildSpikes(meta *Meta, sampleI int) (*SpikesData, error) {
 				break
 			}
 		}
+		// NOTE: neurons are offseted to the layer
+		pair.NeuronI = pair.NeuronI - meta.Layers[layerForNeuron].NeuronStartIdx
+
 		spikesData.Layers[layerForNeuron].Pairs = append(spikesData.Layers[layerForNeuron].Pairs, pair)
 		spikesData.Layers[layerForNeuron].NSpikes++
 	}

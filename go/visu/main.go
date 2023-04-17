@@ -42,8 +42,6 @@ func main() {
 
 	var wg sync.WaitGroup
 	for sampleI := 0; sampleI < len(meta.SamplesDuration); sampleI++ {
-		CreatePlots(meta, sampleI)
-		continue
 		wg.Add(1)
 
 		go func(sampleI int) {
