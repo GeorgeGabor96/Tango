@@ -24,6 +24,7 @@ callback_network_data_dumper_create(Memory* memory, String* output_folder, Netwo
     callback->type = CALLBACK_NETWORK_DATA_DUMPER;
     callback->dumper_data.network = network;
     callback->dumper_data.output_folder = output_folder;
+    callback->dumper_data.sample_fp = NULL;
     callback->dumper_data.neuron_data = neuron_data;
     callback->dumper_data.synapse_data = synapse_data;
     callback->dumper_data.sample_count = 0;

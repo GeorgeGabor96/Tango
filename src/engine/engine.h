@@ -22,6 +22,7 @@
 #include "engine/callback.c"
 #include "engine/callbacks/meta_dumper.c"
 #include "engine/callbacks/data_dumper.c"
+#include "engine/callbacks/spikes_dumper.c"
 #include "engine/experiment.c"
 
 #endif // __ENGINE_H__
