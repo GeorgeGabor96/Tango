@@ -3,7 +3,7 @@ package parser
 import (
 	"encoding/binary"
 	"errors"
-	"log"
+	"fmt"
 	"math"
 	"os"
 )
@@ -16,8 +16,7 @@ type Parser struct {
 func NewParser(binaryFile string) (*Parser, error) {
 	bytes, err := os.ReadFile(binaryFile)
 	if err != nil {
-		log.Fatal(err)
-		return nil, errors.New("File doesn't exist")
+		return nil, errors.New(fmt.Sprintf("[Warning] Cannot read file %s\n", binaryFile))
 	}
 	parser := new(Parser)
 	parser.Bytes = bytes

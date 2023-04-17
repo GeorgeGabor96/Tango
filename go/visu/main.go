@@ -3,9 +3,7 @@ package main
 import (
 	"errors"
 	"fmt"
-	"log"
 	"os"
-	"strings"
 	"sync"
 	"tango/go/visu/experiment"
 	"tango/go/visu/plotting"
@@ -43,36 +41,40 @@ func main() {
 	meta, _ := experiment.BuildMeta(args.binFolder)
 
 	var wg sync.WaitGroup
-	for sampleName := range meta.Samples {
-		sampleNameCopy := strings.Clone(sampleName)
-		fmt.Println(sampleName)
+	for sampleI := 0; sampleI < len(meta.SamplesDuration); sampleI++ {
 		wg.Add(1)
 
-		go func() {
-			CreateActivityPlot(meta, sampleNameCopy)
+		go func(sampleI int) {
+			CreatePlots(meta, sampleI)
 			wg.Done()
-		}()
+		}(sampleI)
 	}
 	wg.Wait()
 }
 
-func CreateActivityPlot(meta *experiment.Meta, sampleName string) {
-	fmt.Printf("[INFO] Begin processing sample %v\n", sampleName)
-	data, err := experiment.BuildData(meta, sampleName)
+func CreatePlots(meta *experiment.Meta, sampleI int) {
+	fmt.Printf("[INFO] Begin processing sample %d\n", sampleI)
+	data, err := experiment.BuildData(meta, sampleI)
 	if err != nil {
-		log.Fatal(err)
+		fmt.Println(err)
+	} else {
+		plotting.SynapseConductancePlot(meta, data, 1000)
+		plotting.SynapseWeightPlot(meta, data, 1000)
+		plotting.SynapsesHistPlot(meta, data, 1000)
+
+		plotting.NeuronVoltagePlot(meta, data, 1000)
+		plotting.NeuronSpikesPlot(meta, data, 1000)
+		plotting.NeuronPscPlot(meta, data, 1000)
+		plotting.NeuronEpscPlot(meta, data, 1000)
+		plotting.NeuronIpscPlot(meta, data, 1000)
 	}
-	plotting.ActivityPlot(meta, data)
 
-	plotting.SynapseConductancePlot(meta, data, 1000)
-	plotting.SynapseWeightPlot(meta, data, 1000)
-	plotting.SynapsesHistPlot(meta, data, 1000)
+	spikes, err := experiment.BuildSpikes(meta, sampleI)
+	if err != nil {
+		fmt.Printf("[Warning] Cannot build spikes data for sample %d\n", sampleI)
+	} else {
+		plotting.ActivityPlot(meta, spikes)
+	}
 
-	plotting.NeuronVoltagePlot(meta, data, 1000)
-	plotting.NeuronSpikesPlot(meta, data, 1000)
-	plotting.NeuronPscPlot(meta, data, 1000)
-	plotting.NeuronEpscPlot(meta, data, 1000)
-	plotting.NeuronIpscPlot(meta, data, 1000)
-
-	fmt.Printf("[INFO] Finished processing sample %v\n", sampleName)
+	fmt.Printf("[INFO] Finished processing sample %d\n", sampleI)
 }

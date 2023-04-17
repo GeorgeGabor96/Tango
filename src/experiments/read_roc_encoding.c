@@ -2,13 +2,12 @@
 
 
 int main() {
-    Experiment* exp = experiment_create(0, 123, "D:\\repos\\Tango_outputs\\learning_rule_learn");
+    Experiment* exp = experiment_create(0, 723104, "D:\\repos\\Tango_outputs\\learning_rule_learn_new_callbacks_spikes");
 
     Memory* memory = exp->permanent_memory;
 
     //DataGen* spike_train_data = data_gen_create_spike_train(memory, 500, "d:/datasets/MNIST/encoding2/img_train", "d:/datasets/MNIST/encoding2/img_train/samples.txt");
-    Random* random = random_create(memory, 723104);
-    DataGen* spike_train_data = data_gen_create_spike_pulses(memory, random, 2, 1000, 30, 100, 200, 0.05f, 0.001f);
+    DataGen* spike_train_data = data_gen_create_spike_pulses(memory, exp->random, 2, 1000, 30, 100, 200, 0.05f, 0.001f);
 
     Network* net = network_create(memory);
     NeuronCls* n_cls = neuron_cls_create_lif(memory, string_create(memory, "lif"));
@@ -31,11 +30,15 @@ int main() {
 
     network_show(net);
 
-    Callback* cb = callback_dumper_create(memory, exp->output_folder, net);
+    Callback* cb_meta = callback_meta_dumper_create(
+        memory, exp->output_folder, net);
+    Callback* cb_spikes = callback_spikes_dumper_create(
+        memory, exp->output_folder, net);
 
     experiment_set_network(exp, net);
     experiment_set_data_gen(exp, spike_train_data);
-    experiment_add_callback(exp, cb);
+    experiment_add_callback(exp, cb_meta);
+    experiment_add_callback(exp, cb_spikes);
 
     experiment_learn(exp);
 

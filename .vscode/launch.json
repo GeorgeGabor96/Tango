@@ -9,8 +9,8 @@
             "type": "go",
             "request": "launch",
             "mode": "auto",
-            "program": "go\\main.go",
-            "args": ["--bin_folder", "d:\\repos\\Tango_outputs\\synfire_chain"]
+            "program": "go\\visu\\main.go",
+            "args": ["--bin_folder", "d:/repos/Tango_outputs/learning_rule_learn_new_callbacks_spikes"]
         },
         {
             "name": "W23 C Debug",

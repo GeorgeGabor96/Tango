@@ -25,9 +25,9 @@ type Meta struct {
 	NNeurons  uint32
 	NSynapses uint32
 
-	Layers   []LayerMeta
-	Synapses []SynapseMeta
-	Samples  map[string]uint32
+	Layers          []LayerMeta
+	Synapses        []SynapseMeta
+	SamplesDuration []uint32
 }
 
 type NeuronData struct {
@@ -76,7 +76,7 @@ func BuildMeta(folder string) (*Meta, error) {
 	meta.NSynapses = nSynapses
 	meta.Layers = make([]LayerMeta, nLayers)
 	meta.Synapses = make([]SynapseMeta, nSynapses)
-	meta.Samples = make(map[string]uint32)
+	meta.SamplesDuration = make([]uint32, 0)
 
 	var layerI uint32
 	for layerI = 0; layerI < nLayers; layerI++ {
@@ -96,24 +96,24 @@ func BuildMeta(folder string) (*Meta, error) {
 	}
 
 	for !parser.IsFinished() {
-		meta.Samples[parser.String()] = parser.Uint32()
+		meta.SamplesDuration = append(meta.SamplesDuration, parser.Uint32())
 	}
 
 	return meta, nil
 }
 
-func BuildData(meta *Meta, fileName string) (*Data, error) {
-	duration, present := meta.Samples[fileName]
-	if !present {
-		return nil, errors.New("fileName not in meta info")
+func BuildData(meta *Meta, sampleI int) (*Data, error) {
+	if sampleI >= len(meta.SamplesDuration) {
+		return nil, errors.New("sampleI is too big")
 	}
+	duration := meta.SamplesDuration[sampleI]
+	fileName := fmt.Sprintf("data_%d.bin", sampleI)
 
 	filePath := utils.Join(meta.Folder, fileName)
 
 	parser, err := parser.NewParser(filePath)
 	if err != nil {
-		log.Fatal(err)
-		return nil, errors.New("Couldn't create parser for file")
+		return nil, err
 	}
 
 	data := new(Data)
@@ -166,4 +166,67 @@ func BuildData(meta *Meta, fileName string) (*Data, error) {
 	}
 
 	return data, nil
+}
+
+type SpikesLayer struct {
+	NSpikes uint32
+	Pairs   []utils.SpikeTimePair
+}
+
+type SpikesData struct {
+	Name     string
+	Duration uint32
+	Layers   []SpikesLayer
+}
+
+func BuildSpikes(meta *Meta, sampleI int) (*SpikesData, error) {
+	if sampleI >= len(meta.SamplesDuration) {
+		return nil, errors.New("sampleI is too big")
+	}
+
+	spikesFile := fmt.Sprintf("spikes_%d.bin", sampleI)
+	filePath := utils.Join(meta.Folder, spikesFile)
+
+	parser, err := parser.NewParser(filePath)
+	if err != nil {
+		return nil, err
+	}
+
+	spikesData := new(SpikesData)
+	spikesData.Name = spikesFile
+	spikesData.Duration = meta.SamplesDuration[sampleI]
+	spikesData.Layers = make([]SpikesLayer, meta.NLayers)
+
+	var layerI uint32 = 0
+	for layerI = 0; layerI < meta.NLayers; layerI++ {
+		spikesData.Layers[layerI].NSpikes = 0
+		// Start with 1024 pairs capacity, it will realocate more if necessary
+		spikesData.Layers[layerI].Pairs = make([]utils.SpikeTimePair, 0, 1024)
+	}
+
+	var nTotalSpikes uint32 = parser.Uint32()
+	var spikeI uint32 = 0
+	var layerForNeuron uint32 = 0
+	var pair utils.SpikeTimePair
+
+	for spikeI = 0; spikeI < nTotalSpikes; spikeI++ {
+		pair.NeuronI = parser.Uint32()
+		pair.TimeI = parser.Uint32()
+
+		// NOTE: find layer for neuron
+		for layerI = 0; layerI < meta.NLayers; layerI++ {
+			if meta.Layers[layerI].NeuronStartIdx <= pair.NeuronI {
+				layerForNeuron = layerI
+			} else {
+				break
+			}
+		}
+		// NOTE: neurons are offseted to the layer
+		pair.NeuronI = pair.NeuronI - meta.Layers[layerForNeuron].NeuronStartIdx
+
+		spikesData.Layers[layerForNeuron].Pairs = append(spikesData.Layers[layerForNeuron].Pairs, pair)
+		spikesData.Layers[layerForNeuron].NSpikes++
+	}
+
+	return spikesData, nil
 }

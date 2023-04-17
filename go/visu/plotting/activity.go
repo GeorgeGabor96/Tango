@@ -48,8 +48,8 @@ func (t ActivityXTicks) Ticks(min, max float64) []plot.Tick {
 	return ticks
 }
 
-func ActivityPlot(meta *experiment.Meta, data *experiment.Data) error {
-	sampleName := utils.RemoveExtension(data.Name)
+func ActivityPlot(meta *experiment.Meta, spikesData *experiment.SpikesData) error {
+	sampleName := utils.RemoveExtension(spikesData.Name)
 	outFolder := utils.JoinWithCreate(meta.Folder, sampleName)
 	imgName := sampleName + ".png"
 	imgPath := utils.Join(outFolder, imgName)
@@ -59,15 +59,12 @@ func ActivityPlot(meta *experiment.Meta, data *experiment.Data) error {
 
 	// NOTE: yPad is space between the line and the neurons so that they do not intersect
 	var yOffset uint32 = yPad + 1
-	var neuronAbsI uint32 = 0
-	var neuronI uint32 = 0
-	var stepI uint32 = 0
 
 	// NOTE: for the layer that ends up at the bottom it needs a line below its neurons. Normally the X axis could do it but its ugly
 	linePts := make(plotter.XYs, 2)
 	linePts[0].X = float64(0)
 	linePts[0].Y = float64(yOffset)
-	linePts[1].X = float64(data.Duration)
+	linePts[1].X = float64(spikesData.Duration)
 	linePts[1].Y = float64(yOffset)
 
 	l, err := plotter.NewLine(linePts)
@@ -78,28 +75,24 @@ func ActivityPlot(meta *experiment.Meta, data *experiment.Data) error {
 	yOffset += yPad
 	ticks := make([]plot.Tick, meta.NLayers)
 
+	var pair utils.SpikeTimePair
+	var pairI uint32 = 0
+
 	for i := int(meta.NLayers - 1); i >= 0; i-- {
 		layerMeta := meta.Layers[i]
-		layerData := data.Layers[i]
+		layerSpikes := spikesData.Layers[i]
 
 		// build the y tick
 		ticks[i].Value = float64(yOffset + layerMeta.NNeurons/2)
 		ticks[i].Label = layerMeta.Name
 
 		// add the points
-		spikePts := make(plotter.XYs, layerData.NSpikes)
-		spikePtI := 0
+		spikePts := make(plotter.XYs, layerSpikes.NSpikes)
 
-		for stepI = 0; stepI < data.Duration; stepI++ {
-			for neuronAbsI, neuronI = layerMeta.NeuronStartIdx, 0; neuronI < layerMeta.NNeurons; neuronAbsI, neuronI = neuronAbsI+1, neuronI+1 {
-
-				neuron := data.Neurons[stepI][neuronAbsI]
-				if neuron.Spike {
-					spikePts[spikePtI].X = float64(stepI)
-					spikePts[spikePtI].Y = float64(yOffset + neuronI)
-					spikePtI++
-				}
-			}
+		for pairI = 0; pairI < layerSpikes.NSpikes; pairI++ {
+			pair = layerSpikes.Pairs[pairI]
+			spikePts[pairI].X = float64(pair.TimeI)
+			spikePts[pairI].Y = float64(yOffset + pair.NeuronI)
 		}
 
 		s, err := plotter.NewScatter(spikePts)
@@ -115,7 +108,7 @@ func ActivityPlot(meta *experiment.Meta, data *experiment.Data) error {
 		linePts := make(plotter.XYs, 2)
 		linePts[0].X = float64(0)
 		linePts[0].Y = float64(yOffset)
-		linePts[1].X = float64(data.Duration)
+		linePts[1].X = float64(spikesData.Duration)
 		linePts[1].Y = float64(yOffset)
 
 		l, err := plotter.NewLine(linePts)
@@ -128,11 +121,11 @@ func ActivityPlot(meta *experiment.Meta, data *experiment.Data) error {
 	}
 
 	// General plot settings
-	p.Title.Text = data.Name
+	p.Title.Text = spikesData.Name
 	p.Title.TextStyle.Font.Size = PLOTTING_TITLE_FONT_SIZE
 	p.X.Label.Text = "time"
 	p.X.Label.TextStyle.Font.Size = PLOTTING_LABEL_FONT_SIZE
-	p.X.Tick.Marker = &ActivityXTicks{duration: data.Duration, nTicks: 10}
+	p.X.Tick.Marker = &ActivityXTicks{duration: spikesData.Duration, nTicks: 10}
 	p.X.Tick.Label.Font.Size = PLOTTING_TICK_FONT_SIZE
 	p.Y.Label.Text = "layers"
 	p.Y.Label.TextStyle.Font.Size = PLOTTING_LABEL_FONT_SIZE
