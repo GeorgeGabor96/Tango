@@ -2,7 +2,7 @@
 
 
 int main() {
-    Experiment* exp = experiment_create(0, 123, "D:\\repos\\Tango_outputs\\learning_rule_learn");
+    Experiment* exp = experiment_create(0, 123, "D:\\repos\\Tango_outputs\\learning_rule_learn_new_callbacks");
 
     Memory* memory = exp->permanent_memory;
 
@@ -31,11 +31,13 @@ int main() {
 
     network_show(net);
 
-    Callback* cb = callback_meta_dumper_create(memory, exp->output_folder, net);
+    Callback* cb_meta = callback_meta_dumper_create(memory, exp->output_folder, net);
+    Callback* cb_data = callback_network_data_dumper_create(memory, exp->output_folder, net);
 
     experiment_set_network(exp, net);
     experiment_set_data_gen(exp, spike_train_data);
-    experiment_add_callback(exp, cb);
+    experiment_add_callback(exp, cb_meta);
+    experiment_add_callback(exp, cb_data);
 
     experiment_learn(exp);
 
