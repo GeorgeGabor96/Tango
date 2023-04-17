@@ -59,5 +59,10 @@ typedef struct StringNode {
     struct StringNode* next;
 } StringNode;
 
+typedef struct NeuronTimeSpike {
+    u32 neuron_i;
+    u32 time;
+} NeuronTimeSpike;
+
 
 #endif // __ENGINE_TYPES_H__

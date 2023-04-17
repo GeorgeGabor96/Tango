@@ -1,9 +1,3 @@
-typedef struct NeuronTimeSpike {
-    u32 neuron_i;
-    u32 time;
-} NeuronTimeSpike;
-
-
 internal const char*
 spike_train_type_get_c_str(SpikeTrainType type) {
     if (type == SPIKE_TRAIN_ENCODING_IMAGE)

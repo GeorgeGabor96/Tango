@@ -1,9 +1,6 @@
-#include "engine/callbacks/dumper.c"
-
-
 internal char*
 callback_type_get_c_str(CallbackType type) {
-    if (type == CALLBACK_NETWORK_DUMPER) return "CALLBACK_NETWORK_DUMPER";
+    if (type == CALLBACK_META_DUMPER) return "CALLBACK_META_DUMPER";
     return "CALLBACK_INVALID";
 }
 
@@ -16,8 +13,8 @@ callback_begin_sample(Callback* callback,
     check(sample_duration != 0, "sample_duration is NULL");
     check(memory != NULL, "memory is NULL");
 
-    if (callback->type == CALLBACK_NETWORK_DUMPER) {
-        callback_dumper_begin_sample(callback, sample_duration, memory);
+    if (callback->type == CALLBACK_META_DUMPER) {
+        callback_meta_dumper_begin_sample(callback, sample_duration, memory);
     } else {
         log_error("Unknown callback type %u (%s)",
                   callback->type,
@@ -34,8 +31,8 @@ callback_update(Callback* callback, Memory* memory) {
     check(callback != NULL, "callback is NULL");
     check(memory != NULL, "memory is NULL");
 
-    if (callback->type == CALLBACK_NETWORK_DUMPER) {
-        callback_dumper_update(callback, memory);
+    if (callback->type == CALLBACK_META_DUMPER) {
+        callback_meta_dumper_update(callback, memory);
     } else {
         log_error("Unknown callback type %u (%s)",
                   callback->type,
@@ -52,8 +49,8 @@ callback_end_sample(Callback* callback, Memory* memory) {
     check(callback != NULL, "callback is NULL");
     check(memory != NULL, "memory is NULL");
 
-    if (callback->type == CALLBACK_NETWORK_DUMPER) {
-        callback_dumper_end_sample(callback, memory);
+    if (callback->type == CALLBACK_META_DUMPER) {
+        callback_meta_dumper_end_sample(callback, memory);
     } else {
         log_error("Unknown callback type %u (%s)",
                   callback->type,

@@ -31,7 +31,7 @@ int main() {
 
     network_show(net);
 
-    Callback* cb = callback_dumper_create(memory, exp->output_folder, net);
+    Callback* cb = callback_meta_dumper_create(memory, exp->output_folder, net);
 
     experiment_set_network(exp, net);
     experiment_set_data_gen(exp, spike_train_data);

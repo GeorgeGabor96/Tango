@@ -1,64 +1,38 @@
-internal DumperMeta*
-_callback_dumper_build_meta(Network* network, Memory* memory, String* out_path) {
-    DumperMeta* meta = (DumperMeta*)memory_push(memory, sizeof(*meta));
-    check_memory(meta);
 
-    // NOTE: build layer meta
-    u32 n_layers = network->n_layers;
-    u32 layer_i = 0;
-    Layer* layer = NULL;
-    DumperLayerMeta* layer_meta = NULL;
-    NetworkLayerLink* link = NULL;
-    DumperLayerMeta* layers_meta = (DumperLayerMeta*)memory_push(memory,
-                                                                 sizeof(*layers_meta) * n_layers);
-    check_memory(layers_meta);
 
-    for (layer_i = 0, link = network->layers.first;
-         layer_i < n_layers && link != NULL;
-         ++layer_i, link = link->next) {
-        layer = link->layer;
-        layer_meta = layers_meta + layer_i;
+typedef struct DumperNeuronData {
+    f32 voltage;
+    b32 spike;
+    f32 psc;
+    f32 epsc;
+    f32 ipsc;
+} DumperNeuronData;
 
-        layer_meta->name = layer->name;
-        layer_meta->neuron_start_i = layer->neurons - network->neurons;
-        layer_meta->n_neurons = layer->n_neurons;
-    }
+typedef struct DumperSynapseData {
+    f32 weight;
+    f32 conductance;
+} DumperSynapseData;
 
-    // NOTE: Build synapse meta
-    u32 n_synapses = network->n_synapses;
-    u32 synapse_i = 0;
-    Synapse* synapse = NULL;
-    DumperSynapseMeta* synapse_meta = NULL;
+typedef struct DumperData {
+    String* file_name;
+    FILE* fp;
 
-    DumperSynapseMeta* synapses_meta = (DumperSynapseMeta*)memory_push(memory, sizeof(*synapses_meta) * n_synapses);
-    check_memory(synapses_meta);
+    DumperNeuronData* neuron_data;
+    DumperSynapseData* synapse_data;
+} DumperData;
 
-    for (synapse_i = 0; synapse_i < n_synapses; ++synapse_i) {
-        synapse = network->synapses + synapse_i;
-        synapse_meta = synapses_meta + synapse_i;
 
-        synapse_meta->in_neuron_i = synapse->in_neuron - network->neurons;
-        synapse_meta->out_neuron_i = synapse->out_neuron - network->neurons;
-    }
+typedef struct Dumper {
+    String* output_folder;
+    Network* network;
 
-    // NOTE: Build neuron meta
-    u32 n_neurons = network->n_neurons;
+    u32 sample_step;
+    u32 sample_count;
+    u32 sample_duration;
 
-    // Build the file path
-    String* file_path = string_path_join_c_str(memory, out_path, "meta.bin");
-    check_memory(file_path);
-
-    meta->file_path = file_path;
-    meta->n_layers = n_layers;
-    meta->n_neurons = n_neurons;
-    meta->n_synapses = n_synapses;
-    meta->layer_meta = layers_meta;
-    meta->synapse_meta = synapses_meta;
-    return meta;
-
-    error:
-    return NULL;
-}
+    DumperMeta* meta;
+    DumperData* data;
+} Dumper;
 
 
 internal DumperData*
@@ -81,44 +55,6 @@ _callback_dumper_build_data(DumperMeta* meta, Memory* memory) {
 
     error:
     return NULL;
-}
-
-
-internal void
-_callback_dumper_save_meta(DumperMeta* meta) {
-    u32 i = 0;
-    String* name = NULL;
-    DumperSynapseMeta* s_meta = NULL;
-    DumperLayerMeta* l_meta = NULL;
-    FILE* fp = fopen(string_get_c_str(meta->file_path), "wb");
-    check(fp != NULL, "could not open meta file");
-
-    fwrite(&meta->n_layers, sizeof(u32), 1, fp);
-    fwrite(&meta->n_neurons, sizeof(u32), 1, fp);
-    fwrite(&meta->n_synapses, sizeof(u32), 1, fp);
-
-    for (i = 0; i < meta->n_layers; ++i) {
-        l_meta = &meta->layer_meta[i];
-        name = l_meta->name;
-
-        fwrite(&name->length, sizeof(u32), 1, fp);
-        fwrite(string_get_c_str(name), sizeof(char), name->length, fp);
-        fwrite(&l_meta->neuron_start_i, sizeof(u32), 1, fp);
-        fwrite(&l_meta->n_neurons, sizeof(u32), 1, fp);
-    }
-
-    for (i = 0; i < meta->n_synapses; ++i) {
-        s_meta = &meta->synapse_meta[i];
-
-        fwrite(&s_meta->in_neuron_i, sizeof(u32), 1, fp);
-        fwrite(&s_meta->out_neuron_i, sizeof(u32), 1, fp);
-    }
-
-    fflush(fp);
-    fclose(fp);
-
-    error:
-    return;
 }
 
 
