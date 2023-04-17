@@ -102,18 +102,13 @@ func main() {
 	fmt.Printf("Wrote sample file %s\n", outListFilePath)
 }
 
-type SpikeTimePair struct {
-	neuronI uint32
-	timeI   uint32
-}
-
 type ImgSpikePairs struct {
 	encodingType uint32
 	nNeurons     uint32
 	timeMax      uint32
 	width        uint32
 	height       uint32
-	spikePairs   []SpikeTimePair
+	spikePairs   []utils.SpikeTimePair
 }
 
 func EncodeImageWithRoc(imgGray *image.Gray) *ImgSpikePairs {
@@ -123,13 +118,13 @@ func EncodeImageWithRoc(imgGray *image.Gray) *ImgSpikePairs {
 	imgSpikePairs.timeMax = 256
 	imgSpikePairs.width = uint32(imgGray.Bounds().Dx())
 	imgSpikePairs.height = uint32(imgGray.Bounds().Dy())
-	spikePairs := make([]SpikeTimePair, imgSpikePairs.nNeurons)
+	spikePairs := make([]utils.SpikeTimePair, imgSpikePairs.nNeurons)
 
 	var i uint32 = 0
 	for y := 0; y < imgGray.Bounds().Max.Y; y++ {
 		for x := 0; x < imgGray.Bounds().Max.X; x++ {
-			spikePairs[i].neuronI = i
-			spikePairs[i].timeI = 255 - uint32(imgGray.GrayAt(x, y).Y)
+			spikePairs[i].NeuronI = i
+			spikePairs[i].TimeI = 255 - uint32(imgGray.GrayAt(x, y).Y)
 			i++
 		}
 	}
@@ -163,9 +158,9 @@ func WriteSpikePairs(spikePairs *ImgSpikePairs, outFile string) error {
 	binary.LittleEndian.PutUint32(bytes, n_spike_pairs)
 	fp.Write(bytes)
 	for _, pair := range spikePairs.spikePairs {
-		binary.LittleEndian.PutUint32(bytes, pair.neuronI)
+		binary.LittleEndian.PutUint32(bytes, pair.NeuronI)
 		fp.Write(bytes)
-		binary.LittleEndian.PutUint32(bytes, pair.timeI)
+		binary.LittleEndian.PutUint32(bytes, pair.TimeI)
 		fp.Write(bytes)
 	}
 	return nil
