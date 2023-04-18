@@ -184,7 +184,7 @@ func BuildSpikes(meta *Meta, sampleI int) (*SpikesData, error) {
 		return nil, errors.New("sampleI is too big")
 	}
 
-	spikesFile := fmt.Sprintf("spikes_%d.bin", sampleI)
+	spikesFile := fmt.Sprintf("spikes_%04d.bin", sampleI)
 	filePath := utils.Join(meta.Folder, spikesFile)
 
 	parser, err := parser.NewParser(filePath)

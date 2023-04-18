@@ -37,7 +37,7 @@ callback_spikes_dumper_begin_sample(Callback* callback, u32 sample_duration, Mem
     DumperSpikes* spikes = &callback->dumper_spikes;
 
     char file_name[100];
-    sprintf(file_name, "spikes_%d.bin", spikes->sample_count);
+    sprintf(file_name, "spikes_%04d.bin", spikes->sample_count);
     String* file_path = string_path_join_c_str(
         memory, spikes->output_folder, file_name);
     check_memory(file_path);

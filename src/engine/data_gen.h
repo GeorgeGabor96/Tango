@@ -34,6 +34,8 @@ typedef struct DataGenSpikeTrain {
     StringNode* first_file_name;
     StringNode* current_sample;
     String* encodings_path;
+    u32 max_time_to_use_from_train;
+    u32 c_sample_i;
 } DataGenSpikeTrain;
 
 
@@ -73,7 +75,9 @@ internal DataGen* data_gen_create_spike_pulses(Memory* memory,
 internal DataGen* data_gen_create_spike_train(Memory* memory,
                                               u32 duration,
                                               const char* encodings_path,
-                                              const char* listing_file);
+                                              const char* listing_file,
+                                              u32 max_time_to_use_from_train, // DEFAULT 0
+                                              u32 n_samples);   // DEFAULT 0
 
 typedef enum {
     DATA_SAMPLE_INVALID,
