@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"strings"
 	"sync"
 	"tango/go/visu/experiment"
 	"tango/go/visu/plotting"
@@ -41,20 +42,23 @@ func main() {
 	meta, _ := experiment.BuildMeta(args.binFolder)
 
 	var wg sync.WaitGroup
-	for sampleI := 0; sampleI < len(meta.SamplesDuration); sampleI++ {
+	for sampleName := range meta.Samples {
+		sampleNameCopy := strings.Clone(sampleName)
+		CreatePlots(meta, sampleNameCopy)
+		continue
 		wg.Add(1)
 
-		go func(sampleI int) {
-			CreatePlots(meta, sampleI)
+		go func() {
+			CreatePlots(meta, sampleNameCopy)
 			wg.Done()
-		}(sampleI)
+		}()
 	}
 	wg.Wait()
 }
 
-func CreatePlots(meta *experiment.Meta, sampleI int) {
-	fmt.Printf("[INFO] Begin processing sample %d\n", sampleI)
-	data, err := experiment.BuildData(meta, sampleI)
+func CreatePlots(meta *experiment.Meta, sampleName string) {
+	fmt.Printf("[INFO] Begin processing sample %v\n", sampleName)
+	data, err := experiment.BuildData(meta, sampleName)
 	if err != nil {
 		fmt.Println(err)
 	} else {
@@ -69,12 +73,12 @@ func CreatePlots(meta *experiment.Meta, sampleI int) {
 		plotting.NeuronIpscPlot(meta, data, 1000)
 	}
 
-	spikes, err := experiment.BuildSpikes(meta, sampleI)
+	spikes, err := experiment.BuildSpikes(meta, sampleName)
 	if err != nil {
-		fmt.Printf("[Warning] Cannot build spikes data for sample %d\n", sampleI)
+		fmt.Printf("[Warning] Cannot build spikes data for sample %v\n", sampleName)
 	} else {
 		plotting.ActivityPlot(meta, spikes)
 	}
 
-	fmt.Printf("[INFO] Finished processing sample %d\n", sampleI)
+	fmt.Printf("[INFO] Finished processing sample %v\n", sampleName)
 }

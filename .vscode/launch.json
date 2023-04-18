@@ -10,7 +10,7 @@
             "request": "launch",
             "mode": "auto",
             "program": "go\\visu\\main.go",
-            "args": ["--bin_folder", "d:/repos/Tango_outputs/learning_rule_learn_new_callbacks_spikes"]
+            "args": ["--bin_folder", "d:\\repos\\Tango_outputs\\exp\\mnist_roc_if_one_spike_new_sample"]
         },
         {
             "name": "W23 C Debug",

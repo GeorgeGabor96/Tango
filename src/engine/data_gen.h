@@ -42,6 +42,7 @@ typedef struct DataGenSpikeTrain {
 typedef struct DataGen {
     DataGenType type;
     u32 n_samples;
+    u32 sample_i;
     // NOTE: This may be specific per type but for now its good here
     u32 sample_duration;
 
@@ -102,6 +103,8 @@ typedef struct DataSampleSpikeTrain {
 typedef struct DataSample {
     DataSampleType type;
     u32 duration;
+    u32 sample_i;
+    String* name;
     DataGen* data_gen;
 
     union {

@@ -27,7 +27,6 @@ callback_network_data_dumper_create(Memory* memory, String* output_folder, Netwo
     callback->dumper_data.sample_fp = NULL;
     callback->dumper_data.neuron_data = neuron_data;
     callback->dumper_data.synapse_data = synapse_data;
-    callback->dumper_data.sample_count = 0;
 
     return callback;
 
@@ -37,11 +36,11 @@ callback_network_data_dumper_create(Memory* memory, String* output_folder, Netwo
 
 
 internal void
-callback_network_data_dumper_begin_sample(Callback* callback, u32 sample_duration, Memory* memory) {
+callback_network_data_dumper_begin_sample(Callback* callback, DataSample* sample, Memory* memory) {
     DumperData* data = &callback->dumper_data;
 
     char file_name[100];
-    sprintf(file_name, "data_%d.bin", data->sample_count);
+    sprintf(file_name, "data_%s.bin", string_get_c_str(sample->name));
     String* file_name_s = string_create(memory, file_name);
     check_memory(file_name_s);
 
@@ -117,8 +116,6 @@ callback_network_data_dumper_end_sample(Callback* callback, Memory* memory) {
 
     fflush(data->sample_fp);
     fclose(data->sample_fp);
-
-    ++(data->sample_count);
 
     error:
     return;

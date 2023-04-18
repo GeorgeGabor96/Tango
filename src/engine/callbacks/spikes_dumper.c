@@ -24,7 +24,6 @@ callback_spikes_dumper_create(Memory* memory, String* output_folder, Network* ne
     callback->dumper_spikes.sample_fp = NULL;
     callback->dumper_spikes.spikes_data = spikes_data;
     callback->dumper_spikes.n_spikes = 0;
-    callback->dumper_spikes.sample_count = 0;
 
     return callback;
     error:
@@ -33,11 +32,11 @@ callback_spikes_dumper_create(Memory* memory, String* output_folder, Network* ne
 
 
 internal void
-callback_spikes_dumper_begin_sample(Callback* callback, u32 sample_duration, Memory* memory) {
+callback_spikes_dumper_begin_sample(Callback* callback, DataSample* sample, Memory* memory) {
     DumperSpikes* spikes = &callback->dumper_spikes;
 
     char file_name[100];
-    sprintf(file_name, "spikes_%04d.bin", spikes->sample_count);
+    sprintf(file_name, "spikes_%s.bin", string_get_c_str(sample->name));
     String* file_path = string_path_join_c_str(
         memory, spikes->output_folder, file_name);
     check_memory(file_path);
@@ -108,6 +107,4 @@ callback_spikes_dumper_end_sample(Callback* callback, Memory* memory) {
 
     fflush(spikes->sample_fp);
     fclose(spikes->sample_fp);
-
-    ++(spikes->sample_count);
 }

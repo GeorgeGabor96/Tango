@@ -12,6 +12,7 @@ data_gen_create_constant_current(Memory* memory, f32 value, u32 n_samples, u32 s
 
     data->type = DATA_GEN_CONSTANT_CURRENT;
     data->n_samples = n_samples;
+    data->sample_i = 0;
     data->sample_duration = sample_duration;
     data->const_current.value = value;
 
@@ -36,6 +37,7 @@ data_gen_create_random_spikes(Memory* memory, Random* random, f32 chance, u32 n_
 
     data->type = DATA_GEN_RANDOM_SPIKES;
     data->n_samples = n_samples;
+    data->sample_i = 0;
     data->sample_duration = sample_duration;
     data->random_spikes.random = random;
     data->random_spikes.chance = chance;
@@ -76,6 +78,7 @@ data_gen_create_spike_pulses(Memory* memory,
 
     data->type = DATA_GEN_SPIKE_PULSES;
     data->n_samples = n_samples;
+    data->sample_i = 0;
     data->sample_duration = sample_duration;
 
     DataGenSpikePulses* pulses = &(data->spike_pulses);
@@ -148,6 +151,7 @@ data_gen_create_spike_train(Memory* memory,
         data->n_samples = n_samples_in_file;
     else
         data->n_samples = n_samples;
+    data->sample_i = 0;
 
     data->spike_train.first_file_name = sample_name_list;
     data->spike_train.current_sample = sample_name_list;
@@ -167,7 +171,7 @@ data_gen_create_spike_train(Memory* memory,
 ***********************/
 internal DataSample*
 data_gen_sample_create(Memory* memory, DataGen* data, u32 idx) {
-    check(memory != NULL, "memor yis NULL");
+    check(memory != NULL, "memory is NULL");
     check(data != NULL, "data is NULL");
 
     DataSample* sample = (DataSample*) memory_push(memory, sizeof(*sample));
@@ -175,13 +179,18 @@ data_gen_sample_create(Memory* memory, DataGen* data, u32 idx) {
 
     sample->duration = data->sample_duration;
     sample->data_gen = data;
+    sample->sample_i = data->sample_i;
 
+    char sample_name[100];
     if (data->type == DATA_GEN_CONSTANT_CURRENT) {
         sample->type = DATA_SAMPLE_CONSTANT_CURRENT;
+        sprintf(sample_name, "constant_current_%d", sample->sample_i);
     } else if (data->type == DATA_GEN_RANDOM_SPIKES) {
         sample->type = DATA_SAMPLE_RANDOM_SPIKES;
+        sprintf(sample_name, "random_spikes_%d", sample->sample_i);
     } else if (data->type == DATA_GEN_SPIKE_PULSES) {
         sample->type = DATA_SAMPLE_SPIKE_PULSES;
+        sprintf(sample_name, "spike_pulses_%d", sample->sample_i);
 
         DataGenSpikePulses* data_pulses = &(data->spike_pulses);
         DataSampleSpikePulses* sample_pulses = &(sample->spike_pulses);
@@ -198,6 +207,9 @@ data_gen_sample_create(Memory* memory, DataGen* data, u32 idx) {
 
         DataGenSpikeTrain* data_spike_train = &(data->spike_train);
         DataSampleSpikeTrain* sample_spike_train = &(sample->spike_train);
+        sprintf(sample_name, "%s_%d",
+            string_get_c_str(data_spike_train->current_sample->name),
+            sample->sample_i);
 
         if (data_spike_train->current_sample == NULL) {
             if (data_spike_train->c_sample_i < data->n_samples) {
@@ -218,6 +230,10 @@ data_gen_sample_create(Memory* memory, DataGen* data, u32 idx) {
     } else {
         log_error("Unknown Generator type %u", data->type);
     }
+    sample->name = string_create(memory, sample_name);
+    check_memory(sample->name);
+
+    ++(data->sample_i);
     return sample;
 
     error:
