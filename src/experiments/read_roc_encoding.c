@@ -2,11 +2,11 @@
 
 
 int main() {
-    Experiment* exp = experiment_create(0, 723104, "D:\\repos\\Tango_outputs\\exp\\mnist_roc_if_one_spike_new_sample");
+    Experiment* exp = experiment_create(0, 723104, "D:\\repos\\Tango_outputs\\exp\\mnist_roc_if_one_spike_same_sample");
 
     Memory* memory = exp->permanent_memory;
 
-    DataGen* spike_train_data = data_gen_create_spike_train(memory, 500, "d:/datasets/MNIST/encoding/roc/img", "d:/datasets/MNIST/encoding/roc/img/samples.txt", 200, 10);
+    DataGen* spike_train_data = data_gen_create_spike_train(memory, 500, "d:/datasets/MNIST/encoding/roc/img", "d:/datasets/MNIST/encoding/roc/img/same_sample.txt", 0, 100);
     //DataGen* spike_train_data = data_gen_create_spike_pulses(memory, exp->random, 2, 1000, 30, 100, 200, 0.05f, 0.001f);
 
     Network* net = network_create(memory);

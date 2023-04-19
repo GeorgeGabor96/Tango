@@ -157,7 +157,6 @@ data_gen_create_spike_train(Memory* memory,
     data->spike_train.current_sample = sample_name_list;
     data->spike_train.encodings_path = encodings_path_str;
     data->spike_train.max_time_to_use_from_train = max_time_to_use_from_train;
-    data->spike_train.c_sample_i = 0;
 
     return data;
 
@@ -184,13 +183,13 @@ data_gen_sample_create(Memory* memory, DataGen* data, u32 idx) {
     char sample_name[100];
     if (data->type == DATA_GEN_CONSTANT_CURRENT) {
         sample->type = DATA_SAMPLE_CONSTANT_CURRENT;
-        sprintf(sample_name, "constant_current_%d", sample->sample_i);
+        sprintf(sample_name, "constant_current_%06d", sample->sample_i);
     } else if (data->type == DATA_GEN_RANDOM_SPIKES) {
         sample->type = DATA_SAMPLE_RANDOM_SPIKES;
-        sprintf(sample_name, "random_spikes_%d", sample->sample_i);
+        sprintf(sample_name, "random_spikes_%06d", sample->sample_i);
     } else if (data->type == DATA_GEN_SPIKE_PULSES) {
         sample->type = DATA_SAMPLE_SPIKE_PULSES;
-        sprintf(sample_name, "spike_pulses_%d", sample->sample_i);
+        sprintf(sample_name, "spike_pulses_%06d", sample->sample_i);
 
         DataGenSpikePulses* data_pulses = &(data->spike_pulses);
         DataSampleSpikePulses* sample_pulses = &(sample->spike_pulses);
@@ -207,12 +206,9 @@ data_gen_sample_create(Memory* memory, DataGen* data, u32 idx) {
 
         DataGenSpikeTrain* data_spike_train = &(data->spike_train);
         DataSampleSpikeTrain* sample_spike_train = &(sample->spike_train);
-        sprintf(sample_name, "%s_%d",
-            string_get_c_str(data_spike_train->current_sample->name),
-            sample->sample_i);
 
         if (data_spike_train->current_sample == NULL) {
-            if (data_spike_train->c_sample_i < data->n_samples) {
+            if (data->sample_i < data->n_samples) {
                 data_spike_train->current_sample = data_spike_train->first_file_name;
             } else {
                 log_error("NO MORE SAMPLES. Shouldn't be called this much");
@@ -220,12 +216,15 @@ data_gen_sample_create(Memory* memory, DataGen* data, u32 idx) {
         }
         String* sample_path = string_path_join(memory, data_spike_train->encodings_path, data_spike_train->current_sample->name);
         check_memory(sample_path);
-        data_spike_train->current_sample = data_spike_train->current_sample->next;
-        ++(data_spike_train->c_sample_i);
 
         SpikeTrain* spikes = spike_train_read(memory, sample_path);
         check_memory(spikes);
         sample_spike_train->spikes = spikes;
+
+        sprintf(sample_name, "%s_%06d",
+            string_get_c_str(data_spike_train->current_sample->name),
+            sample->sample_i);
+        data_spike_train->current_sample = data_spike_train->current_sample->next;
 
     } else {
         log_error("Unknown Generator type %u", data->type);

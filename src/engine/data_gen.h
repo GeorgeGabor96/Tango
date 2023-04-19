@@ -35,7 +35,6 @@ typedef struct DataGenSpikeTrain {
     StringNode* current_sample;
     String* encodings_path;
     u32 max_time_to_use_from_train;
-    u32 c_sample_i;
 } DataGenSpikeTrain;
 
 
