@@ -214,7 +214,8 @@ data_gen_sample_create(Memory* memory, DataGen* data, u32 idx) {
                 log_error("NO MORE SAMPLES. Shouldn't be called this much");
             }
         }
-        String* sample_path = string_path_join(memory, data_spike_train->encodings_path, data_spike_train->current_sample->name);
+        sprintf(sample_name, "%s.bin", string_get_c_str(data_spike_train->current_sample->name));
+        String* sample_path = string_path_join_c_str(memory, data_spike_train->encodings_path, sample_name);
         check_memory(sample_path);
 
         SpikeTrain* spikes = spike_train_read(memory, sample_path);

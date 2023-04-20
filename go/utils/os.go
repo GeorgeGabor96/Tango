@@ -58,16 +58,12 @@ func GetFolderFromPath(path string) string {
 
 func RemoveExtension(fileName string) string {
 	tokens := strings.Split(fileName, ".")
-	//if len(tokens) != 2 {
-	//	log.Fatal(errors.New("Multiple . in filename. Need to extend function"))
-	//}
-
-	var newFileName string = tokens[0]
-	for i := 1; i < len(tokens)-1; i++ {
-		newFileName += "." + tokens[i]
+	if len(tokens) != 2 {
+		log.Fatal(errors.New("Multiple . in filename. Need to extend function"))
 	}
 
-	return newFileName
+	fileName = tokens[0]
+	return fileName
 }
 
 func GetExtension(fileName string) string {
