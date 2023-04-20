@@ -61,6 +61,7 @@ func RemoveExtension(fileName string) string {
 	if len(tokens) != 2 {
 		log.Fatal(errors.New("Multiple . in filename. Need to extend function"))
 	}
+
 	fileName = tokens[0]
 	return fileName
 }

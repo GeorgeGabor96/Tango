@@ -119,7 +119,7 @@ _experiment_run(Experiment* experiment, Mode mode) {
              callback_it != NULL;
              callback_it = callback_it->next)
             callback_begin_sample(callback_it->callback,
-                                  sample->duration,
+                                  sample,
                                   experiment->transient_memory);
 
         for (time = 0; time < sample->duration; ++time) {

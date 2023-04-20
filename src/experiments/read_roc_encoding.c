@@ -2,15 +2,15 @@
 
 
 int main() {
-    Experiment* exp = experiment_create(0, 723104, "D:\\repos\\Tango_outputs\\learning_rule_learn_new_callbacks_spikes");
+    Experiment* exp = experiment_create(0, 723104, "D:\\repos\\Tango_outputs\\exp\\mnist_roc_if_one_spike_same_sample");
 
     Memory* memory = exp->permanent_memory;
 
-    //DataGen* spike_train_data = data_gen_create_spike_train(memory, 500, "d:/datasets/MNIST/encoding2/img_train", "d:/datasets/MNIST/encoding2/img_train/samples.txt");
-    DataGen* spike_train_data = data_gen_create_spike_pulses(memory, exp->random, 2, 1000, 30, 100, 200, 0.05f, 0.001f);
+    DataGen* spike_train_data = data_gen_create_spike_train(memory, 500, "d:/datasets/MNIST/encoding2/img_train", "d:/datasets/MNIST/encoding2/img_train/samples.txt", 0, 100);
+    //DataGen* spike_train_data = data_gen_create_spike_pulses(memory, exp->random, 2, 1000, 30, 100, 200, 0.05f, 0.001f);
 
     Network* net = network_create(memory);
-    NeuronCls* n_cls = neuron_cls_create_lif(memory, string_create(memory, "lif"));
+    NeuronCls* n_cls = neuron_cls_create_if_one_spike(memory, string_create(memory, "if_one_spike"));
     Layer* in = layer_create(memory, string_create(memory, "in"), LAYER_DENSE, 784, n_cls);
     Layer* hidden = layer_create(memory, string_create(memory, "hidden"), LAYER_DENSE, 1000, n_cls);
     Layer* out = layer_create(memory, string_create(memory, "out"), LAYER_DENSE, 100, n_cls);
@@ -26,7 +26,7 @@ int main() {
     network_add_layer(net, hidden, FALSE, FALSE, memory);
     network_add_layer(net, out, FALSE, TRUE, memory);
 
-    network_build(net, memory, random_create(memory, 123));
+    network_build(net, memory, exp->random);
 
     network_show(net);
 

@@ -12,6 +12,7 @@ data_gen_create_constant_current(Memory* memory, f32 value, u32 n_samples, u32 s
 
     data->type = DATA_GEN_CONSTANT_CURRENT;
     data->n_samples = n_samples;
+    data->sample_i = 0;
     data->sample_duration = sample_duration;
     data->const_current.value = value;
 
@@ -36,6 +37,7 @@ data_gen_create_random_spikes(Memory* memory, Random* random, f32 chance, u32 n_
 
     data->type = DATA_GEN_RANDOM_SPIKES;
     data->n_samples = n_samples;
+    data->sample_i = 0;
     data->sample_duration = sample_duration;
     data->random_spikes.random = random;
     data->random_spikes.chance = chance;
@@ -76,6 +78,7 @@ data_gen_create_spike_pulses(Memory* memory,
 
     data->type = DATA_GEN_SPIKE_PULSES;
     data->n_samples = n_samples;
+    data->sample_i = 0;
     data->sample_duration = sample_duration;
 
     DataGenSpikePulses* pulses = &(data->spike_pulses);
@@ -97,11 +100,16 @@ internal DataGen*
 data_gen_create_spike_train(Memory* memory,
                             u32 duration,
                             const char* encodings_path,
-                            const char* listing_file) {
+                            const char* listing_file,
+                            u32 max_time_to_use_from_train,
+                            u32 n_samples) {
     check(memory != NULL, "memory is NULL");
     check(duration > 0, "duration is 0");
     check(encodings_path != NULL, "encodings_path is NULL");
     check(listing_file != NULL, "listing_file is NULL");
+
+    // NOTE: if its 0 set it to -1 so that it doesn't effect
+    if (max_time_to_use_from_train == 0) max_time_to_use_from_train = (u32)-1;
 
     DataGen* data = (DataGen*)memory_push(memory, sizeof(*data));
     check_memory(data);
@@ -110,7 +118,7 @@ data_gen_create_spike_train(Memory* memory,
     FILE* fp = fopen(listing_file, "r");
     check(fp != NULL, "couldn't open listing file %s", listing_file);
     char buffer[128] = { 0 }; // Names should not be this long
-    u32 n_samples = 0;
+    u32 n_samples_in_file = 0;
     StringNode* sample_name_list = NULL;
 
     while (!feof(fp)) {
@@ -130,7 +138,7 @@ data_gen_create_spike_train(Memory* memory,
             node->next = sample_name_list;
             sample_name_list = node;
         }
-        ++n_samples;
+        ++n_samples_in_file;
         memset(buffer, 0, sizeof(buffer));
     }
 
@@ -139,10 +147,16 @@ data_gen_create_spike_train(Memory* memory,
 
     data->type = DATA_GEN_SPIKE_TRAIN;
     data->sample_duration = duration;
-    data->n_samples = n_samples;
+    if (n_samples == 0)
+        data->n_samples = n_samples_in_file;
+    else
+        data->n_samples = n_samples;
+    data->sample_i = 0;
+
     data->spike_train.first_file_name = sample_name_list;
     data->spike_train.current_sample = sample_name_list;
     data->spike_train.encodings_path = encodings_path_str;
+    data->spike_train.max_time_to_use_from_train = max_time_to_use_from_train;
 
     return data;
 
@@ -156,7 +170,7 @@ data_gen_create_spike_train(Memory* memory,
 ***********************/
 internal DataSample*
 data_gen_sample_create(Memory* memory, DataGen* data, u32 idx) {
-    check(memory != NULL, "memor yis NULL");
+    check(memory != NULL, "memory is NULL");
     check(data != NULL, "data is NULL");
 
     DataSample* sample = (DataSample*) memory_push(memory, sizeof(*sample));
@@ -164,13 +178,18 @@ data_gen_sample_create(Memory* memory, DataGen* data, u32 idx) {
 
     sample->duration = data->sample_duration;
     sample->data_gen = data;
+    sample->sample_i = data->sample_i;
 
+    char sample_name[100];
     if (data->type == DATA_GEN_CONSTANT_CURRENT) {
         sample->type = DATA_SAMPLE_CONSTANT_CURRENT;
+        sprintf(sample_name, "constant_current_%06d", sample->sample_i);
     } else if (data->type == DATA_GEN_RANDOM_SPIKES) {
         sample->type = DATA_SAMPLE_RANDOM_SPIKES;
+        sprintf(sample_name, "random_spikes_%06d", sample->sample_i);
     } else if (data->type == DATA_GEN_SPIKE_PULSES) {
         sample->type = DATA_SAMPLE_SPIKE_PULSES;
+        sprintf(sample_name, "spike_pulses_%06d", sample->sample_i);
 
         DataGenSpikePulses* data_pulses = &(data->spike_pulses);
         DataSampleSpikePulses* sample_pulses = &(sample->spike_pulses);
@@ -189,19 +208,32 @@ data_gen_sample_create(Memory* memory, DataGen* data, u32 idx) {
         DataSampleSpikeTrain* sample_spike_train = &(sample->spike_train);
 
         if (data_spike_train->current_sample == NULL) {
-            log_error("NO MORE SAMPLES. Shouldn't be called this much");
+            if (data->sample_i < data->n_samples) {
+                data_spike_train->current_sample = data_spike_train->first_file_name;
+            } else {
+                log_error("NO MORE SAMPLES. Shouldn't be called this much");
+            }
         }
-        String* sample_path = string_path_join(memory, data_spike_train->encodings_path, data_spike_train->current_sample->name);
+        sprintf(sample_name, "%s.bin", string_get_c_str(data_spike_train->current_sample->name));
+        String* sample_path = string_path_join_c_str(memory, data_spike_train->encodings_path, sample_name);
         check_memory(sample_path);
-        data_spike_train->current_sample = data_spike_train->current_sample->next;
 
         SpikeTrain* spikes = spike_train_read(memory, sample_path);
         check_memory(spikes);
         sample_spike_train->spikes = spikes;
 
+        sprintf(sample_name, "%s_%06d",
+            string_get_c_str(data_spike_train->current_sample->name),
+            sample->sample_i);
+        data_spike_train->current_sample = data_spike_train->current_sample->next;
+
     } else {
         log_error("Unknown Generator type %u", data->type);
     }
+    sample->name = string_create(memory, sample_name);
+    check_memory(sample->name);
+
+    ++(data->sample_i);
     return sample;
 
     error:
@@ -295,11 +327,12 @@ data_network_inputs_create(Memory* memory, DataSample* sample, Network* network,
                   "For spike train data generation the number of neurons in the train and in the input layer should be the same");
 
             input->type = INPUT_SPIKES;
-            if (time < spike_train->spikes->time_max) {
-                spikes = spike_train_get_for_time(spike_train->spikes, time);
-            } else {
+            // NOTE: If the spike_train time is passed or the desired max time from which to use the train is passed, set 0's
+            if (time >= spike_train->spikes->time_max || time >= sample->data_gen->spike_train.max_time_to_use_from_train) {
                 spikes = (b32*)memory_push_zero(memory, layer->n_neurons * sizeof(b32));
                 check_memory(spikes);
+            } else {
+                spikes = spike_train_get_for_time(spike_train->spikes, time);
             }
             input->spikes.spikes = spikes;
             input->spikes.n_spikes = layer->n_neurons;

@@ -12,21 +12,21 @@ callback_type_get_c_str(CallbackType type) {
 
 internal void
 callback_begin_sample(Callback* callback,
-                      u32 sample_duration,
+                      DataSample* sample,
                       Memory* memory) {
     check(callback != NULL, "callback is NULL");
-    check(sample_duration != 0, "sample_duration is NULL");
+    check(sample != 0, "sample is NULL");
     check(memory != NULL, "memory is NULL");
 
     if (callback->type == CALLBACK_META_DUMPER) {
         callback_meta_dumper_begin_sample(
-            callback, sample_duration, memory);
+            callback, sample, memory);
     } else if (callback->type == CALLBACK_NETWORK_DATA_DUMPER) {
         callback_network_data_dumper_begin_sample(
-            callback, sample_duration, memory);
+            callback, sample, memory);
     } else if (callback->type == CALLBACK_SPIKES_DUMPER) {
         callback_spikes_dumper_begin_sample(
-            callback, sample_duration, memory);
+            callback, sample, memory);
     } else {
         log_error("Unknown callback type %u (%s)",
                   callback->type,

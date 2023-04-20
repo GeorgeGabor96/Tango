@@ -7,6 +7,7 @@
 **********************/
 typedef struct DumperMeta {
     String* meta_file;
+    String* sample_name;
     u32 sample_duration;
     u32 sample_time;
 } DumperMeta;
@@ -35,7 +36,6 @@ typedef struct DataDumper {
 
     DumperNeuronData* neuron_data;
     DumperSynapseData* synapse_data;
-    u32 sample_count;
 } DumperData;
 
 
@@ -50,7 +50,6 @@ typedef struct DumperSpikes {
     u32 time;
     NeuronTimeSpike* spikes_data;
     u32 n_spikes;
-    u32 sample_count;
 } DumperSpikes;
 
 /**********************
@@ -83,7 +82,7 @@ typedef struct Callback {
 ********************/
 internal void callback_begin_sample(
     Callback* callback,
-    u32 sample_duration,
+    DataSample* sample,
     Memory* memory);
 
 internal void callback_update(
@@ -106,7 +105,7 @@ internal Callback* callback_meta_dumper_create(
 
 internal void callback_meta_dumper_begin_sample(
     Callback* callback,
-    u32 sample_duration,
+    DataSample* sample,
     Memory* memory);
 
 
@@ -131,7 +130,7 @@ internal Callback* callback_netowrk_data_dumper_create(
 
 internal void callback_network_data_dumper_begin_sample(
     Callback* callback,
-    u32 sample_duration,
+    DataSample* sample,
     Memory* memory);
 
 
@@ -156,7 +155,7 @@ internal Callback* callback_spikes_dumper_create(
 
 internal void callback_spikes_dumper_begin_sample(
     Callback* callback,
-    u32 sample_duration,
+    DataSample* sample,
     Memory* memory);
 
 

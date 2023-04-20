@@ -25,9 +25,9 @@ type Meta struct {
 	NNeurons  uint32
 	NSynapses uint32
 
-	Layers          []LayerMeta
-	Synapses        []SynapseMeta
-	SamplesDuration []uint32
+	Layers   []LayerMeta
+	Synapses []SynapseMeta
+	Samples  map[string]uint32
 }
 
 type NeuronData struct {
@@ -76,7 +76,7 @@ func BuildMeta(folder string) (*Meta, error) {
 	meta.NSynapses = nSynapses
 	meta.Layers = make([]LayerMeta, nLayers)
 	meta.Synapses = make([]SynapseMeta, nSynapses)
-	meta.SamplesDuration = make([]uint32, 0)
+	meta.Samples = make(map[string]uint32)
 
 	var layerI uint32
 	for layerI = 0; layerI < nLayers; layerI++ {
@@ -96,18 +96,18 @@ func BuildMeta(folder string) (*Meta, error) {
 	}
 
 	for !parser.IsFinished() {
-		meta.SamplesDuration = append(meta.SamplesDuration, parser.Uint32())
+		meta.Samples[parser.String()] = parser.Uint32()
 	}
 
 	return meta, nil
 }
 
-func BuildData(meta *Meta, sampleI int) (*Data, error) {
-	if sampleI >= len(meta.SamplesDuration) {
-		return nil, errors.New("sampleI is too big")
+func BuildData(meta *Meta, sampleName string) (*Data, error) {
+	duration, present := meta.Samples[sampleName]
+	if !present {
+		return nil, errors.New(fmt.Sprintf("Sample %v is not present", sampleName))
 	}
-	duration := meta.SamplesDuration[sampleI]
-	fileName := fmt.Sprintf("data_%d.bin", sampleI)
+	fileName := fmt.Sprintf("data_%v.bin", sampleName)
 
 	filePath := utils.Join(meta.Folder, fileName)
 
@@ -179,12 +179,13 @@ type SpikesData struct {
 	Layers   []SpikesLayer
 }
 
-func BuildSpikes(meta *Meta, sampleI int) (*SpikesData, error) {
-	if sampleI >= len(meta.SamplesDuration) {
-		return nil, errors.New("sampleI is too big")
+func BuildSpikes(meta *Meta, sampleName string) (*SpikesData, error) {
+	duration, present := meta.Samples[sampleName]
+	if !present {
+		return nil, errors.New(fmt.Sprintf("Sample %v is not present", sampleName))
 	}
 
-	spikesFile := fmt.Sprintf("spikes_%d.bin", sampleI)
+	spikesFile := fmt.Sprintf("spikes_%v.bin", sampleName)
 	filePath := utils.Join(meta.Folder, spikesFile)
 
 	parser, err := parser.NewParser(filePath)
@@ -194,7 +195,7 @@ func BuildSpikes(meta *Meta, sampleI int) (*SpikesData, error) {
 
 	spikesData := new(SpikesData)
 	spikesData.Name = spikesFile
-	spikesData.Duration = meta.SamplesDuration[sampleI]
+	spikesData.Duration = duration
 	spikesData.Layers = make([]SpikesLayer, meta.NLayers)
 
 	var layerI uint32 = 0

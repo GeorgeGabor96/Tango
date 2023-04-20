@@ -50,7 +50,7 @@ func (t ActivityXTicks) Ticks(min, max float64) []plot.Tick {
 
 func ActivityPlot(meta *experiment.Meta, spikesData *experiment.SpikesData) error {
 	sampleName := utils.RemoveExtension(spikesData.Name)
-	outFolder := utils.JoinWithCreate(meta.Folder, sampleName)
+	outFolder := utils.JoinWithCreate(meta.Folder, "activity")
 	imgName := sampleName + ".png"
 	imgPath := utils.Join(outFolder, imgName)
 	var yPad uint32 = 5

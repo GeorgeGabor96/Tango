@@ -69,9 +69,10 @@ callback_meta_dumper_create(Memory* memory, String* output_folder, Network* netw
 
 
 internal void
-callback_meta_dumper_begin_sample(Callback* callback, u32 sample_duration, Memory* memory) {
+callback_meta_dumper_begin_sample(Callback* callback, DataSample* sample, Memory* memory) {
     DumperMeta* meta = &callback->dumper_meta;
-    meta->sample_duration = sample_duration;
+    meta->sample_name = sample->name;
+    meta->sample_duration = sample->duration;
     meta->sample_time = 0;
 }
 
@@ -100,6 +101,8 @@ callback_meta_dumper_end_sample(Callback* callback, Memory* memory) {
           "Could not open file %s",
           string_get_c_str(meta->meta_file));
 
+    fwrite(&(meta->sample_name->length), sizeof(u32), 1, fp);
+    fwrite(meta->sample_name->data, sizeof(char), meta->sample_name->length, fp);
     fwrite(&(meta->sample_duration), sizeof(u32), 1, fp);
 
     fflush(fp);
