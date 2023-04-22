@@ -9,7 +9,8 @@
 
 typedef struct String {
     u32 length;   // does not contain the \0 in the length
-    char* data;   // NOTE: this should point directly after the String
+    char* data;   // does contain the \0
+    // NOTE: this should point directly after the String structure
 } String;
 
 

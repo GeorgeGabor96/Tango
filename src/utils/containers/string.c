@@ -8,9 +8,6 @@ _string_get_c_str_length(const char* c_str) {
     return length;
 }
 
-#define str_size_from_length(length) (sizeof(String) + length + 1)
-#define str_size(str) str_size_from_length((str)->length)
-
 
 internal String*
 _string_create_from_length(Memory* memory, u32 length) {
@@ -18,7 +15,7 @@ _string_create_from_length(Memory* memory, u32 length) {
     check(memory != NULL, "memory is NULL");
     check(length > 0, "length is 0");
 
-    str = (String*) memory_push(memory, str_size_from_length(length));
+    str = (String*) memory_push(memory, sizeof(String) + length + 1);
     check_memory(str);
     str->length = length;
     str->data = (char*)(str + 1);
@@ -36,6 +33,7 @@ string_create(Memory* memory, const char* c_str) {
     u32 length = _string_get_c_str_length(c_str);
     str = _string_create_from_length(memory, length);
     check_memory(str);
+    // NOTE: Also copy /0
     memcpy(str->data, c_str, str->length + 1);
 
     error:
@@ -88,8 +86,8 @@ string_path_join(Memory* memory, String* str1, String* str2) {
     check(str1 != NULL, "str1 is NULL");
     check(str2 != NULL, "str2 is NULL");
 
-    // NOTE: 2 because of os sep and \0
-    u32 length = str1->length + 2 + str2->length;
+    // NOTE: 2 because of os sep
+    u32 length = str1->length + 1 + str2->length;
     str = _string_create_from_length(memory, length);
     u32 str_offset = 0;
     u32 i = 0;
@@ -115,7 +113,7 @@ string_path_join_c_str(Memory* memory, String* str, const char* c_str) {
     check(c_str != NULL, "c_str is NULL");
 
     u32 c_str_len = _string_get_c_str_length(c_str);
-    u32 length = str->length + 2 + c_str_len;
+    u32 length = str->length + 1 + c_str_len;
     result = _string_create_from_length(memory, length);
     u32 str_offset = 0;
     u32 i = 0;
