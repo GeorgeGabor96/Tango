@@ -10,7 +10,7 @@
             "request": "launch",
             "mode": "auto",
             "program": "go\\visu\\main.go",
-            "args": ["--bin_folder", "d:\\repos\\Tango_outputs\\exp\\mnist_roc_if_one_spike_new_sample"]
+            "args": ["--bin_folder", "d:/repos/Tango_outputs/weights/exp1"]
         },
         {
             "name": "W23 C Debug",

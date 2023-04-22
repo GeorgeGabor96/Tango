@@ -6,11 +6,51 @@ import (
 	"image/color"
 	"tango/go/utils"
 	"tango/go/visu/experiment"
+	"tango/go/visu/parser"
 
-	"gonum.org/v1/plot"
 	"gonum.org/v1/plot/plotter"
-	"gonum.org/v1/plot/vg"
 )
+
+type WeightsData struct {
+	Name     string
+	Duration uint32
+	Weights  [][]float32
+}
+
+func BuildWeights(meta *experiment.Meta, sampleName string) (*WeightsData, error) {
+	duration, present := meta.Samples[sampleName]
+	if !present {
+		return nil, errors.New(fmt.Sprintf("Sample %v is not present", sampleName))
+	}
+	fileName := fmt.Sprintf("weights_%v", sampleName)
+
+	filePath := utils.Join(meta.Folder, "weights")
+	filePath = utils.Join(filePath, fileName+".bin")
+
+	parser, err := parser.NewParser(filePath)
+	if err != nil {
+		return nil, err
+	}
+
+	data := new(WeightsData)
+	data.Name = fileName
+	data.Duration = duration
+	data.Weights = make([][]float32, duration)
+
+	var synapseI uint32 = 0
+	var stepI uint32 = 0
+
+	for stepI = 0; stepI < duration; stepI++ {
+		weights := make([]float32, meta.NSynapses)
+		for synapseI = 0; synapseI < meta.NSynapses; synapseI++ {
+			weights[synapseI] = parser.Float32()
+		}
+
+		data.Weights[stepI] = weights
+	}
+
+	return data, nil
+}
 
 func SynapseWeightPlot(meta *experiment.Meta, data *experiment.Data, sI uint32) error {
 	if sI >= meta.NSynapses {
@@ -86,32 +126,8 @@ func SynapsesHistPlot(meta *experiment.Meta, data *experiment.Data, stepInc uint
 			weights[i] = float64(synapse.Weight)
 		}
 
-		p := plot.New()
-		h, err := plotter.NewHist(weights, 16)
+		err := HistPlot(weights, outFolder, sampleName)
 		if err != nil {
-			return err
-		}
-		h.FillColor = color.RGBA{B: 128, A: 255}
-		p.Add(h)
-
-		title := fmt.Sprintf("Step %v", stepI)
-		p.Title.Text = title
-		p.Title.TextStyle.Font.Size = PLOTTING_TITLE_FONT_SIZE
-
-		p.X.Label.Text = "weight"
-		p.X.Label.TextStyle.Font.Size = PLOTTING_LABEL_FONT_SIZE
-		p.X.Tick.Marker = &FloatTicks{nTicks: 10}
-		p.X.Tick.Label.Font.Size = PLOTTING_TICK_FONT_SIZE
-
-		p.Y.Label.Text = "count"
-		p.Y.Label.TextStyle.Font.Size = PLOTTING_LABEL_FONT_SIZE
-		p.Y.Tick.Marker = &IntTicks{nTicks: 10}
-		p.Y.Tick.Label.Font.Size = PLOTTING_TICK_FONT_SIZE
-
-		imgName := fmt.Sprintf("%v.png", stepI)
-		imgPath := utils.Join(outFolder, imgName)
-
-		if err := p.Save(20*vg.Inch, 10*vg.Inch, imgPath); err != nil {
 			return err
 		}
 	}
