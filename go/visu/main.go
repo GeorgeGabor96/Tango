@@ -6,6 +6,7 @@ import (
 	"os"
 	"strings"
 	"sync"
+	"tango/go/utils"
 	"tango/go/visu/experiment"
 	"tango/go/visu/plotting"
 )
@@ -41,25 +42,25 @@ func main() {
 	}
 	meta, _ := experiment.BuildMeta(args.binFolder)
 
+	wHistPlotter, _ := plotting.WeightsHistPlotterCreate(utils.Join(meta.Folder, "weights_hist"), 100)
+
 	var wg sync.WaitGroup
 	for sampleName := range meta.Samples {
 		sampleNameCopy := strings.Clone(sampleName)
 		wg.Add(1)
 
 		go func() {
-			CreatePlots(meta, sampleNameCopy)
+			CreatePlots(meta, sampleNameCopy, wHistPlotter)
 			wg.Done()
 		}()
 	}
 	wg.Wait()
 }
 
-func CreatePlots(meta *experiment.Meta, sampleName string) {
+func CreatePlots(meta *experiment.Meta, sampleName string, wHistPlotter *plotting.WeightsHistPlotter) {
 	fmt.Printf("[INFO] Begin processing sample %v\n", sampleName)
 	data, err := experiment.BuildData(meta, sampleName)
-	if err != nil {
-		fmt.Println(err)
-	} else {
+	if err == nil {
 		plotting.SynapseConductancePlot(meta, data, 1000)
 		plotting.SynapseWeightPlot(meta, data, 1000)
 		plotting.SynapsesHistPlot(meta, data, 1000)
@@ -76,6 +77,11 @@ func CreatePlots(meta *experiment.Meta, sampleName string) {
 		fmt.Printf("[Warning] Cannot build spikes data for sample %v\n", sampleName)
 	} else {
 		plotting.ActivityPlot(meta, spikes)
+	}
+
+	weights, err := plotting.BuildWeights(meta, sampleName)
+	if err == nil {
+		wHistPlotter.Plot(weights)
 	}
 
 	fmt.Printf("[INFO] Finished processing sample %v\n", sampleName)
