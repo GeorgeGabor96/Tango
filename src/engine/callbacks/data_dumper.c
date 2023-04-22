@@ -104,9 +104,6 @@ callback_network_data_dumper_update(Callback* callback, Memory* memory) {
            sizeof(DumperSynapseData),
            network->n_synapses,
            data->sample_fp);
-
-    error:
-    return;
 }
 
 
@@ -116,7 +113,4 @@ callback_network_data_dumper_end_sample(Callback* callback, Memory* memory) {
 
     fflush(data->sample_fp);
     fclose(data->sample_fp);
-
-    error:
-    return;
 }

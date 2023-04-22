@@ -6,6 +6,8 @@ callback_type_get_c_str(CallbackType type) {
         return "CALLBACK_NETWORK_DATA_DUMPER";
     if (type == CALLBACK_SPIKES_DUMPER)
         return "CALLBACK_SPIKES_DUMPER";
+    if (type == CALLBACK_WEIGHTS_DUMPER)
+        return "CALLBACK_WEIGHTS_DUMPER";
     return "CALLBACK_INVALID";
 }
 
@@ -26,6 +28,9 @@ callback_begin_sample(Callback* callback,
             callback, sample, memory);
     } else if (callback->type == CALLBACK_SPIKES_DUMPER) {
         callback_spikes_dumper_begin_sample(
+            callback, sample, memory);
+    } else if (callback->type == CALLBACK_WEIGHTS_DUMPER) {
+        callback_weights_dumper_begin_sample(
             callback, sample, memory);
     } else {
         log_error("Unknown callback type %u (%s)",
@@ -49,6 +54,8 @@ callback_update(Callback* callback, Memory* memory) {
         callback_network_data_dumper_update(callback, memory);
     } else if (callback->type == CALLBACK_SPIKES_DUMPER) {
         callback_spikes_dumper_update(callback, memory);
+    } else if (callback->type == CALLBACK_WEIGHTS_DUMPER) {
+        callback_weights_dumper_update(callback, memory);
     } else {
         log_error("Unknown callback type %u (%s)",
                   callback->type,
@@ -71,6 +78,8 @@ callback_end_sample(Callback* callback, Memory* memory) {
         callback_network_data_dumper_end_sample(callback, memory);
     } else if (callback->type == CALLBACK_SPIKES_DUMPER) {
         callback_spikes_dumper_end_sample(callback, memory);
+    } else if (callback->type == CALLBACK_WEIGHTS_DUMPER) {
+        callback_weights_dumper_end_sample(callback, memory);
     } else {
         log_error("Unknown callback type %u (%s)",
                   callback->type,

@@ -186,7 +186,8 @@ func BuildSpikes(meta *Meta, sampleName string) (*SpikesData, error) {
 	}
 
 	spikesFile := fmt.Sprintf("spikes_%v.bin", sampleName)
-	filePath := utils.Join(meta.Folder, spikesFile)
+	filePath := utils.Join(meta.Folder, "spikes")
+	filePath = utils.Join(filePath, spikesFile)
 
 	parser, err := parser.NewParser(filePath)
 	if err != nil {

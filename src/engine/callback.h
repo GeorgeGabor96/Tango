@@ -52,6 +52,19 @@ typedef struct DumperSpikes {
     u32 n_spikes;
 } DumperSpikes;
 
+
+/************************
+* Callback Weigth Dumper
+************************/
+typedef struct DumperWeights {
+    Network* network;
+    String* output_folder;
+    FILE* sample_fp;
+
+    float* weights;
+} DumperWeights;
+
+
 /**********************
 * Callback definitions
 **********************/
@@ -59,6 +72,7 @@ typedef enum {
     CALLBACK_META_DUMPER = 0,
     CALLBACK_NETWORK_DATA_DUMPER = 1,
     CALLBACK_SPIKES_DUMPER = 2,
+    CALLBACK_WEIGHTS_DUMPER = 3,
 
     CALLBACK_INVALID,
 } CallbackType;
@@ -73,6 +87,7 @@ typedef struct Callback {
         DumperMeta dumper_meta;
         DumperData dumper_data;
         DumperSpikes dumper_spikes;
+        DumperWeights dumper_weights;
     };
 } Callback, *CallbackP;
 
@@ -165,6 +180,31 @@ internal void callback_spikes_dumper_update(
 
 
 internal void callback_spikes_dumper_end_sample(
+    Callback* callback,
+    Memory* memory);
+
+
+/*************************
+* Callback Weights Dumper
+*************************/
+internal Callback* callback_weights_dumper_create(
+    Memory* memory,
+    String* output_folder,
+    Network* network);
+
+
+internal void callback_weights_dumper_begin_sample(
+    Callback* callback,
+    DataSample* sample,
+    Memory* memory);
+
+
+internal void callback_weights_dumper_update(
+    Callback* callback,
+    Memory* memory);
+
+
+internal void callback_weights_dumper_end_sample(
     Callback* callback,
     Memory* memory);
 

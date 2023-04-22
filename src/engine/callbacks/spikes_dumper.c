@@ -7,6 +7,11 @@ callback_spikes_dumper_create(Memory* memory, String* output_folder, Network* ne
     b32 result = os_folder_create_str(output_folder);
     check(result == TRUE, "couldn't create folder %s",
           string_get_c_str(output_folder));
+    output_folder = string_path_join_c_str(memory, output_folder, "spikes");
+    check_memory(output_folder);
+    result = os_folder_create_str(output_folder);
+    check(result == TRUE, "couldn't create folder %s",
+          string_get_c_str(output_folder));
 
     Callback* callback = (Callback*) memory_push(
         memory, sizeof(*callback));

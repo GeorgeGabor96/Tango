@@ -2,11 +2,11 @@
 
 
 int main() {
-    Experiment* exp = experiment_create(0, 723104, "D:\\repos\\Tango_outputs\\exp\\mnist_roc_if_one_spike_same_sample");
+    Experiment* exp = experiment_create(0, 723104, "D:\\repos\\Tango_outputs\\weights\\exp1");
 
     Memory* memory = exp->permanent_memory;
 
-    DataGen* spike_train_data = data_gen_create_spike_train(memory, 500, "d:/datasets/MNIST/encoding2/img_train", "d:/datasets/MNIST/encoding2/img_train/samples.txt", 0, 100);
+    DataGen* spike_train_data = data_gen_create_spike_train(memory, 500, "d:/datasets/MNIST/encoding2/img_train", "d:/datasets/MNIST/encoding2/img_train/samples.txt", 0, 10);
     //DataGen* spike_train_data = data_gen_create_spike_pulses(memory, exp->random, 2, 1000, 30, 100, 200, 0.05f, 0.001f);
 
     Network* net = network_create(memory);
@@ -34,11 +34,14 @@ int main() {
         memory, exp->output_folder, net);
     Callback* cb_spikes = callback_spikes_dumper_create(
         memory, exp->output_folder, net);
+    Callback* cb_weights = callback_weights_dumper_create(
+        memory, exp->output_folder, net);
 
     experiment_set_network(exp, net);
     experiment_set_data_gen(exp, spike_train_data);
     experiment_add_callback(exp, cb_meta);
     experiment_add_callback(exp, cb_spikes);
+    experiment_add_callback(exp, cb_weights);
 
     experiment_learn(exp);
 
