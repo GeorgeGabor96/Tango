@@ -25,7 +25,6 @@ callback_spikes_dumper_create(Memory* memory, String* output_folder, Network* ne
     callback->type = CALLBACK_SPIKES_DUMPER;
     callback->dumper_spikes.network = network;
     callback->dumper_spikes.output_folder = output_folder;
-    callback->dumper_spikes.time = 0;
     callback->dumper_spikes.sample_fp = NULL;
     callback->dumper_spikes.spikes_data = spikes_data;
     callback->dumper_spikes.n_spikes = 0;
@@ -50,7 +49,6 @@ callback_spikes_dumper_begin_sample(Callback* callback, DataSample* sample, Memo
     check(fp != NULL,
           "Couldn't open file %s", string_get_c_str(file_path));
 
-    spikes->time = 0;
     spikes->n_spikes = 0;
     spikes->sample_fp = fp;
 
@@ -67,13 +65,12 @@ callback_spikes_dumper_begin_sample(Callback* callback, DataSample* sample, Memo
 
 
 internal void
-callback_spikes_dumper_update(Callback* callback, Memory* memory) {
+callback_spikes_dumper_update(Callback* callback, u32 time, Memory* memory) {
     DumperSpikes* spikes = &callback->dumper_spikes;
 
     // NOTE: get the spike data
     u32 neuron_i = 0;
     u32 spike_i = 0;
-    u32 time = spikes->time;
     Network* network = spikes->network;
     Neuron* neurons = network->neurons;
     Neuron* neuron = NULL;
@@ -98,7 +95,6 @@ callback_spikes_dumper_update(Callback* callback, Memory* memory) {
            spikes->sample_fp);
 
     spikes->n_spikes += spike_i;
-    ++(spikes->time);
 }
 
 

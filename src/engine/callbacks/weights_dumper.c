@@ -1,8 +1,17 @@
 internal Callback*
-callback_weights_dumper_create(Memory* memory, String* output_folder, Network* network) {
+callback_weights_dumper_create(
+        Memory* memory,
+        u32 sample_step,
+        u32 time_step,
+        String* output_folder,
+        Network* network) {
     check(memory != NULL, "memory is NULL");
     check(output_folder != NULL, "output_folder is NULL");
     check(network != NULL, "network is NULL");
+
+    // NOTE: default we dump every sample
+    if (sample_step == 0) sample_step = 1;
+    if (time_step == 0) time_step = 1;
 
     b32 result = os_folder_create_str(output_folder);
     check(result == TRUE, "couldn't create folder %s",
@@ -21,6 +30,10 @@ callback_weights_dumper_create(Memory* memory, String* output_folder, Network* n
 
     callback->type = CALLBACK_WEIGHTS_DUMPER;
     callback->dumper_weights.network = network;
+    callback->dumper_weights.time_step = time_step;
+    callback->dumper_weights.next_time_to_dump_i = 0;
+    callback->dumper_weights.sample_step = sample_step;
+    callback->dumper_weights.next_sample_to_dump_i = 0;
     callback->dumper_weights.output_folder = output_folder;
     callback->dumper_weights.sample_fp = NULL;
     callback->dumper_weights.weights = weights;
@@ -36,6 +49,14 @@ internal void
 callback_weights_dumper_begin_sample(Callback* callback, DataSample* sample, Memory* memory) {
     DumperWeights* data = &callback->dumper_weights;
 
+    if (sample->sample_i != data->next_sample_to_dump_i) {
+        data->sample_fp = NULL;
+        return;
+    }
+
+    data->next_sample_to_dump_i += data->sample_step;
+    data->next_time_to_dump_i = 0;
+
     char file_name[100];
     sprintf(file_name, "weights_%s.bin", string_get_c_str(sample->name));
     String* file_name_s = string_create(memory, file_name);
@@ -50,6 +71,8 @@ callback_weights_dumper_begin_sample(Callback* callback, DataSample* sample, Mem
     check(data->sample_fp != NULL,
           "Couldn't open weights file %s",
           string_get_c_str(file_path));
+    // NOTE: write frequency to know when reading the file
+    fwrite(&data->time_step, sizeof(u32), 1, data->sample_fp);
 
     error:
     return;
@@ -57,8 +80,12 @@ callback_weights_dumper_begin_sample(Callback* callback, DataSample* sample, Mem
 
 
 internal void
-callback_weights_dumper_update(Callback* callback, Memory* memory) {
+callback_weights_dumper_update(Callback* callback, u32 time, Memory* memory) {
     DumperWeights* data = &callback->dumper_weights;
+    if (data->sample_fp == NULL) return;
+
+    if (time != data->next_time_to_dump_i) return;
+    data->next_time_to_dump_i += data->time_step;
 
     u32 synapse_i = 0;
     Network* network = data->network;
@@ -78,6 +105,8 @@ callback_weights_dumper_update(Callback* callback, Memory* memory) {
 internal void
 callback_weights_dumper_end_sample(Callback* callback, Memory* memory) {
     DumperWeights* data = &callback->dumper_weights;
+
+    if (data->sample_fp == NULL) return;
 
     fflush(data->sample_fp);
     fclose(data->sample_fp);

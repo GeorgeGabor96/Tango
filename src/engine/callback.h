@@ -47,7 +47,6 @@ typedef struct DumperSpikes {
     String* output_folder;
     FILE* sample_fp;
 
-    u32 time;
     NeuronTimeSpike* spikes_data;
     u32 n_spikes;
 } DumperSpikes;
@@ -61,6 +60,10 @@ typedef struct DumperWeights {
     String* output_folder;
     FILE* sample_fp;
 
+    u32 time_step;
+    u32 next_time_to_dump_i;
+    u32 sample_step;
+    u32 next_sample_to_dump_i;
     float* weights;
 } DumperWeights;
 
@@ -102,6 +105,7 @@ internal void callback_begin_sample(
 
 internal void callback_update(
     Callback* callback,
+    u32 time,
     Memory* memory);
 
 internal void callback_end_sample(
@@ -126,6 +130,7 @@ internal void callback_meta_dumper_begin_sample(
 
 internal void callback_meta_dumper_update(
     Callback* callback,
+    u32 time,
     Memory* memory);
 
 
@@ -151,6 +156,7 @@ internal void callback_network_data_dumper_begin_sample(
 
 internal void callback_network_data_dumper_update(
     Callback* callback,
+    u32 time,
     Memory* memory);
 
 
@@ -176,6 +182,7 @@ internal void callback_spikes_dumper_begin_sample(
 
 internal void callback_spikes_dumper_update(
     Callback* callback,
+    u32 time,
     Memory* memory);
 
 
@@ -189,6 +196,8 @@ internal void callback_spikes_dumper_end_sample(
 *************************/
 internal Callback* callback_weights_dumper_create(
     Memory* memory,
+    u32 sample_step,
+    u32 time_step,
     String* output_folder,
     Network* network);
 
@@ -201,6 +210,7 @@ internal void callback_weights_dumper_begin_sample(
 
 internal void callback_weights_dumper_update(
     Callback* callback,
+    u32 time,
     Memory* memory);
 
 

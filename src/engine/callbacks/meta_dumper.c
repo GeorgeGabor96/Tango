@@ -78,7 +78,7 @@ callback_meta_dumper_begin_sample(Callback* callback, DataSample* sample, Memory
 
 
 internal void
-callback_meta_dumper_update(Callback* callback, Memory* memory) {
+callback_meta_dumper_update(Callback* callback, u32 time, Memory* memory) {
     DumperMeta* meta =  &callback->dumper_meta;
 
     check(meta->sample_time < meta->sample_duration,
