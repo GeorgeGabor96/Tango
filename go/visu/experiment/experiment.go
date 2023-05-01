@@ -191,7 +191,7 @@ func BuildSpikes(meta *Meta, sampleName string) (*SpikesData, error) {
 
 	parser, err := parser.NewParser(filePath)
 	if err != nil {
-		return nil, err
+		return nil, errors.New(fmt.Sprintf("[INFO] Spikes file %v.bin is not present", spikesFile))
 	}
 
 	spikesData := new(SpikesData)

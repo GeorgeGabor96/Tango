@@ -14,6 +14,8 @@ import (
 type WeightsData struct {
 	Name     string
 	Duration uint32
+	TimeStep uint32
+	NSteps   uint32
 	Weights  [][]float32
 }
 
@@ -29,18 +31,20 @@ func BuildWeights(meta *experiment.Meta, sampleName string) (*WeightsData, error
 
 	parser, err := parser.NewParser(filePath)
 	if err != nil {
-		return nil, err
+		return nil, errors.New(fmt.Sprintf("[INFO] Weights file %v.bin is not present", fileName))
 	}
 
 	data := new(WeightsData)
 	data.Name = fileName
 	data.Duration = duration
-	data.Weights = make([][]float32, duration)
+	data.TimeStep = parser.Uint32()
+	data.NSteps = duration / data.TimeStep
+	data.Weights = make([][]float32, data.NSteps)
 
 	var synapseI uint32 = 0
 	var stepI uint32 = 0
 
-	for stepI = 0; stepI < duration; stepI++ {
+	for stepI = 0; stepI < data.NSteps; stepI++ {
 		weights := make([]float32, meta.NSynapses)
 		for synapseI = 0; synapseI < meta.NSynapses; synapseI++ {
 			weights[synapseI] = parser.Float32()

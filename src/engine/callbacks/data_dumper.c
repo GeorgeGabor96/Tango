@@ -60,7 +60,7 @@ callback_network_data_dumper_begin_sample(Callback* callback, DataSample* sample
 
 
 internal void
-callback_network_data_dumper_update(Callback* callback, Memory* memory) {
+callback_network_data_dumper_update(Callback* callback, u32 time, Memory* memory) {
     DumperData* data = &callback->dumper_data;
 
     // NOTE: dump the neurons

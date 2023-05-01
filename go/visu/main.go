@@ -42,7 +42,7 @@ func main() {
 	}
 	meta, _ := experiment.BuildMeta(args.binFolder)
 
-	wHistPlotter, _ := plotting.WeightsHistPlotterCreate(utils.Join(meta.Folder, "weights_hist"), 100)
+	wHistPlotter, _ := plotting.WeightsHistPlotterCreate(utils.Join(meta.Folder, "weights_hist"))
 
 	var wg sync.WaitGroup
 	for sampleName := range meta.Samples {
@@ -74,13 +74,15 @@ func CreatePlots(meta *experiment.Meta, sampleName string, wHistPlotter *plottin
 
 	spikes, err := experiment.BuildSpikes(meta, sampleName)
 	if err != nil {
-		fmt.Printf("[Warning] Cannot build spikes data for sample %v\n", sampleName)
+		fmt.Println(err.Error())
 	} else {
 		plotting.ActivityPlot(meta, spikes)
 	}
 
 	weights, err := plotting.BuildWeights(meta, sampleName)
-	if err == nil {
+	if err != nil {
+		fmt.Println(err.Error())
+	} else {
 		wHistPlotter.Plot(weights)
 	}
 

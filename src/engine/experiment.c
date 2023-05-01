@@ -146,7 +146,7 @@ _experiment_run(Experiment* experiment, Mode mode) {
             for (callback_it = experiment->callbacks;
                 callback_it != NULL;
                 callback_it = callback_it->next)
-                callback_update(callback_it->callback, experiment->transient_memory);
+                callback_update(callback_it->callback, time, experiment->transient_memory);
         }
 
         for (callback_it = experiment->callbacks;
