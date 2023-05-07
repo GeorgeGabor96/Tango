@@ -25,6 +25,9 @@ synapse_cls_add_learning_rule_dan_poo(SynapseCls* cls,
                                       f32 min_w, f32 max_w,
                                       f32 A, f32 B, f32 tau) {
     check(cls != NULL, "cls is NULL");
+    check(min_w >= 0, "synapse weights should be positive. min_weight %f", min_w);
+    check(max_w >= 0, "synapse weights should be positive. max_weight %f", max_w);
+    check(min_w <= max_w, "min_w %f > max_w %f", min_w, max_w);
     cls->learning_rule = SYNAPSE_LEARNING_DAN_POO;
     cls->min_w = min_w;
     cls->max_w = max_w;
@@ -42,6 +45,9 @@ synapse_cls_add_learning_rule_step(SynapseCls* cls,
                                    u32 max_time_p, f32 amp_p,
                                    u32 max_time_d, f32 amp_d) {
     check(cls != NULL, "cls is NULL");
+    check(min_w >= 0, "synapse weights should be positive. min_weight %f", min_w);
+    check(max_w >= 0, "synapse weights should be positive. max_weight %f", max_w);
+    check(min_w <= max_w, "min_w %f > max_w %f", min_w, max_w);
     cls->learning_rule = SYNAPSE_LEARNING_STEP;
     cls->min_w = min_w;
     cls->max_w = max_w;
@@ -132,6 +138,8 @@ internal void
 synapse_init(Synapse* synapse, SynapseCls* cls, f32 weight) {
     check(synapse != NULL, "synapse is NULL");
     check(cls != NULL, "cls is NULL");
+    // NOTE: the weight should be positive because the inhibition or excitation is driven by the reversal potential
+    // NOTE: not the weight
     check(weight >= 0.0f, "weight is negative");
 
     synapse->cls = cls;

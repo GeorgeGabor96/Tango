@@ -3,6 +3,16 @@
 
 #include <math.h>
 
+#define FLOAT_EPSILON 0.000001f
+
+inline internal b32
+math_float_equals_f32(f32 value1, f32 value2) {
+    if (value1 <= value2 + FLOAT_EPSILON && value1 >= value2 - FLOAT_EPSILON) {
+        return TRUE;
+    }
+    return FALSE;
+}
+
 
 inline internal u32
 math_abs_i32(i32 value) {

@@ -68,3 +68,12 @@ random_get_chance_f32(Random* random) {
     error:
     return 0.0f;
 }
+
+
+internal f32
+random_get_in_range_f32(Random* random, f32 min, f32 max) {
+    f32 chance = (f32)random_get_chance_f64(random);
+    f32 scaled = (max - min) * chance;
+    f32 shifted = scaled + min;
+    return shifted;
+}

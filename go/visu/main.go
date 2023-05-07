@@ -77,6 +77,7 @@ func CreatePlots(meta *experiment.Meta, sampleName string, wHistPlotter *plottin
 		fmt.Println(err.Error())
 	} else {
 		plotting.ActivityPlot(meta, spikes)
+		plotting.ActivityPlotForLayer(2, meta, spikes)
 	}
 
 	weights, err := plotting.BuildWeights(meta, sampleName)

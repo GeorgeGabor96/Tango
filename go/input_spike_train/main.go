@@ -67,11 +67,12 @@ func main() {
 		return
 	}
 
-	var binNames []string
+	var imgNames []string
 
 	for _, imgNamePng := range fileNames {
 		imgInPath := utils.Join(args.imgFolder, imgNamePng)
-		binName := utils.RemoveExtension(imgNamePng) + ".bin"
+		imgName := utils.RemoveExtension(imgNamePng)
+		binName := imgName + ".bin"
 		binOutPath := utils.Join(args.outFolder, binName)
 		imgGray, err := utils.ReadPngImageAsGray(imgInPath)
 		if err != nil {
@@ -86,7 +87,7 @@ func main() {
 			return
 		}
 		fmt.Printf("Wrote file %s\n", binOutPath)
-		binNames = append(binNames, binName)
+		imgNames = append(imgNames, imgName)
 	}
 
 	outListFilePath := utils.Join(args.outFolder, "samples.txt")
@@ -96,8 +97,8 @@ func main() {
 		return
 	}
 	defer fp.Close()
-	for _, binName := range binNames {
-		fp.WriteString(binName + "\n")
+	for _, imgName := range imgNames {
+		fp.WriteString(imgName + "\n")
 	}
 	fmt.Printf("Wrote sample file %s\n", outListFilePath)
 }
