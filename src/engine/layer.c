@@ -338,8 +338,10 @@ _layer_link_dense(Layer* layer, LayerLink* link, Synapse* synapses, u32 offset, 
             synapse = synapses + offset;
 
             // NOTE: weight of 0 means dead synapse, don't add them
-            while (weight == 0.0f) weight = random_get_in_range_f32(random, link->min_weight, link->max_weight);
-
+            weight = 0;
+            while (math_float_equals_f32(weight, 0.0f)) {
+                weight = random_get_in_range_f32(random, link->min_weight, link->max_weight);
+            }
             synapse_init(synapse, link->cls, weight);
 
             in_neuron = in_layer->neurons + in_neuron_i;

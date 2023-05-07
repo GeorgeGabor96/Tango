@@ -100,7 +100,7 @@ func ActivityPlot(meta *experiment.Meta, spikesData *experiment.SpikesData) erro
 			return err
 		}
 		s.GlyphStyle.Shape = draw.BoxGlyph{}
-		s.GlyphStyle.Radius = 1
+		s.GlyphStyle.Radius = 2
 		p.Add(s)
 
 		// add the layer line
