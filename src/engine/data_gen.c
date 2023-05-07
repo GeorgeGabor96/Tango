@@ -222,9 +222,9 @@ data_gen_sample_create(Memory* memory, DataGen* data, u32 idx) {
         check_memory(spikes);
         sample_spike_train->spikes = spikes;
 
-        sprintf(sample_name, "%s_%06d",
-            string_get_c_str(data_spike_train->current_sample->name),
-            sample->sample_i);
+        sprintf(sample_name, "s%06d_%s",
+            sample->sample_i,
+            string_get_c_str(data_spike_train->current_sample->name));
         data_spike_train->current_sample = data_spike_train->current_sample->next;
 
     } else {

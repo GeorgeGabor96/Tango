@@ -2,11 +2,11 @@
 
 
 int main() {
-    Experiment* exp = experiment_create(4, 723104, "D:\\repos\\Tango_outputs\\weights\\playing_until_230_01_change");
+    Experiment* exp = experiment_create(4, 723104, "D:\\repos\\Tango_outputs\\weights\\playing_10_imgs");
 
     Memory* memory = exp->permanent_memory;
 
-    DataGen* spike_train_data = data_gen_create_spike_train(memory, 300, "d:/datasets/MNIST/encoding2/img_train", "d:/datasets/MNIST/encoding2/img_train/samples.txt", 230, 50);
+    DataGen* spike_train_data = data_gen_create_spike_train(memory, 300, "d:/datasets/MNIST/encoding_10_imgs", "d:/datasets/MNIST/encoding_10_imgs/samples.txt", 0, 50);
     //DataGen* spike_train_data = data_gen_create_spike_pulses(memory, exp->random, 31, 1000, 30, 100, 200, 0.05f, 0.001f);
 
     Network* net = network_create(memory);

@@ -1,6 +1,7 @@
 package plotting
 
 import (
+	"errors"
 	"fmt"
 	"tango/go/utils"
 	"tango/go/visu/experiment"
@@ -49,8 +50,32 @@ func (t ActivityXTicks) Ticks(min, max float64) []plot.Tick {
 }
 
 func ActivityPlot(meta *experiment.Meta, spikesData *experiment.SpikesData) error {
-	sampleName := utils.RemoveExtension(spikesData.Name)
+	layersI := make([]uint32, meta.NLayers)
+
+	var i uint32 = 0
+	for i = 0; i < meta.NLayers; i++ {
+		layersI[i] = meta.NLayers - 1 - i
+	}
+
 	outFolder := utils.JoinWithCreate(meta.Folder, "activity")
+
+	return activityPlot(layersI, outFolder, meta, spikesData)
+}
+
+func ActivityPlotForLayer(i uint32, meta *experiment.Meta, spikesData *experiment.SpikesData) error {
+	if i >= meta.NLayers {
+		return errors.New(fmt.Sprintf("Layer index %v is invalid. Number of layers is %v\n", i, meta.NLayers))
+	}
+	layersI := make([]uint32, 1)
+	layersI[0] = i
+
+	outFolder := utils.JoinWithCreate(meta.Folder, fmt.Sprintf("activity_%v", i))
+
+	return activityPlot(layersI, outFolder, meta, spikesData)
+}
+
+func activityPlot(layersI []uint32, outFolder string, meta *experiment.Meta, spikesData *experiment.SpikesData) error {
+	sampleName := utils.RemoveExtension(spikesData.Name)
 	imgName := sampleName + ".png"
 	imgPath := utils.Join(outFolder, imgName)
 	var yPad uint32 = 5
@@ -78,13 +103,14 @@ func ActivityPlot(meta *experiment.Meta, spikesData *experiment.SpikesData) erro
 	var pair utils.SpikeTimePair
 	var pairI uint32 = 0
 
-	for i := int(meta.NLayers - 1); i >= 0; i-- {
-		layerMeta := meta.Layers[i]
-		layerSpikes := spikesData.Layers[i]
+	for i := 0; i < len(layersI); i++ {
+		layerI := layersI[i]
+		layerMeta := meta.Layers[layerI]
+		layerSpikes := spikesData.Layers[layerI]
 
 		// build the y tick
-		ticks[i].Value = float64(yOffset + layerMeta.NNeurons/2)
-		ticks[i].Label = layerMeta.Name
+		ticks[layerI].Value = float64(yOffset + layerMeta.NNeurons/2)
+		ticks[layerI].Label = layerMeta.Name
 
 		// add the points
 		spikePts := make(plotter.XYs, layerSpikes.NSpikes)
