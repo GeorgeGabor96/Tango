@@ -82,7 +82,7 @@ b32 tango_link_layers(void* instance,
     name = string_create(exp->transient_memory, in_layer_name);
     Layer* in_layer = network_get_layer(exp->network, name);
 
-    b32 result = layer_link(layer, in_layer, cls, synapse_weight, connect_chance,
+    b32 result = layer_link(layer, in_layer, cls, synapse_weight, synapse_weight, connect_chance,
                             exp->permanent_memory);
     return result;
 }

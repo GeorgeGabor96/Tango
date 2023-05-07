@@ -132,6 +132,8 @@ internal void
 synapse_init(Synapse* synapse, SynapseCls* cls, f32 weight) {
     check(synapse != NULL, "synapse is NULL");
     check(cls != NULL, "cls is NULL");
+    // NOTE: the weight should be positive because the inhibition or excitation is driven by the reversal potential
+    // NOTE: not the weight
     check(weight >= 0.0f, "weight is negative");
 
     synapse->cls = cls;

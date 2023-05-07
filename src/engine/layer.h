@@ -15,11 +15,15 @@ typedef struct LayerLink LayerLink;
 typedef struct Layer Layer;
 
 
+// NOTE: could have multiple types of linking?
+// NOTE: or multiple types of weight initializers?
+// NOTE: fow now its too complitated maybe, lets add the simplest thing and see in the future if we need more
 struct LayerLink {
     Layer* layer;
     SynapseCls* cls;
-    f32 weight;
-    f32 chance;
+    f32 min_weight;
+    f32 max_weight;
+    f32 synapse_chance;
     struct LayerLink* next;
 };
 
@@ -76,8 +80,8 @@ internal Layer* layer_create(Memory* memory, String* name, LayerType type,
 internal void layer_show(Layer* layer);
 internal u32 layer_get_n_in_synapses(Layer* layer);
 
-internal b32 layer_link(Layer* layer, Layer* input_layer,
-                        SynapseCls* cls, f32 weight, f32 chance,
+internal b32 layer_link(Layer* layer, Layer* input_layer, SynapseCls* cls,
+                        f32 min_weight, f32 max_weight, f32 synapse_chance,
                         Memory* memory);
 
 internal u32 layer_link_synapses(Layer* layer, LayerLink* link, Synapse* synapses, u32 offset, Memory* memory, Random* random);
