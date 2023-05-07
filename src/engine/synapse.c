@@ -15,6 +15,8 @@ internal const char*
 synapse_learning_rule_get_c_str(SynapseLearningRule rule) {
     if (rule == SYNAPSE_LEARNING_DAN_POO)
         return "SYNAPSE_LEARNING_DAN_POO";
+    if (rule == SYNAPSE_LEARNING_STEP)
+        return "SYNAPSE_LEARNING_STEP";
     return "SYNAPSE_LEARNING_INVALID";
 }
 
@@ -33,6 +35,25 @@ synapse_cls_add_learning_rule_dan_poo(SynapseCls* cls,
     error:
     return;
 }
+
+internal void
+synapse_cls_add_learning_rule_step(SynapseCls* cls,
+                                   f32 min_w, f32 max_w,
+                                   u32 max_time_p, f32 amp_p,
+                                   u32 max_time_d, f32 amp_d) {
+    check(cls != NULL, "cls is NULL");
+    cls->learning_rule = SYNAPSE_LEARNING_STEP;
+    cls->min_w = min_w;
+    cls->max_w = max_w;
+    cls->stdp_step.max_time_p = max_time_p;
+    cls->stdp_step.amp_p = amp_p;
+    cls->stdp_step.max_time_d = max_time_d;
+    cls->stdp_step.amp_d = amp_d;
+
+    error:
+    return;
+}
+
 
 
 /*******************
@@ -228,8 +249,9 @@ synapse_update_pre_post(Synapse* synapse, u32 pre_spike_time, u32 post_spike_tim
     // NOTE: the input neuron should have spiked
     if (pre_spike_time == NEURON_INVALID_SPIKE_TIME) return;
 
-    f32 interval_value = (f32)post_spike_time - (f32)pre_spike_time;
-    check(interval_value >= 0.0f, "interval value is negative");
+    check(post_spike_time >= pre_spike_time, "post %u should be bigger than pre %u", post_spike_time, pre_spike_time);
+    u32 interval_value = post_spike_time - pre_spike_time;
+
     // TODO: if the pre neuron spikes and the post neuron spikes
     // the dt between them should be at least the synapse delay
     // right? I mean the pre spike will not even get the post neuron
@@ -240,7 +262,10 @@ synapse_update_pre_post(Synapse* synapse, u32 pre_spike_time, u32 post_spike_tim
     f32 dw = 0;
     if (cls->learning_rule == SYNAPSE_LEARNING_DAN_POO) {
         SynapseLearningDanPoo* rule = &cls->stdp_dan_poo;
-        dw = rule->A * math_exp_f32(-interval_value / rule->tau);
+        dw = rule->A * math_exp_f32(-(f32)interval_value / rule->tau);
+    } else if (cls->learning_rule == SYNAPSE_LEARNING_STEP) {
+        SynapseLearningStep* rule = &cls->stdp_step;
+        if (interval_value <= rule->max_time_p) dw = rule->amp_p;
     } else {
         log_error("Unkown Synapse Learning Rule %s (%u)",
         synapse_learning_rule_get_c_str(cls->learning_rule),
@@ -248,7 +273,6 @@ synapse_update_pre_post(Synapse* synapse, u32 pre_spike_time, u32 post_spike_tim
     }
 
     synapse->weight = math_clip_f32(synapse->weight + dw, cls->min_w, cls->max_w);
-
     error:
     return;
 }
@@ -262,8 +286,9 @@ synapse_update_post_pre(Synapse* synapse, u32 pre_spike_time, u32 post_spike_tim
     // NOTE: the out neuron should have spiked
     if (post_spike_time == NEURON_INVALID_SPIKE_TIME) return;
 
-    f32 interval_value = (f32)pre_spike_time - (f32)post_spike_time;
-    check(interval_value >= 0, "interval_value is negative");
+    check(pre_spike_time >= post_spike_time, "pre %u should be bigger than post %u", pre_spike_time, post_spike_time);
+    u32 interval_value = pre_spike_time - post_spike_time;
+
     // TODO: if pre spikes after post
     if (interval_value < cls->delay)
         return;
@@ -271,7 +296,10 @@ synapse_update_post_pre(Synapse* synapse, u32 pre_spike_time, u32 post_spike_tim
     f32 dw = 0;
     if (cls->learning_rule == SYNAPSE_LEARNING_DAN_POO) {
         SynapseLearningDanPoo* rule = &cls->stdp_dan_poo;
-        dw = rule->B * math_exp_f32(-interval_value / rule->tau);
+        dw = rule->B * math_exp_f32(-(f32)interval_value / rule->tau);
+    } else if (cls->learning_rule == SYNAPSE_LEARNING_STEP) {
+        SynapseLearningStep* rule = &cls->stdp_step;
+        if (interval_value <= rule->max_time_d) dw = rule->amp_d;
     } else {
         log_error("Unkown Synapse Learning Rule %s (%u)",
         synapse_learning_rule_get_c_str(cls->learning_rule),

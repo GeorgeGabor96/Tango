@@ -4,6 +4,12 @@
 #include <math.h>
 
 
+inline internal u32
+math_abs_i32(i32 value) {
+    u32 result = value >= 0 ? (u32)value : (u32)(-value);
+    return result;
+}
+
 inline internal f64
 math_exp_f64(f64 value) {
     f64 result = exp(value);

@@ -4,6 +4,7 @@
 
 typedef enum {
     SYNAPSE_LEARNING_DAN_POO,
+    SYNAPSE_LEARNING_STEP,
 
     SYNAPSE_LEARNING_INVALID,
 } SynapseLearningRule;
@@ -17,6 +18,14 @@ typedef struct SynapseLearningDanPoo {
     f32 B;
     f32 tau;
 } SynapseLearningDanPoo;
+
+
+typedef struct SynapseLearningStep {
+    u32 max_time_p; // NOTE: considered positive
+    f32 amp_p;
+    u32 max_time_d; // NOTE: considered negative
+    f32 amp_d;
+} SynapseLearningStep;
 
 
 typedef enum {
@@ -42,6 +51,7 @@ typedef struct SynapseCls {
     SynapseLearningRule learning_rule;
     union {
         SynapseLearningDanPoo stdp_dan_poo;
+        SynapseLearningStep stdp_step;
     };
 } SynapseCls;
 
@@ -51,8 +61,16 @@ internal SynapseCls* synapse_cls_create(Memory* memory,
                                         f32 rev_potential, f32 amp,
                                         f32 tau_ms, u32 delay);
 
-internal void synapse_cls_add_learning_rule_dan_poo(SynapseCls* cls,
-f32 min_w, f32 max_w, f32 A, f32 B, f32 tau);
+internal void synapse_cls_add_learning_rule_dan_poo(
+    SynapseCls* cls,
+    f32 min_w, f32 max_w,
+    f32 A, f32 B, f32 tau);
+
+internal void synapse_cls_add_learning_rule_step(
+    SynapseCls* cls,
+    f32 min_w, f32 max_w,
+    u32 max_time_p, f32 amp_p,
+    u32 max_time_d, f32 amp_d);
 
 
 #define SYNAPSE_QUEUE_CAPACITY (sizeof(u64) * 8 - 1)
