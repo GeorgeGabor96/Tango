@@ -24,6 +24,7 @@
 #include "engine/callbacks/data_dumper.c"
 #include "engine/callbacks/spikes_dumper.c"
 #include "engine/callbacks/weights_dumper.c"
+#include "engine/callbacks/synaptic_rescale.c"
 #include "engine/experiment.c"
 
 #endif // __ENGINE_H__
