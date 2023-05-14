@@ -10,14 +10,20 @@ _rescale_weights(SynapticRescale* data) {
     }
 
     f32 factor = data->neurotransmitter_quantity / total_weight;
-    log_info("[SYNAPTIC SCALING] total weight %f, factor %f, desired %f", total_weight, factor, data->neurotransmitter_quantity);
 
-    total_weight = 0.0f;
     for (i = 0; i < network->n_synapses; i++) {
         synapses[i].weight *= factor;
-        total_weight += synapses[i].weight;
     }
-    log_info("[SYNAPTIC SCALING] total weight after scaling %f", total_weight);
+
+#ifdef DEBUG_SYNAPTIC_SCALING
+    f32 new_total_weight = 0.0f;
+    for (i = 0; i < network->n_synapses; i++) {
+        new_total_weight += synapses[i].weight;
+    }
+    log_info("[SYNAPTIC SCALING] total weight %f, factor %f, desired %f, new total weight %f",
+             total_weight, factor, data->neurotransmitter_quantity, new_total_weight);
+
+#endif
 }
 
 
