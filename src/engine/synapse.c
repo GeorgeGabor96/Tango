@@ -13,27 +13,27 @@ _synapse_is_spike_arriving(Synapse* synapse) {
 ***********************/
 internal const char*
 synapse_learning_rule_get_c_str(SynapseLearningRule rule) {
-    if (rule == SYNAPSE_LEARNING_DAN_POO)
-        return "SYNAPSE_LEARNING_DAN_POO";
+    if (rule == SYNAPSE_LEARNING_EXPONENTIAL)
+        return "SYNAPSE_LEARNING_EXPONENTIAL";
     if (rule == SYNAPSE_LEARNING_STEP)
         return "SYNAPSE_LEARNING_STEP";
     return "SYNAPSE_LEARNING_INVALID";
 }
 
 internal void
-synapse_cls_add_learning_rule_dan_poo(SynapseCls* cls,
-                                      f32 min_w, f32 max_w,
-                                      f32 A, f32 B, f32 tau) {
+synapse_cls_add_learning_rule_exponential(SynapseCls* cls,
+                                     f32 min_w, f32 max_w,
+                                     f32 A, f32 B, f32 tau) {
     check(cls != NULL, "cls is NULL");
     check(min_w >= 0, "synapse weights should be positive. min_weight %f", min_w);
     check(max_w >= 0, "synapse weights should be positive. max_weight %f", max_w);
     check(min_w <= max_w, "min_w %f > max_w %f", min_w, max_w);
-    cls->learning_rule = SYNAPSE_LEARNING_DAN_POO;
+    cls->learning_rule = SYNAPSE_LEARNING_EXPONENTIAL;
     cls->min_w = min_w;
     cls->max_w = max_w;
-    cls->stdp_dan_poo.A = A;
-    cls->stdp_dan_poo.B = B;
-    cls->stdp_dan_poo.tau = tau;
+    cls->stdp_exponential.A = A;
+    cls->stdp_exponential.B = B;
+    cls->stdp_exponential.tau = tau;
 
     error:
     return;
@@ -145,6 +145,8 @@ synapse_init(Synapse* synapse, SynapseCls* cls, f32 weight) {
     synapse->cls = cls;
     synapse->weight = weight;
     synapse->conductance = 0.0f;
+    synapse->spike = FALSE;
+    synapse->last_spike_time = INVALID_SPIKE_TIME;
 
     synapse->spike_queue = 0;
 
@@ -217,6 +219,8 @@ synapse_step(Synapse* synapse, u32 time) {
 
     if (_synapse_is_spike_arriving(synapse)) {
         synapse->conductance += 1.0f;
+        synapse->spike = TRUE;
+        synapse->last_spike_time = time;
     } else {
         // NOTE: conductance should always be positive
         // NOTE: clip the conductance if its too low
@@ -225,6 +229,7 @@ synapse_step(Synapse* synapse, u32 time) {
         } else {
             synapse->conductance = 0.0f;
         }
+        synapse->spike = FALSE;
     }
 
     // NOTE: Just shift the queue to the right
@@ -242,6 +247,8 @@ synapse_clear(Synapse* synapse) {
     check(synapse != NULL, "synapse is NULL");
 
     synapse->conductance = 0;
+    synapse->spike = FALSE;
+    synapse->last_spike_time = INVALID_SPIKE_TIME;
     synapse->spike_queue = 0;
 
     error:
@@ -250,30 +257,52 @@ synapse_clear(Synapse* synapse) {
 
 
 internal void
-synapse_update_pre_post(Synapse* synapse, u32 pre_spike_time, u32 post_spike_time) {
+synapse_learning_step(Synapse* synapse, u32 time) {
+    TIMING_COUNTER_START(SYNAPSE_LEARNING_STEP);
+
     check(synapse != NULL, "synapse is NULL");
+    synapse_step(synapse, time);
+
+    if (synapse->spike == TRUE) {
+        // NOTE: The spike arrived at the synapse, if the neuron spike before this,
+        // need to reduce strength of this synapse
+        synapse_depression(synapse, synapse->out_neuron->last_spike_time);
+    }
+
+    TIMING_COUNTER_END(SYNAPSE_LEARNING_STEP);
+
+    error:
+    return;
+}
+
+
+internal void
+synapse_potentiation(Synapse* synapse, u32 neuron_spike_time) {
+    // NOTE: it considers the time difference between the moment the synapse prosessed the spike
+    // (the pre-spike travelled the axon and reached the synapse) and the time the post-neuron spiked.
+    // The axonal dealy doesn't matter
+    check(synapse != NULL, "synapse is NULL");
+
     SynapseCls* cls = synapse->cls;
+    u32 synapse_spike_time = synapse->last_spike_time;
 
-    // NOTE: the input neuron should have spiked
-    if (pre_spike_time == NEURON_INVALID_SPIKE_TIME) return;
+    // NOTE: The post_neuron spiked, the synapse should have also spiked to be able to do something
+    if (synapse_spike_time == INVALID_SPIKE_TIME) return;
+    // NOTE: if the neuron spike and the synapse spiked at the same moment, the effect of the synapse appears at the next step
+    if (neuron_spike_time == synapse_spike_time) return;
+    check(neuron_spike_time > synapse_spike_time,
+          "post neuron time %u should be at least the synapse time %u",
+          neuron_spike_time, synapse_spike_time);
 
-    check(post_spike_time >= pre_spike_time, "post %u should be bigger than pre %u", post_spike_time, pre_spike_time);
-    u32 interval_value = post_spike_time - pre_spike_time;
+    u32 dt = neuron_spike_time - synapse_spike_time;
+    f32 dw = 0.0f;
 
-    // TODO: if the pre neuron spikes and the post neuron spikes
-    // the dt between them should be at least the synapse delay
-    // right? I mean the pre spike will not even get the post neuron
-    // if this is not meet, so the spike has no effect yet
-    if (interval_value < cls->delay)
-        return;
-
-    f32 dw = 0;
-    if (cls->learning_rule == SYNAPSE_LEARNING_DAN_POO) {
-        SynapseLearningDanPoo* rule = &cls->stdp_dan_poo;
-        dw = rule->A * math_exp_f32(-(f32)interval_value / rule->tau);
+    if (cls->learning_rule == SYNAPSE_LEARNING_EXPONENTIAL) {
+        SynapseLearningExponential* rule = &cls->stdp_exponential;
+        dw = rule->A * math_exp_f32(-(f32)dt / rule->tau);
     } else if (cls->learning_rule == SYNAPSE_LEARNING_STEP) {
         SynapseLearningStep* rule = &cls->stdp_step;
-        if (interval_value <= rule->max_time_p) dw = rule->amp_p;
+        if (dt <= rule->max_time_p) dw = rule->amp_p;
     } else {
         log_error("Unkown Synapse Learning Rule %s (%u)",
         synapse_learning_rule_get_c_str(cls->learning_rule),
@@ -287,27 +316,32 @@ synapse_update_pre_post(Synapse* synapse, u32 pre_spike_time, u32 post_spike_tim
 
 
 internal void
-synapse_update_post_pre(Synapse* synapse, u32 pre_spike_time, u32 post_spike_time) {
+synapse_depression(Synapse* synapse, u32 neuron_spike_time) {
+    // NOTE: it considers the time difference between the moment the synapse prosessed the spike
+    // (the pre-spike travelled the axon and reached the synapse) and the time the post-neuron spiked.
+    // The axonal dealy doesn't matter
     check(synapse != NULL, "synapse is NULL");
+
     SynapseCls* cls = synapse->cls;
+    u32 synapse_spike_time = synapse->last_spike_time;
 
-    // NOTE: the out neuron should have spiked
-    if (post_spike_time == NEURON_INVALID_SPIKE_TIME) return;
+    // NOTE: the synapse spiked, the post neuron should have also spiked to be able to do something
+    if (neuron_spike_time == INVALID_SPIKE_TIME) return;
+    // NOTE: if the neuron spike and the synapse spiked at the same moment, the effect of the synapse appears at the next step
+    if (neuron_spike_time == synapse_spike_time) return;
+    check(synapse_spike_time > neuron_spike_time,
+          "synapse_spike_time %u should be at most the neuron_spike-time %u",
+          synapse_spike_time, neuron_spike_time);
 
-    check(pre_spike_time >= post_spike_time, "pre %u should be bigger than post %u", pre_spike_time, post_spike_time);
-    u32 interval_value = pre_spike_time - post_spike_time;
+    u32 dt = synapse_spike_time - neuron_spike_time;
+    u32 dw = 0.0f;
 
-    // TODO: if pre spikes after post
-    if (interval_value < cls->delay)
-        return;
-
-    f32 dw = 0;
-    if (cls->learning_rule == SYNAPSE_LEARNING_DAN_POO) {
-        SynapseLearningDanPoo* rule = &cls->stdp_dan_poo;
-        dw = rule->B * math_exp_f32(-(f32)interval_value / rule->tau);
+    if (cls->learning_rule == SYNAPSE_LEARNING_EXPONENTIAL) {
+        SynapseLearningExponential* rule = &cls->stdp_exponential;
+        dw = rule->B * math_exp_f32(-(f32)dt / rule->tau);
     } else if (cls->learning_rule == SYNAPSE_LEARNING_STEP) {
         SynapseLearningStep* rule = &cls->stdp_step;
-        if (interval_value <= rule->max_time_d) dw = rule->amp_d;
+        if (dt <= rule->max_time_d) dw = rule->amp_d;
     } else {
         log_error("Unkown Synapse Learning Rule %s (%u)",
         synapse_learning_rule_get_c_str(cls->learning_rule),
@@ -319,4 +353,3 @@ synapse_update_post_pre(Synapse* synapse, u32 pre_spike_time, u32 post_spike_tim
     error:
     return;
 }
-

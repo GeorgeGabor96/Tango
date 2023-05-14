@@ -1,6 +1,7 @@
 #ifndef __ENGINE_TYPES_H__
 #define __ENGINE_TYPES_H__
 
+#define INVALID_SPIKE_TIME (u32)-1
 
 typedef struct Neuron Neuron;
 typedef struct Synapse Synapse;
