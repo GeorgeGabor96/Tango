@@ -2,7 +2,7 @@
 
 
 int main() {
-    Experiment* exp = experiment_create(4, 723104, "D:\\repos\\Tango_outputs\\weights\\stdp_exp_230");
+    Experiment* exp = experiment_create(4, 723104, "D:\\repos\\Tango_outputs\\weights\\stdp_exp_230_dendritic_1_ms");
 
     Memory* memory = exp->permanent_memory;
 

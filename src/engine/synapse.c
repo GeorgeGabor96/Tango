@@ -288,7 +288,9 @@ synapse_potentiation(Synapse* synapse, u32 neuron_spike_time) {
 
     // NOTE: The post_neuron spiked, the synapse should have also spiked to be able to do something
     if (synapse_spike_time == INVALID_SPIKE_TIME) return;
-    check(neuron_spike_time >= synapse_spike_time,
+    // NOTE: if the neuron spike and the synapse spiked at the same moment, the effect of the synapse appears at the next step
+    if (neuron_spike_time == synapse_spike_time) return;
+    check(neuron_spike_time > synapse_spike_time,
           "post neuron time %u should be at least the synapse time %u",
           neuron_spike_time, synapse_spike_time);
 
@@ -325,7 +327,9 @@ synapse_depression(Synapse* synapse, u32 neuron_spike_time) {
 
     // NOTE: the synapse spiked, the post neuron should have also spiked to be able to do something
     if (neuron_spike_time == INVALID_SPIKE_TIME) return;
-    check(synapse_spike_time >= neuron_spike_time,
+    // NOTE: if the neuron spike and the synapse spiked at the same moment, the effect of the synapse appears at the next step
+    if (neuron_spike_time == synapse_spike_time) return;
+    check(synapse_spike_time > neuron_spike_time,
           "synapse_spike_time %u should be at most the neuron_spike-time %u",
           synapse_spike_time, neuron_spike_time);
 

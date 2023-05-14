@@ -170,9 +170,11 @@ _neuron_compute_psc(Neuron* neuron, u32 time) {
     for (it = neuron->in_synapse_arrays; it != NULL; it = it->next) {
         for (synapse_i = 0; synapse_i < it->length; ++synapse_i) {
             synapse = it->synapses[synapse_i];
-            synapse_step(synapse, time);
 
             current = synapse_compute_psc(synapse, neuron->voltage);
+
+            // NOTE: update the synapse after we interogate it, to simulate a 1ms dendritic delay?
+            synapse_step(synapse, time);
 
             if (current >= 0) epsc += current;
             else ipsc += current;
@@ -378,7 +380,7 @@ _neuron_learning_compute_psc(Neuron* neuron, u32 time) {
 
             current = synapse_compute_psc(synapse, neuron->voltage);
 
-            // NOTE: update the synapse after we interogate it, to simulate a 1ms dendritic delay?
+            // NOTE: update the synapse after we interogate it, to simulate a 1ms dendritic delay
             synapse_learning_step(synapse, time);
 
             if (current >= 0) epsc += current;
