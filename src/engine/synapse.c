@@ -13,6 +13,8 @@ _synapse_is_spike_arriving(Synapse* synapse) {
 ***********************/
 internal const char*
 synapse_learning_rule_get_c_str(SynapseLearningRule rule) {
+    if (rule == SYNAPSE_LEARNING_NO_LEARNING)
+        return "SYNAPSE_LEARNING_NO_LEARNING";
     if (rule == SYNAPSE_LEARNING_EXPONENTIAL)
         return "SYNAPSE_LEARNING_EXPONENTIAL";
     if (rule == SYNAPSE_LEARNING_STEP)
@@ -106,7 +108,7 @@ synapse_cls_create(Memory* memory,
     // NOTE: init learning rule stuff
     cls->min_w = 0;
     cls->max_w = 0;
-    cls->learning_rule = SYNAPSE_LEARNING_INVALID;
+    cls->learning_rule = SYNAPSE_LEARNING_NO_LEARNING;
 
     return cls;
 
@@ -114,6 +116,15 @@ synapse_cls_create(Memory* memory,
     return NULL;
 }
 
+internal SynapseCls*
+synapse_cls_create_exci(Memory* memory, String* name, SynapseType type) {
+    return synapse_cls_create(memory, name, type, 0.0f, 0.1f, 1, 10);
+}
+
+internal SynapseCls*
+synapse_cls_create_inhi(Memory* memory, String* name, SynapseType type) {
+    return synapse_cls_create(memory, name, type, -90.0f, 0.05, 5, 1);
+}
 
 /*******************
 * Synapse
@@ -297,7 +308,9 @@ synapse_potentiation(Synapse* synapse, u32 neuron_spike_time) {
     u32 dt = neuron_spike_time - synapse_spike_time;
     f32 dw = 0.0f;
 
-    if (cls->learning_rule == SYNAPSE_LEARNING_EXPONENTIAL) {
+    if (cls->learning_rule == SYNAPSE_LEARNING_NO_LEARNING) {
+        dw = 0;
+    } else if (cls->learning_rule == SYNAPSE_LEARNING_EXPONENTIAL) {
         SynapseLearningExponential* rule = &cls->stdp_exponential;
         dw = rule->A * math_exp_f32(-(f32)dt / rule->tau);
     } else if (cls->learning_rule == SYNAPSE_LEARNING_STEP) {
@@ -336,7 +349,9 @@ synapse_depression(Synapse* synapse, u32 neuron_spike_time) {
     u32 dt = synapse_spike_time - neuron_spike_time;
     u32 dw = 0.0f;
 
-    if (cls->learning_rule == SYNAPSE_LEARNING_EXPONENTIAL) {
+    if (cls->learning_rule == SYNAPSE_LEARNING_NO_LEARNING) {
+        dw = 0;
+    } else if (cls->learning_rule == SYNAPSE_LEARNING_EXPONENTIAL) {
         SynapseLearningExponential* rule = &cls->stdp_exponential;
         dw = rule->B * math_exp_f32(-(f32)dt / rule->tau);
     } else if (cls->learning_rule == SYNAPSE_LEARNING_STEP) {
