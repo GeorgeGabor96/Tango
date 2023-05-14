@@ -3,6 +3,7 @@
 
 
 typedef enum {
+    SYNAPSE_LEARNING_NO_LEARNING,
     SYNAPSE_LEARNING_EXPONENTIAL,
     SYNAPSE_LEARNING_STEP,
 
@@ -60,6 +61,18 @@ internal SynapseCls* synapse_cls_create(Memory* memory,
                                         String* name, SynapseType type,
                                         f32 rev_potential, f32 amp,
                                         f32 tau_ms, u32 delay);
+
+internal SynapseCls* synapse_cls_create_exci(Memory* memory,
+                                             String* name,
+                                             SynapseType type);
+
+internal SynapseCls* synapse_cls_create_fast_exci(Memory* memory,
+                                                  String* name,
+                                                  SynapseType type);
+
+internal SynapseCls* synapse_cls_create_inhi(Memory* memory,
+                                             String* name,
+                                             SynapseType type);
 
 internal void synapse_cls_add_learning_rule_exponential(
     SynapseCls* cls,
