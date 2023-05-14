@@ -2,7 +2,7 @@
 
 
 int main() {
-    Experiment* exp = experiment_create(4, 723104, "D:\\repos\\Tango_outputs\\weights\\playing_10_imgs");
+    Experiment* exp = experiment_create(4, 723104, "D:\\repos\\Tango_outputs\\weights\\rescale");
 
     Memory* memory = exp->permanent_memory;
 
@@ -37,12 +37,15 @@ int main() {
         memory, exp->output_folder, net);
     Callback* cb_weights = callback_weights_dumper_create(
         memory, 2, 100, exp->output_folder, net);
+    Callback* cb_rescale = callback_synaptic_rescale_create(
+        memory, net, 20000);
 
     experiment_set_network(exp, net);
     experiment_set_data_gen(exp, spike_train_data);
     experiment_add_callback(exp, cb_meta);
     experiment_add_callback(exp, cb_spikes);
     experiment_add_callback(exp, cb_weights);
+    experiment_add_callback(exp, cb_rescale);
 
     experiment_learn(exp);
 

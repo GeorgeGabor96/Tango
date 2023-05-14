@@ -8,6 +8,8 @@ callback_type_get_c_str(CallbackType type) {
         return "CALLBACK_SPIKES_DUMPER";
     if (type == CALLBACK_WEIGHTS_DUMPER)
         return "CALLBACK_WEIGHTS_DUMPER";
+    if (type == CALLBACK_SYNAPTIC_RESCALE)
+        return "CALLBACK_SYNAPTIC_RESCALE";
     return "CALLBACK_INVALID";
 }
 
@@ -21,17 +23,15 @@ callback_begin_sample(Callback* callback,
     check(memory != NULL, "memory is NULL");
 
     if (callback->type == CALLBACK_META_DUMPER) {
-        callback_meta_dumper_begin_sample(
-            callback, sample, memory);
+        callback_meta_dumper_begin_sample(callback, sample, memory);
     } else if (callback->type == CALLBACK_NETWORK_DATA_DUMPER) {
-        callback_network_data_dumper_begin_sample(
-            callback, sample, memory);
+        callback_network_data_dumper_begin_sample(callback, sample, memory);
     } else if (callback->type == CALLBACK_SPIKES_DUMPER) {
-        callback_spikes_dumper_begin_sample(
-            callback, sample, memory);
+        callback_spikes_dumper_begin_sample(callback, sample, memory);
     } else if (callback->type == CALLBACK_WEIGHTS_DUMPER) {
-        callback_weights_dumper_begin_sample(
-            callback, sample, memory);
+        callback_weights_dumper_begin_sample(callback, sample, memory);
+    } else if (callback->type == CALLBACK_SYNAPTIC_RESCALE) {
+        callback_synaptic_rescale_begin_sample(callback, sample, memory);
     } else {
         log_error("Unknown callback type %u (%s)",
                   callback->type,
@@ -56,6 +56,8 @@ callback_update(Callback* callback, u32 time, Memory* memory) {
         callback_spikes_dumper_update(callback, time, memory);
     } else if (callback->type == CALLBACK_WEIGHTS_DUMPER) {
         callback_weights_dumper_update(callback, time, memory);
+    } else if (callback->type == CALLBACK_SYNAPTIC_RESCALE) {
+        callback_synaptic_rescale_update(callback, time, memory);
     } else {
         log_error("Unknown callback type %u (%s)",
                   callback->type,
@@ -80,6 +82,8 @@ callback_end_sample(Callback* callback, Memory* memory) {
         callback_spikes_dumper_end_sample(callback, memory);
     } else if (callback->type == CALLBACK_WEIGHTS_DUMPER) {
         callback_weights_dumper_end_sample(callback, memory);
+    } else if (callback->type == CALLBACK_SYNAPTIC_RESCALE) {
+        callback_synaptic_rescale_end_sample(callback, memory);
     } else {
         log_error("Unknown callback type %u (%s)",
                   callback->type,

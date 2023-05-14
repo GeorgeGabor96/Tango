@@ -64,8 +64,17 @@ typedef struct DumperWeights {
     u32 next_time_to_dump_i;
     u32 sample_step;
     u32 next_sample_to_dump_i;
-    float* weights;
+    f32* weights;
 } DumperWeights;
+
+
+/****************************
+* Callback Synaptic Rescale
+****************************/
+typedef struct SynapticRescale {
+    Network* network;
+    f32 neurotransmitter_quantity;
+} SynapticRescale;
 
 
 /**********************
@@ -76,6 +85,7 @@ typedef enum {
     CALLBACK_NETWORK_DATA_DUMPER = 1,
     CALLBACK_SPIKES_DUMPER = 2,
     CALLBACK_WEIGHTS_DUMPER = 3,
+    CALLBACK_SYNAPTIC_RESCALE = 4,
 
     CALLBACK_INVALID,
 } CallbackType;
@@ -91,6 +101,7 @@ typedef struct Callback {
         DumperData dumper_data;
         DumperSpikes dumper_spikes;
         DumperWeights dumper_weights;
+        SynapticRescale synaptic_rescale;
     };
 } Callback, *CallbackP;
 
@@ -142,7 +153,7 @@ internal void callback_meta_dumper_end_sample(
 /***********************
 * Callback Data Dumper
 ***********************/
-internal Callback* callback_netowrk_data_dumper_create(
+internal Callback* callback_network_data_dumper_create(
     Memory* memory,
     String* output_folder,
     Network* network);
@@ -215,6 +226,32 @@ internal void callback_weights_dumper_update(
 
 
 internal void callback_weights_dumper_end_sample(
+    Callback* callback,
+    Memory* memory);
+
+
+/*************************
+* Callback Synaptic Rescale
+*************************/
+internal Callback* callback_synaptic_rescale_create(
+    Memory* memory,
+    Network* network,
+    f32 neurotransmitter_quantity);
+
+
+internal void callback_synaptic_rescale_begin_sample(
+    Callback* callback,
+    DataSample* sample,
+    Memory* memory);
+
+
+internal void callback_synaptic_rescale_update(
+    Callback* callback,
+    u32 time,
+    Memory* memory);
+
+
+internal void callback_synaptic_rescale_end_sample(
     Callback* callback,
     Memory* memory);
 
