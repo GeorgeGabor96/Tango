@@ -66,6 +66,10 @@ internal SynapseCls* synapse_cls_create_exci(Memory* memory,
                                              String* name,
                                              SynapseType type);
 
+internal SynapseCls* synapse_cls_create_fast_exci(Memory* memory,
+                                                  String* name,
+                                                  SynapseType type);
+
 internal SynapseCls* synapse_cls_create_inhi(Memory* memory,
                                              String* name,
                                              SynapseType type);

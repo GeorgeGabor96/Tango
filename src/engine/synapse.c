@@ -122,6 +122,11 @@ synapse_cls_create_exci(Memory* memory, String* name, SynapseType type) {
 }
 
 internal SynapseCls*
+synapse_cls_create_fast_exci(Memory* memory, String* name, SynapseType type) {
+    return synapse_cls_create(memory, name, type, 0.0f, 0.1f, 1, 1);
+}
+
+internal SynapseCls*
 synapse_cls_create_inhi(Memory* memory, String* name, SynapseType type) {
     return synapse_cls_create(memory, name, type, -90.0f, 0.05, 5, 1);
 }
