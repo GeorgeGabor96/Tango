@@ -124,7 +124,7 @@ _experiment_run(Experiment* experiment, Mode mode) {
 
         for (time = 0; time < sample->duration; ++time) {
             if (time % (sample->duration / 10) == 0)
-                printf("%d/%d\r", time, sample->duration);
+                printf("[%d/%d]\r", time, sample->duration);
             inputs = data_network_inputs_create(experiment->transient_memory,
                                                 sample,
                                                 experiment->network,
@@ -160,7 +160,7 @@ _experiment_run(Experiment* experiment, Mode mode) {
 
         // NOTE: Timing logging
         network_time_s = (f64)network_time / CLOCKS_PER_SEC;
-        printf("\n");
+        printf("[%d/%d]           \n", sample_idx, experiment->data->n_samples);
         log_info("Network time %lfs", network_time_s);
         log_info("Network step time %lfs",
                  network_time_s / (f64)sample->duration);

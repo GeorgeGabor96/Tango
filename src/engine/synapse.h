@@ -3,7 +3,7 @@
 
 
 typedef enum {
-    SYNAPSE_LEARNING_DAN_POO,
+    SYNAPSE_LEARNING_EXPONENTIAL,
     SYNAPSE_LEARNING_STEP,
 
     SYNAPSE_LEARNING_INVALID,
@@ -13,11 +13,11 @@ typedef enum {
 internal const char* synapse_learning_rule_get_c_str(SynapseLearningRule rule);
 
 
-typedef struct SynapseLearningDanPoo {
+typedef struct SynapseLearningExponential {
     f32 A;
     f32 B;
     f32 tau;
-} SynapseLearningDanPoo;
+} SynapseLearningExponential;
 
 
 typedef struct SynapseLearningStep {
@@ -50,7 +50,7 @@ typedef struct SynapseCls {
     f32 min_w;
     SynapseLearningRule learning_rule;
     union {
-        SynapseLearningDanPoo stdp_dan_poo;
+        SynapseLearningExponential stdp_exponential;
         SynapseLearningStep stdp_step;
     };
 } SynapseCls;
@@ -61,7 +61,7 @@ internal SynapseCls* synapse_cls_create(Memory* memory,
                                         f32 rev_potential, f32 amp,
                                         f32 tau_ms, u32 delay);
 
-internal void synapse_cls_add_learning_rule_dan_poo(
+internal void synapse_cls_add_learning_rule_exponential(
     SynapseCls* cls,
     f32 min_w, f32 max_w,
     f32 A, f32 B, f32 tau);
@@ -79,6 +79,8 @@ struct Synapse {
     SynapseCls* cls;
     f32 weight;
     f32 conductance;
+    b32 spike;
+    u32 last_spike_time;
 
     u64 spike_queue;  // NOTE: Support delays of at most 63
                       // NOTE: Need to use a bigger type if we want a bigger delay
@@ -97,9 +99,8 @@ internal void synapse_step(Synapse* synapse, u32 time);
 
 internal void synapse_clear(Synapse* synapse);
 
-
-internal void synapse_update_pre_post(Synapse* synapse, u32 pre_spike_time, u32 post_spike_time);
-
-internal void synapse_update_post_pre(Synapse* synapse, u32 pre_spike_time, u32 post_spike_time);
+internal void synapse_learning_step(Synapse* synapse, u32 time);
+internal void synapse_potentiation(Synapse* synapse, u32 neuron_spike_time);
+internal void synapse_depression(Synapse* synapse, u32 neuron_spike_time);
 
 #endif // __SYNAPSE_H__

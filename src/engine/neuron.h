@@ -97,7 +97,6 @@ SynapseRefArray* neuron_create_synapses_ref_array(Memory* memory, u32 capacity);
 
 #define NEURON_N_MAX_INPUTS 5u
 #define NEURON_N_MAX_OUTPUTS 5u
-#define NEURON_INVALID_SPIKE_TIME (u32)-1
 
 
 struct Neuron {
@@ -119,8 +118,6 @@ internal Neuron* neuron_create(Memory* memory,  NeuronCls* cls);
 internal void neuron_init(Neuron* neuron, NeuronCls* cls);
 
 internal void neuron_step(Neuron* neuron, u32 time);
-
-// NOTE: use to set inputs
 internal void neuron_step_force_spike(Neuron* neuron, u32 time);
 internal void neuron_step_inject_current(Neuron* neuron, f32 psc, u32 time);
 
