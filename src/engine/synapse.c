@@ -116,14 +116,17 @@ synapse_cls_create(Memory* memory,
     return NULL;
 }
 
+
+// NOTE: just use an amp of 1 for now its simpler to understand
+// TODO: Do I really need the amplitude?
 internal SynapseCls*
 synapse_cls_create_exci(Memory* memory, String* name, SynapseType type, u32 delay) {
-    return synapse_cls_create(memory, name, type, 0.0f, 0.1f, 1, delay);
+    return synapse_cls_create(memory, name, type, 0.0f, 1.0f, 1, delay);
 }
 
 internal SynapseCls*
 synapse_cls_create_inhi(Memory* memory, String* name, SynapseType type, u32 delay) {
-    return synapse_cls_create(memory, name, type, -90.0f, 0.05, 5, delay);
+    return synapse_cls_create(memory, name, type, -90.0f, 1.0f, 5, delay);
 }
 
 /*******************
