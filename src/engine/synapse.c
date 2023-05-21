@@ -106,8 +106,8 @@ synapse_cls_create(Memory* memory,
     cls->delay = delay;
 
     // NOTE: init learning rule stuff
-    cls->min_w = 0;
-    cls->max_w = 0;
+    cls->min_w = 0.0f;
+    cls->max_w = 0.0f;
     cls->learning_rule = SYNAPSE_LEARNING_NO_LEARNING;
 
     return cls;
@@ -117,18 +117,13 @@ synapse_cls_create(Memory* memory,
 }
 
 internal SynapseCls*
-synapse_cls_create_exci(Memory* memory, String* name, SynapseType type) {
-    return synapse_cls_create(memory, name, type, 0.0f, 0.1f, 1, 10);
+synapse_cls_create_exci(Memory* memory, String* name, SynapseType type, u32 delay) {
+    return synapse_cls_create(memory, name, type, 0.0f, 0.1f, 1, delay);
 }
 
 internal SynapseCls*
-synapse_cls_create_fast_exci(Memory* memory, String* name, SynapseType type) {
-    return synapse_cls_create(memory, name, type, 0.0f, 0.1f, 1, 1);
-}
-
-internal SynapseCls*
-synapse_cls_create_inhi(Memory* memory, String* name, SynapseType type) {
-    return synapse_cls_create(memory, name, type, -90.0f, 0.05, 5, 1);
+synapse_cls_create_inhi(Memory* memory, String* name, SynapseType type, u32 delay) {
+    return synapse_cls_create(memory, name, type, -90.0f, 0.05, 5, delay);
 }
 
 /*******************
@@ -300,6 +295,10 @@ synapse_potentiation(Synapse* synapse, u32 neuron_spike_time) {
     check(synapse != NULL, "synapse is NULL");
 
     SynapseCls* cls = synapse->cls;
+
+    // NOTE: IF NO LEARNING THEN NOTHING TO DO
+    if (cls->learning_rule == SYNAPSE_LEARNING_NO_LEARNING) return;
+
     u32 synapse_spike_time = synapse->last_spike_time;
 
     // NOTE: The post_neuron spiked, the synapse should have also spiked to be able to do something
@@ -313,9 +312,7 @@ synapse_potentiation(Synapse* synapse, u32 neuron_spike_time) {
     u32 dt = neuron_spike_time - synapse_spike_time;
     f32 dw = 0.0f;
 
-    if (cls->learning_rule == SYNAPSE_LEARNING_NO_LEARNING) {
-        dw = 0;
-    } else if (cls->learning_rule == SYNAPSE_LEARNING_EXPONENTIAL) {
+    if (cls->learning_rule == SYNAPSE_LEARNING_EXPONENTIAL) {
         SynapseLearningExponential* rule = &cls->stdp_exponential;
         dw = rule->A * math_exp_f32(-(f32)dt / rule->tau);
     } else if (cls->learning_rule == SYNAPSE_LEARNING_STEP) {
@@ -328,6 +325,7 @@ synapse_potentiation(Synapse* synapse, u32 neuron_spike_time) {
     }
 
     synapse->weight = math_clip_f32(synapse->weight + dw, cls->min_w, cls->max_w);
+
     error:
     return;
 }
@@ -341,6 +339,10 @@ synapse_depression(Synapse* synapse, u32 neuron_spike_time) {
     check(synapse != NULL, "synapse is NULL");
 
     SynapseCls* cls = synapse->cls;
+
+    // NOTE: if no learning nothing to do
+    if (cls->learning_rule == SYNAPSE_LEARNING_NO_LEARNING) return;
+
     u32 synapse_spike_time = synapse->last_spike_time;
 
     // NOTE: the synapse spiked, the post neuron should have also spiked to be able to do something
@@ -354,9 +356,7 @@ synapse_depression(Synapse* synapse, u32 neuron_spike_time) {
     u32 dt = synapse_spike_time - neuron_spike_time;
     u32 dw = 0.0f;
 
-    if (cls->learning_rule == SYNAPSE_LEARNING_NO_LEARNING) {
-        dw = 0;
-    } else if (cls->learning_rule == SYNAPSE_LEARNING_EXPONENTIAL) {
+    if (cls->learning_rule == SYNAPSE_LEARNING_EXPONENTIAL) {
         SynapseLearningExponential* rule = &cls->stdp_exponential;
         dw = rule->B * math_exp_f32(-(f32)dt / rule->tau);
     } else if (cls->learning_rule == SYNAPSE_LEARNING_STEP) {
