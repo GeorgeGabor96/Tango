@@ -357,7 +357,7 @@ synapse_depression(Synapse* synapse, u32 neuron_spike_time) {
           synapse_spike_time, neuron_spike_time);
 
     u32 dt = synapse_spike_time - neuron_spike_time;
-    u32 dw = 0.0f;
+    f32 dw = 0.0f;
 
     if (cls->learning_rule == SYNAPSE_LEARNING_EXPONENTIAL) {
         SynapseLearningExponential* rule = &cls->stdp_exponential;
