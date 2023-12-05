@@ -38,6 +38,7 @@ func BuildWeights(meta *experiment.Meta, sampleName string) (*WeightsData, error
 	data.Name = fileName
 	data.Duration = duration
 	data.TimeStep = parser.Uint32()
+	// TODO: I think we have a problem at the following divition
 	data.NSteps = duration / data.TimeStep
 	data.Weights = make([][]float32, data.NSteps)
 

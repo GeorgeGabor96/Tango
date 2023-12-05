@@ -62,6 +62,17 @@ func ActivityPlot(meta *experiment.Meta, spikesData *experiment.SpikesData) erro
 	return activityPlot(layersI, outFolder, meta, spikesData)
 }
 
+func ActivityPlotForLayers(layersI []uint32, meta *experiment.Meta, spikesData *experiment.SpikesData) error {
+	for i := 0; i < len(layersI); i++ {
+		if layersI[i] >= meta.NLayers {
+			return errors.New(fmt.Sprintf("Layer index %v is invalid, Number of layers is %v\n", i, meta.NLayers))
+		}
+	}
+	outFolder := utils.JoinWithCreate(meta.Folder, "activity_layers")
+
+	return activityPlot(layersI, outFolder, meta, spikesData)
+}
+
 func ActivityPlotForLayer(i uint32, meta *experiment.Meta, spikesData *experiment.SpikesData) error {
 	if i >= meta.NLayers {
 		return errors.New(fmt.Sprintf("Layer index %v is invalid. Number of layers is %v\n", i, meta.NLayers))

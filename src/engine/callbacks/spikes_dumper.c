@@ -108,4 +108,11 @@ callback_spikes_dumper_end_sample(Callback* callback, Memory* memory) {
 
     fflush(spikes->sample_fp);
     fclose(spikes->sample_fp);
+
+    u32 n_weights_zero = 0;
+    for (u32 synapse_i = 0; synapse_i < spikes->network->n_synapses; ++synapse_i) {
+        Synapse* synapse = spikes->network->synapses + synapse_i;
+        if (synapse->weight == 0.0f) n_weights_zero++;
+    }
+    log_info("N_weight zero %u", n_weights_zero);
 }

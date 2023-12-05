@@ -200,7 +200,9 @@ _neuron_if_voltage_update(Neuron* neuron, f32 psc, u32 time) {
 
 internal void
 _neuron_if_refract_voltage_update(Neuron* neuron, f32 psc, u32 time) {
-    if (time - neuron->last_spike_time <= neuron->cls->if_refract_cls.refract_time) {
+    // NOTE: apply refract period only if neuron spiked
+    if (neuron->last_spike_time != INVALID_SPIKE_TIME &&
+            time - neuron->last_spike_time <= neuron->cls->if_refract_cls.refract_time) {
         neuron->voltage = NEURON_IF_VOLTAGE_REST;
     } else {
         _NEURON_IF_VOLTAGE_UPDATE(neuron, psc);
@@ -429,7 +431,7 @@ _neuron_learning_potentiate_in_synapses(Neuron* neuron, u32 time) {
     for (it = neuron->in_synapse_arrays; it != NULL; it = it->next) {
         for (synapse_i = 0; synapse_i < it->length; ++synapse_i) {
             synapse = it->synapses[synapse_i];
-            synapse_potentiation(synapse, neuron->last_spike_time);
+            synapse_potentiation(synapse, time);
         }
     }
 }
