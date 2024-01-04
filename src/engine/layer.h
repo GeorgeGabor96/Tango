@@ -49,9 +49,6 @@ typedef enum {
     LAYER_TASK_STEP,
     LAYER_TASK_STEP_INJECT_CURRENT,
     LAYER_TASK_STEP_FORCE_SPIKE,
-    LAYER_TASK_LEARNING_STEP,
-    LAYER_TASK_LEARNING_STEP_INJECT_CURRENT,
-    LAYER_TASK_LEARNING_STEP_FORCE_SPIKE,
     LAYER_TASK_INVALID
 } LayerTaskType;
 
@@ -103,15 +100,5 @@ internal f32* layer_get_pscs(Memory* memory, Layer* layer);
 internal f32* layer_get_epscs(Memory* memory, Layer* layer);
 internal f32* layer_get_ipscs(Memory* memory, Layer* layer);
 internal b32* layer_get_spikes(Memory* memory, Layer* layer);
-
-// LEARNING
-internal void layer_learning_step(Layer* layer, u32 time, Memory* memory, ThreadPool* pool);
-internal void layer_learning_step_inject_current(Layer* layer,
-                                                 u32 time, Currents* currents,
-                                                 Memory* memory, ThreadPool* pool);
-internal void layer_learning_step_force_spike(Layer* layer,
-                                              u32 time, Spikes* spikes,
-                                              Memory* memory, ThreadPool* pool);
-internal u32 layer_get_neuron_idx(Layer* layer, Neuron* neuron);
 
 #endif // __ENGINE_LAYER_H__

@@ -47,6 +47,9 @@ func main() {
 	var wg sync.WaitGroup
 	for sampleName := range meta.Samples {
 		sampleNameCopy := strings.Clone(sampleName)
+
+		CreatePlots(meta, sampleNameCopy, wHistPlotter)
+		continue
 		wg.Add(1)
 
 		go func() {

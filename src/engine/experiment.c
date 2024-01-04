@@ -83,7 +83,19 @@ experiment_destroy(Experiment* experiment) {
 
 
 internal void
-_experiment_run(Experiment* experiment, Mode mode) {
+experiment_set_learning(Experiment* experiment, b32 value) {
+    check(experiment != NULL, "experiment is NULL");
+    check(experiment->network != NULL, "network is not set");
+
+    Network* net = experiment->network;
+    network_set_learning(net, value);
+
+    error:
+    return;
+}
+
+internal void
+experiment_run(Experiment* experiment) {
     check(experiment != NULL, "experiment is NULL");
     check(experiment->data != NULL, "data is not set");
     check(experiment->network != NULL, "network is not set");
@@ -131,16 +143,7 @@ _experiment_run(Experiment* experiment, Mode mode) {
                                                 time);
 
             network_time_start = clock();
-
-            if (mode == MODE_INFER)
-                network_infer(experiment->network, inputs, time, experiment->transient_memory, experiment->pool);
-            else if (mode == MODE_LEARNING)
-                network_learn(experiment->network, inputs, time, experiment->transient_memory, experiment->pool);
-            else
-                log_error("Unknown experiment mode %u (%s)",
-                          mode,
-                          mode_get_c_str(mode));
-
+            network_step(experiment->network, inputs, time, experiment->transient_memory, experiment->pool);
             network_time += clock() - network_time_start;
 
             for (callback_it = experiment->callbacks;
@@ -178,21 +181,6 @@ _experiment_run(Experiment* experiment, Mode mode) {
 
     error:
     return;
-}
-
-
-internal void
-experiment_infer(Experiment* exp) {
-    TIMING_COUNTER_START(EXPERIMENT_INFER);
-    _experiment_run(exp, MODE_INFER);
-    TIMING_COUNTER_END(EXPERIMENT_INFER);
-}
-
-internal void
-experiment_learn(Experiment* exp) {
-    TIMING_COUNTER_START(EXPERIMENT_LEARN);
-    _experiment_run(exp, MODE_LEARNING);
-    TIMING_COUNTER_END(EXPERIMENT_LEARN);
 }
 
 internal b32

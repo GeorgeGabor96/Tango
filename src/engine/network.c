@@ -170,12 +170,14 @@ network_add_neuron_cls(Network* network, NeuronCls* cls, Memory* memory) {
     check(network != NULL, "network is NULL");
     check(cls != NULL, "cls is NULL");
     check(memory != NULL, "memory is NULL");
+    check(network->is_built == FALSE, "Trying to add a neuron class in a built network")
 
     NetworkNeuronClsLink* link = (NetworkNeuronClsLink*)memory_push(memory, sizeof(*link));
     check_memory(link);
     link->cls = cls;
     link->next = network->neuron_classes ? network->neuron_classes : NULL;
     network->neuron_classes = link;
+    network->n_neuron_cls += 1;
 
     error:
     return;
@@ -187,12 +189,14 @@ network_add_synapse_cls(Network* network, SynapseCls* cls, Memory* memory) {
     check(network != NULL, "network is NULL");
     check(cls != NULL, "cls is NULL");
     check(memory != NULL, "memory is NULL");
+    check(network->is_built == FALSE, "Trying to add a synapse class in a built network")
 
     NetworkSynapseClsLink* link = (NetworkSynapseClsLink*) memory_push(memory, sizeof(*link));
     check_memory(link);
     link->cls = cls;
     link->next = network->synapse_classes ? network->synapse_classes : NULL;
     network->synapse_classes = link;
+    network->n_synapse_cls += 1;
 
     error:
     return;
@@ -272,10 +276,23 @@ internal Layer* network_get_layer(Network* network, String* layer_name) {
     return NULL;
 }
 
+internal void network_set_learning(Network* network, b32 value) {
+    check(network != NULL, "network is NULL");
+    check(value == FALSE || value == TRUE, "invalid value for b32 %d", value);
+
+    for (NetworkNeuronClsLink* link = network->neuron_classes; link != NULL; link = link->next) {
+        link->cls->allow_learning = value;
+    }
+    for (NetworkSynapseClsLink* link = network->synapse_classes; link != NULL; link = link->next) {
+        link->cls->learning_info.enable = value;
+    }
+
+    error:
+    return;
+}
 
 internal void
-_network_step(Network* network, Inputs* inputs, u32 time, Memory* memory, ThreadPool* pool,
-              Mode mode) {
+network_step(Network* network, Inputs* inputs, u32 time, Memory* memory, ThreadPool* pool) {
     check(network != NULL, "network is NULL");
     check(network->is_built == TRUE, "network should be built");
     check(inputs != NULL, "inputs is NULL");
@@ -284,8 +301,6 @@ _network_step(Network* network, Inputs* inputs, u32 time, Memory* memory, Thread
     check(network->n_in_layers == inputs->n_inputs,
           "network->n_in_layers is %u, inputs->n_inputs is %u, should be equal",
           network->n_in_layers, inputs->n_inputs);
-    check(mode == MODE_INFER || mode == MODE_LEARNING,
-          "Unknown mode %u (%s)", mode, mode_get_c_str(mode));
 
     Layer* layer = NULL;
     Input* input = NULL;
@@ -298,54 +313,26 @@ _network_step(Network* network, Inputs* inputs, u32 time, Memory* memory, Thread
         input = inputs->inputs + i;
         layer = it->layer;
 
-        if (mode == MODE_INFER) {
-            if (input->type == INPUT_SPIKES)
-                layer_step_force_spike(layer, time, &(input->spikes), memory, pool);
-            else if (input->type == INPUT_CURRENT)
-                layer_step_inject_current(layer,
-                                          time, &(input->currents), memory, pool);
-            else
-                log_error("Unknown network input type %d", input->type);
-        } else if (mode == MODE_LEARNING) {
-            if (input->type == INPUT_SPIKES)
-                layer_learning_step_force_spike(layer,
-                                                time, &(input->spikes), memory, pool);
-            else if (input->type == INPUT_CURRENT)
-                layer_learning_step_inject_current(layer,
-                                                   time, &(input->currents), memory, pool);
-            else
-                log_error("Unknown network input type %d", input->type);
+        if (input->type == INPUT_SPIKES) {
+            layer_step_force_spike(layer, time, &(input->spikes), memory, pool);
+        } else if (input->type == INPUT_CURRENT) {
+            layer_step_inject_current(layer,
+                                        time, &(input->currents), memory, pool);
+        } else {
+            log_error("Unknown network input type %d", input->type);
         }
         layer->it_ran = TRUE;
     }
 
     for (it = network->layers.first; it != NULL; it = it->next) {
         layer = it->layer;
-        if (layer->it_ran == FALSE)
-            if (mode == MODE_INFER)
-                layer_step(layer, time, memory, pool);
-            else if (mode == MODE_LEARNING)
-                layer_learning_step(layer, time, memory, pool);
+        if (layer->it_ran == FALSE) {
+            layer_step(layer, time, memory, pool);
+        }
     }
 
     error:
     return;
-}
-
-
-internal void
-network_infer(Network* network, Inputs* inputs, u32 time, Memory* memory, ThreadPool* pool) {
-    TIMING_COUNTER_START(NETWORK_INFER);
-    _network_step(network, inputs, time, memory, pool, MODE_INFER);
-    TIMING_COUNTER_END(NETWORK_INFER);
-}
-
-
-internal void
-network_learn(Network* network, Inputs* inputs, u32 time, Memory* memory, ThreadPool* pool) {
-    TIMING_COUNTER_START(NETWORK_LEARN);
-    _network_step(network, inputs, time, memory, pool, MODE_LEARNING);
-    TIMING_COUNTER_END(NETWORK_LEARN);
 }
 
 

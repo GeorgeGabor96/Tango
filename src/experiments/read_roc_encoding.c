@@ -2,12 +2,12 @@
 
 
 int main() {
-    Experiment* exp = experiment_create(4, 723104, "D:\\repos\\Tango_outputs\\weights\\lateral_inhibition");
+    Experiment* exp = experiment_create(4, 723104, "D:\\repos\\Tango_outputs\\debug_code_new");
 
     Memory* memory = exp->permanent_memory;
 
-    DataGen* spike_train_data = data_gen_create_spike_train(memory, 300, "d:/datasets/MNIST/encoding_10_imgs", "d:/datasets/MNIST/encoding_10_imgs/samples.txt", 230, 10);
-    //DataGen* spike_train_data = data_gen_create_spike_pulses(memory, exp->random, 31, 1000, 30, 100, 200, 0.05f, 0.001f);
+    //DataGen* spike_train_data = data_gen_create_spike_train(memory, 300, "d:/datasets/MNIST/encoding_10_imgs", "d:/datasets/MNIST/encoding_10_imgs/samples.txt", 230, 10);
+    DataGen* spike_train_data = data_gen_create_spike_pulses(memory, exp->random, 3, 200, 30, 30, 40, 0.05f, 0.001f);
 
     Network* net = network_create(memory);
     NeuronCls* n_cls = neuron_cls_create_if_one_spike(memory, string_create(memory, "if_one_spike"));
@@ -26,6 +26,12 @@ int main() {
     // NOTE: No learning yet
     SynapseCls* s_cls_exci_fast = synapse_cls_create_fast_exci(memory, string_create(memory, "s_cls_fast_exci"), SYNAPSE_VOLTAGE);
     SynapseCls* s_cls_inhi = synapse_cls_create_inhi(memory, string_create(memory, "s_cls_inhi"), SYNAPSE_VOLTAGE);
+
+    network_add_neuron_cls(net, n_cls, memory);
+    network_add_neuron_cls(net, n_cls_inhi, memory);
+    network_add_synapse_cls(net, s_cls, memory);
+    network_add_synapse_cls(net, s_cls_exci_fast, memory);
+    network_add_synapse_cls(net, s_cls_inhi, memory);
 
     synapse_cls_add_learning_rule_exponential(s_cls, 0.0f, 2.0f, 0.2f, -0.7f, 50);
     //synapse_cls_add_learning_rule_step(s_cls, 0.0f, 100.0f, 50, 0.5f, 50, -0.5f);
@@ -57,15 +63,17 @@ int main() {
         memory, 10, 300, exp->output_folder, net);
     Callback* cb_rescale = callback_synaptic_rescale_create(
         memory, net, 20000); // add 10000 because we added inhi
+    Callback* cb_data = callback_network_data_dumper_create(memory, exp->output_folder, net);
 
     experiment_set_network(exp, net);
     experiment_set_data_gen(exp, spike_train_data);
     experiment_add_callback(exp, cb_meta);
     experiment_add_callback(exp, cb_spikes);
     experiment_add_callback(exp, cb_weights);
+    experiment_add_callback(exp, cb_data);
     //experiment_add_callback(exp, cb_rescale);
 
-    experiment_learn(exp);
+    experiment_run(exp);
 
     experiment_destroy(exp);
 
