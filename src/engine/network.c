@@ -170,12 +170,14 @@ network_add_neuron_cls(Network* network, NeuronCls* cls, Memory* memory) {
     check(network != NULL, "network is NULL");
     check(cls != NULL, "cls is NULL");
     check(memory != NULL, "memory is NULL");
+    check(network->is_built == FALSE, "Trying to add a neuron class in a built network")
 
     NetworkNeuronClsLink* link = (NetworkNeuronClsLink*)memory_push(memory, sizeof(*link));
     check_memory(link);
     link->cls = cls;
     link->next = network->neuron_classes ? network->neuron_classes : NULL;
     network->neuron_classes = link;
+    network->n_neuron_cls += 1;
 
     error:
     return;
@@ -187,12 +189,14 @@ network_add_synapse_cls(Network* network, SynapseCls* cls, Memory* memory) {
     check(network != NULL, "network is NULL");
     check(cls != NULL, "cls is NULL");
     check(memory != NULL, "memory is NULL");
+    check(network->is_built == FALSE, "Trying to add a synapse class in a built network")
 
     NetworkSynapseClsLink* link = (NetworkSynapseClsLink*) memory_push(memory, sizeof(*link));
     check_memory(link);
     link->cls = cls;
     link->next = network->synapse_classes ? network->synapse_classes : NULL;
     network->synapse_classes = link;
+    network->n_synapse_cls += 1;
 
     error:
     return;
@@ -272,6 +276,20 @@ internal Layer* network_get_layer(Network* network, String* layer_name) {
     return NULL;
 }
 
+internal void network_set_learning(Network* network, b32 value) {
+    check(network != NULL, "network is NULL");
+    check(value == FALSE || value == TRUE, "invalid value for b32 %d", value);
+
+    for (NetworkNeuronClsLink* link = network->neuron_classes; link != NULL; link = link->next) {
+        link->cls->allow_learning = value;
+    }
+    for (NetworkSynapseClsLink* link = network->synapse_classes; link != NULL; link = link->next) {
+        link->cls->learning_info.enable = value;
+    }
+
+    error:
+    return;
+}
 
 internal void
 network_step(Network* network, Inputs* inputs, u32 time, Memory* memory, ThreadPool* pool) {

@@ -46,6 +46,7 @@ _neuron_cls_create(Memory* memory, String* name) {
 
     neuron_cls->name = name;
     neuron_cls->type = NEURON_INVALID;
+    neuron_cls->allow_learning = FALSE;
 
     return neuron_cls;
 
@@ -313,7 +314,9 @@ neuron_step(Neuron* neuron, u32 time) {
     _neuron_update(neuron, time, psc);
     _neuron_update_out_synapses(neuron, time);
     // TODO:
-    _neuron_potentiate_in_synapses(neuron, time);
+    if (neuron->cls->allow_learning == TRUE) {
+        _neuron_potentiate_in_synapses(neuron, time);
+    }
 
     TIMING_COUNTER_END(NEURON_STEP);
 
@@ -334,7 +337,9 @@ neuron_step_force_spike(Neuron* neuron, u32 time) {
     neuron->voltage = NEURON_VOLTAGE_REST[neuron->cls->type];
     _neuron_update_out_synapses(neuron, time);
     // TODO:
-    _neuron_potentiate_in_synapses(neuron, time);
+    if (neuron->cls->allow_learning == TRUE) {
+        _neuron_potentiate_in_synapses(neuron, time);
+    }
 
     TIMING_COUNTER_END(NEURON_STEP_FORCE_SPIKE);
 
@@ -352,8 +357,10 @@ neuron_step_inject_current(Neuron* neuron, f32 psc, u32 time) {
     psc = _neuron_compute_psc(neuron, time) + psc;
     _neuron_update(neuron, time, psc);
     _neuron_update_out_synapses(neuron, time);
-    // TODO:
-    _neuron_potentiate_in_synapses(neuron, time);
+    // TODO: can't I just do the learning fully in the synapse??????
+    if (neuron->cls->allow_learning == TRUE) {
+        _neuron_potentiate_in_synapses(neuron, time);
+    }
 
     TIMING_COUNTER_END(NEURON_STEP_INJECT_CURRENT);
 

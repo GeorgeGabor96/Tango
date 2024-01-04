@@ -25,7 +25,6 @@ typedef struct NetworkSynapseClsLink {
 typedef struct Network {
     NetworkNeuronClsLink* neuron_classes;
     NetworkSynapseClsLink* synapse_classes;
-
     u32 n_neuron_cls;
     u32 n_synapse_cls;
 
@@ -65,6 +64,7 @@ internal SynapseCls* network_get_synapse_cls(Network* network,
                                              String* synapse_cls_name);
 internal Layer* network_get_layer(Network* network, String* layer_name);
 
+internal void network_set_learning(Network* network, b32 value);
 internal void network_step(Network* network, Inputs* inputs, u32 time,
                            Memory* memory, ThreadPool* pool);
 internal void network_clear(Network* network);

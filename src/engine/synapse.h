@@ -29,6 +29,18 @@ typedef struct SynapseLearningStep {
 } SynapseLearningStep;
 
 
+typedef struct LearningInfo {
+    SynapseLearningRule type;
+    b32 enable;
+    f32 max_w;
+    f32 min_w;
+    union {
+        SynapseLearningExponential stdp_exponential;
+        SynapseLearningStep stdp_step;
+    };
+} LearningInfo;
+
+
 typedef enum {
     SYNAPSE_INVALID,
     SYNAPSE_CONDUCTANCE,
@@ -47,13 +59,7 @@ typedef struct SynapseCls {
     f32 tau_exp;
     u32 delay;
 
-    f32 max_w;
-    f32 min_w;
-    SynapseLearningRule learning_rule;
-    union {
-        SynapseLearningExponential stdp_exponential;
-        SynapseLearningStep stdp_step;
-    };
+    LearningInfo learning_info;
 } SynapseCls;
 
 

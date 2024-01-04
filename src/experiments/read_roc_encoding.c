@@ -27,6 +27,12 @@ int main() {
     SynapseCls* s_cls_exci_fast = synapse_cls_create_fast_exci(memory, string_create(memory, "s_cls_fast_exci"), SYNAPSE_VOLTAGE);
     SynapseCls* s_cls_inhi = synapse_cls_create_inhi(memory, string_create(memory, "s_cls_inhi"), SYNAPSE_VOLTAGE);
 
+    network_add_neuron_cls(net, n_cls, memory);
+    network_add_neuron_cls(net, n_cls_inhi, memory);
+    network_add_synapse_cls(net, s_cls, memory);
+    network_add_synapse_cls(net, s_cls_exci_fast, memory);
+    network_add_synapse_cls(net, s_cls_inhi, memory);
+
     synapse_cls_add_learning_rule_exponential(s_cls, 0.0f, 2.0f, 0.2f, -0.7f, 50);
     //synapse_cls_add_learning_rule_step(s_cls, 0.0f, 100.0f, 50, 0.5f, 50, -0.5f);
 

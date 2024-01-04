@@ -30,12 +30,13 @@ synapse_cls_add_learning_rule_exponential(SynapseCls* cls,
     check(min_w >= 0, "synapse weights should be positive. min_weight %f", min_w);
     check(max_w >= 0, "synapse weights should be positive. max_weight %f", max_w);
     check(min_w <= max_w, "min_w %f > max_w %f", min_w, max_w);
-    cls->learning_rule = SYNAPSE_LEARNING_EXPONENTIAL;
-    cls->min_w = min_w;
-    cls->max_w = max_w;
-    cls->stdp_exponential.A = A;
-    cls->stdp_exponential.B = B;
-    cls->stdp_exponential.tau = tau;
+    LearningInfo* info = &(cls->learning_info);
+    info->min_w = min_w;
+    info->max_w = max_w;
+    info->type = SYNAPSE_LEARNING_EXPONENTIAL;
+    info->stdp_exponential.A = A;
+    info->stdp_exponential.B = B;
+    info->stdp_exponential.tau = tau;
 
     error:
     return;
@@ -50,13 +51,14 @@ synapse_cls_add_learning_rule_step(SynapseCls* cls,
     check(min_w >= 0, "synapse weights should be positive. min_weight %f", min_w);
     check(max_w >= 0, "synapse weights should be positive. max_weight %f", max_w);
     check(min_w <= max_w, "min_w %f > max_w %f", min_w, max_w);
-    cls->learning_rule = SYNAPSE_LEARNING_STEP;
-    cls->min_w = min_w;
-    cls->max_w = max_w;
-    cls->stdp_step.max_time_p = max_time_p;
-    cls->stdp_step.amp_p = amp_p;
-    cls->stdp_step.max_time_d = max_time_d;
-    cls->stdp_step.amp_d = amp_d;
+    LearningInfo* info = &(cls->learning_info);
+    info->type = SYNAPSE_LEARNING_STEP;
+    info->min_w = min_w;
+    info->max_w = max_w;
+    info->stdp_step.max_time_p = max_time_p;
+    info->stdp_step.amp_p = amp_p;
+    info->stdp_step.max_time_d = max_time_d;
+    info->stdp_step.amp_d = amp_d;
 
     error:
     return;
@@ -106,9 +108,10 @@ synapse_cls_create(Memory* memory,
     cls->delay = delay;
 
     // NOTE: init learning rule stuff
-    cls->min_w = 0;
-    cls->max_w = 0;
-    cls->learning_rule = SYNAPSE_LEARNING_NO_LEARNING;
+    LearningInfo* learning_info = &(cls->learning_info);
+    memset(learning_info, 0, sizeof(*learning_info));
+    learning_info->type = SYNAPSE_LEARNING_NO_LEARNING;
+    learning_info->enable = FALSE;
 
     return cls;
 
@@ -239,7 +242,9 @@ synapse_step(Synapse* synapse, u32 time) {
         synapse->last_spike_time = time;
         // NOTE: The spike arrived at the synapse, if the neuron spike before this,
         // need to reduce strength of this synapse
-        synapse_depression(synapse, synapse->out_neuron->last_spike_time);
+        if (synapse->cls->learning_info.enable == TRUE) {
+            synapse_depression(synapse, synapse->out_neuron->last_spike_time);
+        }
     } else {
         // NOTE: conductance should always be positive
         // NOTE: clip the conductance if its too low
@@ -296,21 +301,22 @@ synapse_potentiation(Synapse* synapse, u32 neuron_spike_time) {
     u32 dt = neuron_spike_time - synapse_spike_time;
     f32 dw = 0.0f;
 
-    if (cls->learning_rule == SYNAPSE_LEARNING_NO_LEARNING) {
+    LearningInfo* learning_info = &(cls->learning_info);
+    if (learning_info->type == SYNAPSE_LEARNING_NO_LEARNING) {
         dw = 0;
-    } else if (cls->learning_rule == SYNAPSE_LEARNING_EXPONENTIAL) {
-        SynapseLearningExponential* rule = &cls->stdp_exponential;
+    } else if (learning_info->type == SYNAPSE_LEARNING_EXPONENTIAL) {
+        SynapseLearningExponential* rule = &(learning_info->stdp_exponential);
         dw = rule->A * math_exp_f32(-(f32)dt / rule->tau);
-    } else if (cls->learning_rule == SYNAPSE_LEARNING_STEP) {
-        SynapseLearningStep* rule = &cls->stdp_step;
+    } else if (learning_info->type == SYNAPSE_LEARNING_STEP) {
+        SynapseLearningStep* rule = &(learning_info->stdp_step);
         if (dt <= rule->max_time_p) dw = rule->amp_p;
     } else {
         log_error("Unkown Synapse Learning Rule %s (%u)",
-        synapse_learning_rule_get_c_str(cls->learning_rule),
-        cls->learning_rule);
+        synapse_learning_rule_get_c_str(learning_info->type),
+        learning_info->type);
     }
 
-    synapse->weight = math_clip_f32(synapse->weight + dw, cls->min_w, cls->max_w);
+    synapse->weight = math_clip_f32(synapse->weight + dw, learning_info->min_w, learning_info->max_w);
     error:
     return;
 }
@@ -337,21 +343,22 @@ synapse_depression(Synapse* synapse, u32 neuron_spike_time) {
     u32 dt = synapse_spike_time - neuron_spike_time;
     u32 dw = 0.0f;
 
-    if (cls->learning_rule == SYNAPSE_LEARNING_NO_LEARNING) {
+    LearningInfo* learning_info = &(cls->learning_info);
+    if (learning_info->type == SYNAPSE_LEARNING_NO_LEARNING) {
         dw = 0;
-    } else if (cls->learning_rule == SYNAPSE_LEARNING_EXPONENTIAL) {
-        SynapseLearningExponential* rule = &cls->stdp_exponential;
+    } else if (learning_info->type == SYNAPSE_LEARNING_EXPONENTIAL) {
+        SynapseLearningExponential* rule = &(learning_info->stdp_exponential);
         dw = rule->B * math_exp_f32(-(f32)dt / rule->tau);
-    } else if (cls->learning_rule == SYNAPSE_LEARNING_STEP) {
-        SynapseLearningStep* rule = &cls->stdp_step;
+    } else if (learning_info->type == SYNAPSE_LEARNING_STEP) {
+        SynapseLearningStep* rule = &(learning_info->stdp_step);
         if (dt <= rule->max_time_d) dw = rule->amp_d;
     } else {
         log_error("Unkown Synapse Learning Rule %s (%u)",
-        synapse_learning_rule_get_c_str(cls->learning_rule),
-        cls->learning_rule);
+        synapse_learning_rule_get_c_str(learning_info->type),
+        learning_info->type);
     }
 
-    synapse->weight = math_clip_f32(synapse->weight + dw, cls->min_w, cls->max_w);
+    synapse->weight = math_clip_f32(synapse->weight + dw, learning_info->min_w, learning_info->max_w);
 
     error:
     return;

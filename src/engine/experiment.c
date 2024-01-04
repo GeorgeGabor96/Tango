@@ -83,6 +83,18 @@ experiment_destroy(Experiment* experiment) {
 
 
 internal void
+experiment_set_learning(Experiment* experiment, b32 value) {
+    check(experiment != NULL, "experiment is NULL");
+    check(experiment->network != NULL, "network is not set");
+
+    Network* net = experiment->network;
+    network_set_learning(net, value);
+
+    error:
+    return;
+}
+
+internal void
 experiment_run(Experiment* experiment) {
     check(experiment != NULL, "experiment is NULL");
     check(experiment->data != NULL, "data is not set");

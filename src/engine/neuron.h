@@ -71,6 +71,7 @@ typedef struct NeuronCls {
         NeuronClsIfRefract if_refract_cls;
         NeuronClsLifRefract lif_refract_cls;
     };
+    b32 allow_learning;
 } NeuronCls;
 
 
