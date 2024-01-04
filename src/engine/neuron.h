@@ -123,10 +123,5 @@ internal void neuron_step_inject_current(Neuron* neuron, f32 psc, u32 time);
 
 internal void neuron_clear(Neuron* neuron);
 
-// For plasticity
-internal void neuron_learning_step(Neuron* neuron, u32 time);
-internal void neuron_learning_step_force_spike(Neuron* neuron, u32 time);
-internal void neuron_learning_step_inject_current(Neuron* neuron, f32 psc, u32 time);
-
 #endif // __ENGINE_NEURON_H__
 

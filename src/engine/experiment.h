@@ -23,8 +23,7 @@ typedef struct Experiment {
 
 internal Experiment* experiment_create(u32 n_workers, u32 seed, const char* output_folder);
 internal void experiment_destroy(Experiment* experiment);
-internal void experiment_infer(Experiment* experiment);
-internal void experiment_learn(Experiment* experiment);
+internal void experiment_run(Experiment* experiment);
 internal b32 experiment_add_callback(Experiment* experiment, Callback* callback);
 internal b32 experiment_set_network(Experiment* experiment, Network* network);
 internal b32 experiment_set_data_gen(Experiment* experiment, DataGen* data);

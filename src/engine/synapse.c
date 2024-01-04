@@ -237,6 +237,9 @@ synapse_step(Synapse* synapse, u32 time) {
         synapse->conductance += 1.0f;
         synapse->spike = TRUE;
         synapse->last_spike_time = time;
+        // NOTE: The spike arrived at the synapse, if the neuron spike before this,
+        // need to reduce strength of this synapse
+        synapse_depression(synapse, synapse->out_neuron->last_spike_time);
     } else {
         // NOTE: conductance should always be positive
         // NOTE: clip the conductance if its too low
@@ -266,26 +269,6 @@ synapse_clear(Synapse* synapse) {
     synapse->spike = FALSE;
     synapse->last_spike_time = INVALID_SPIKE_TIME;
     synapse->spike_queue = 0;
-
-    error:
-    return;
-}
-
-
-internal void
-synapse_learning_step(Synapse* synapse, u32 time) {
-    TIMING_COUNTER_START(SYNAPSE_LEARNING_STEP);
-
-    check(synapse != NULL, "synapse is NULL");
-    synapse_step(synapse, time);
-
-    if (synapse->spike == TRUE) {
-        // NOTE: The spike arrived at the synapse, if the neuron spike before this,
-        // need to reduce strength of this synapse
-        synapse_depression(synapse, synapse->out_neuron->last_spike_time);
-    }
-
-    TIMING_COUNTER_END(SYNAPSE_LEARNING_STEP);
 
     error:
     return;

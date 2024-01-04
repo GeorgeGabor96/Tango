@@ -94,27 +94,6 @@ layer_process_neurons(void* task) {
         for (i = spikes_idx; i < neuron_end_i; ++i)
             neuron_step(neurons + i, time);
     }
-    // LEARNING
-    else if (task_type == LAYER_TASK_LEARNING_STEP) {
-        for (i = neuron_start_i; i < neuron_end_i; ++i)
-            neuron_learning_step(neurons + i, time);
-    }
-    else if (task_type == LAYER_TASK_LEARNING_STEP_INJECT_CURRENT) {
-        for (i = neuron_start_i; i < currents_idx; ++i)
-            neuron_learning_step_inject_current(neurons + i, currents[i], time);
-        for (i = currents_idx; i < neuron_end_i; ++i)
-            neuron_learning_step(neurons + i, time);
-    }
-    else if (task_type == LAYER_TASK_LEARNING_STEP_FORCE_SPIKE) {
-        for (i = neuron_start_i; i < spikes_idx; ++i) {
-            if (spikes[i] == TRUE)
-                neuron_learning_step_force_spike(neurons + i, time);
-            else
-                neuron_learning_step(neurons + i, time);
-        }
-        for (i = spikes_idx; i < neuron_end_i; ++i)
-            neuron_learning_step(neurons + i, time);
-    }
     else {
         log_error("Unknown LAYER_TASK_TYPE: %u", layer_task->data->type);
     }
@@ -542,47 +521,4 @@ layer_get_spikes(Memory* memory, Layer* layer) {
 
     error:
     return NULL;
-}
-
-
-internal void
-layer_learning_step(Layer* layer, u32 time, Memory* memory, ThreadPool* pool) {
-    TIMING_COUNTER_START(LAYER_LEARNING_STEP);
-
-    LayerStepData data = { 0 };
-    data.type = LAYER_TASK_LEARNING_STEP;
-
-    _layer_run(layer, time, memory, pool, &data);
-
-    TIMING_COUNTER_END(LAYER_LEARNING_STEP);
-}
-
-
-internal void
-layer_learning_step_inject_current(Layer* layer, u32 time, Currents* currents,
-                                   Memory* memory, ThreadPool* pool) {
-    TIMING_COUNTER_START(LAYER_LEARNING_STEP_INJECT_CURRENT);
-
-    LayerStepData data;
-    data.type = LAYER_TASK_LEARNING_STEP_INJECT_CURRENT;
-    data.currents = currents;
-
-    _layer_run(layer, time, memory, pool, &data);
-
-    TIMING_COUNTER_END(LAYER_LEARNING_STEP_INJECT_CURRENT);
-}
-
-
-internal void
-layer_learning_step_force_spike(Layer* layer, u32 time, Spikes* spikes,
-                                Memory* memory, ThreadPool* pool) {
-    TIMING_COUNTER_START(LAYER_LEARNING_STEP_FORCE_SPIKE);
-
-    LayerStepData data;
-    data.type = LAYER_TASK_LEARNING_STEP_FORCE_SPIKE;
-    data.spikes = spikes;
-
-    _layer_run(layer, time, memory, pool, &data);
-
-    TIMING_COUNTER_END(LAYER_LEARNING_STEP_FORCE_SPIKE);
 }

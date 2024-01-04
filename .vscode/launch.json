@@ -10,7 +10,7 @@
             "request": "launch",
             "mode": "auto",
             "program": "go\\visu\\main.go",
-            "args": ["--bin_folder", "d:/repos/Tango_outputs/weights/exp1"]
+            "args": ["--bin_folder", "d:/repos/Tango_outputs/code_debug"]
         },
         {
             "name": "W23 C Debug",

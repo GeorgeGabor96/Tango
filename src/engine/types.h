@@ -7,20 +7,6 @@ typedef struct Neuron Neuron;
 typedef struct Synapse Synapse;
 typedef struct Synapse* SynapseP;
 
-
-typedef enum {
-    MODE_INFER,
-    MODE_LEARNING,
-    MODE_INVALID
-} Mode;
-
-internal const
-char* mode_get_c_str(Mode mode) {
-    if (mode == MODE_INFER) return "MODE_INFER";
-    else if (mode == MODE_LEARNING) return "MODE_LEARNING";
-    else return "MODE_INVALID";
-}
-
 typedef enum {
     INPUT_INVALID,
     INPUT_SPIKES,

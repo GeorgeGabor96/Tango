@@ -65,10 +65,8 @@ internal SynapseCls* network_get_synapse_cls(Network* network,
                                              String* synapse_cls_name);
 internal Layer* network_get_layer(Network* network, String* layer_name);
 
-internal void network_infer(Network* network, Inputs* inputs, u32 time,
+internal void network_step(Network* network, Inputs* inputs, u32 time,
                            Memory* memory, ThreadPool* pool);
-internal void network_learn(Network* network, Inputs* inputs, u32 time,
-                            Memory* memory, ThreadPool* pool);
 internal void network_clear(Network* network);
 
 #endif // __ENGINE_NETWORK_H__
