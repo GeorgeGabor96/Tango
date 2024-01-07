@@ -20,10 +20,11 @@ type SynapseMeta struct {
 }
 
 type Meta struct {
-	Folder    string
-	NLayers   uint32
-	NNeurons  uint32
-	NSynapses uint32
+	Folder      string
+	PlotsFolder string
+	NLayers     uint32
+	NNeurons    uint32
+	NSynapses   uint32
 
 	Layers   []LayerMeta
 	Synapses []SynapseMeta
@@ -71,6 +72,7 @@ func BuildMeta(folder string) (*Meta, error) {
 
 	meta := new(Meta)
 	meta.Folder = folder
+	meta.PlotsFolder = utils.JoinWithCreate(folder, "plots")
 	meta.NLayers = nLayers
 	meta.NNeurons = nNeurons
 	meta.NSynapses = nSynapses

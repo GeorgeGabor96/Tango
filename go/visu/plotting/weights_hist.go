@@ -24,7 +24,8 @@ func (p WeightsHistPlotter) Plot(w *WeightsData) error {
 		return errors.New("weights is nil")
 	}
 
-	v := make(plotter.Values, len(w.Weights[0]))
+	nWeights := len(w.Weights[0])
+	v := make(plotter.Values, nWeights)
 	for step := 0; step < int(w.NSteps); step += 1 {
 		p.plotStep(w, v, step)
 	}

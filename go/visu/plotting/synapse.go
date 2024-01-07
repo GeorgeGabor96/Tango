@@ -16,7 +16,7 @@ type WeightsData struct {
 	Duration uint32
 	TimeStep uint32
 	NSteps   uint32
-	Weights  [][]float32
+	Weights  [][]float32 // steps x synapses
 }
 
 func BuildWeights(meta *experiment.Meta, sampleName string) (*WeightsData, error) {
@@ -38,7 +38,14 @@ func BuildWeights(meta *experiment.Meta, sampleName string) (*WeightsData, error
 	data.Name = fileName
 	data.Duration = duration
 	data.TimeStep = parser.Uint32()
-	data.NSteps = duration / data.TimeStep
+
+	// NOTE: if duration < timestep => nsteps = 0 -> crash
+	if duration < data.TimeStep {
+		data.NSteps = 1
+	} else {
+		data.NSteps = duration / data.TimeStep
+	}
+
 	data.Weights = make([][]float32, data.NSteps)
 
 	var synapseI uint32 = 0
@@ -62,7 +69,7 @@ func SynapseWeightPlot(meta *experiment.Meta, data *experiment.Data, sI uint32) 
 		return errors.New(msg)
 	}
 
-	outFolder := utils.JoinWithCreate(meta.Folder, utils.RemoveExtension(data.Name))
+	outFolder := utils.JoinWithCreate(meta.PlotsFolder, utils.RemoveExtension(data.Name))
 	outFolder = utils.JoinWithCreate(outFolder, "synapses")
 	outFolder = utils.JoinWithCreate(outFolder, "weight")
 	fileName := fmt.Sprintf("%v.png", sI)
@@ -91,7 +98,7 @@ func SynapseConductancePlot(meta *experiment.Meta, data *experiment.Data, sI uin
 		return errors.New(msg)
 	}
 
-	outFolder := utils.JoinWithCreate(meta.Folder, utils.RemoveExtension(data.Name))
+	outFolder := utils.JoinWithCreate(meta.PlotsFolder, utils.RemoveExtension(data.Name))
 	outFolder = utils.JoinWithCreate(outFolder, "synapses")
 	outFolder = utils.JoinWithCreate(outFolder, "conductance")
 	fileName := fmt.Sprintf("%v.png", sI)
@@ -116,7 +123,7 @@ func SynapseConductancePlot(meta *experiment.Meta, data *experiment.Data, sI uin
 
 func SynapsesHistPlot(meta *experiment.Meta, data *experiment.Data, stepInc uint32) error {
 	sampleName := utils.RemoveExtension(data.Name)
-	outFolder := utils.JoinWithCreate(meta.Folder, sampleName)
+	outFolder := utils.JoinWithCreate(meta.PlotsFolder, sampleName)
 	outFolder = utils.JoinWithCreate(outFolder, "synapse_hist")
 
 	weights := make(plotter.Values, meta.NSynapses)

@@ -57,7 +57,7 @@ func ActivityPlot(meta *experiment.Meta, spikesData *experiment.SpikesData) erro
 		layersI[i] = meta.NLayers - 1 - i
 	}
 
-	outFolder := utils.JoinWithCreate(meta.Folder, "activity")
+	outFolder := utils.JoinWithCreate(meta.PlotsFolder, "activity")
 
 	return activityPlot(layersI, outFolder, meta, spikesData)
 }
@@ -69,7 +69,7 @@ func ActivityPlotForLayer(i uint32, meta *experiment.Meta, spikesData *experimen
 	layersI := make([]uint32, 1)
 	layersI[0] = i
 
-	outFolder := utils.JoinWithCreate(meta.Folder, fmt.Sprintf("activity_%v", i))
+	outFolder := utils.JoinWithCreate(meta.PlotsFolder, fmt.Sprintf("activity_%v", i))
 
 	return activityPlot(layersI, outFolder, meta, spikesData)
 }

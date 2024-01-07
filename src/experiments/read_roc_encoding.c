@@ -2,7 +2,7 @@
 
 
 int main() {
-    Experiment* exp = experiment_create(4, 723104, "D:\\repos\\Tango_outputs\\debug_code_new");
+    Experiment* exp = experiment_create(4, 723104, "D:\\repos\\Tango_work\\fixing_plots");
 
     Memory* memory = exp->permanent_memory;
 
@@ -60,7 +60,7 @@ int main() {
     Callback* cb_spikes = callback_spikes_dumper_create(
         memory, exp->output_folder, net);
     Callback* cb_weights = callback_weights_dumper_create(
-        memory, 10, 300, exp->output_folder, net);
+        memory, 1, 2000, exp->output_folder, net);
     Callback* cb_rescale = callback_synaptic_rescale_create(
         memory, net, 20000); // add 10000 because we added inhi
     Callback* cb_data = callback_network_data_dumper_create(memory, exp->output_folder, net);

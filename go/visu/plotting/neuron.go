@@ -16,7 +16,7 @@ func NeuronVoltagePlot(meta *experiment.Meta, data *experiment.Data, nI uint32) 
 		return errors.New(msg)
 	}
 
-	outFolder := utils.JoinWithCreate(meta.Folder, utils.RemoveExtension(data.Name))
+	outFolder := utils.JoinWithCreate(meta.PlotsFolder, utils.RemoveExtension(data.Name))
 	outFolder = utils.JoinWithCreate(outFolder, "neurons")
 	outFolder = utils.JoinWithCreate(outFolder, "voltage")
 	fileName := fmt.Sprintf("%v.png", nI)
@@ -45,7 +45,7 @@ func NeuronSpikesPlot(meta *experiment.Meta, data *experiment.Data, nI uint32) e
 		return errors.New(msg)
 	}
 
-	outFolder := utils.JoinWithCreate(meta.Folder, utils.RemoveExtension(data.Name))
+	outFolder := utils.JoinWithCreate(meta.PlotsFolder, utils.RemoveExtension(data.Name))
 	outFolder = utils.JoinWithCreate(outFolder, "neurons")
 	outFolder = utils.JoinWithCreate(outFolder, "spikes")
 	fileName := fmt.Sprintf("%v.png", nI)
@@ -78,7 +78,7 @@ func NeuronPscPlot(meta *experiment.Meta, data *experiment.Data, nI uint32) erro
 		return errors.New(msg)
 	}
 
-	outFolder := utils.JoinWithCreate(meta.Folder, utils.RemoveExtension(data.Name))
+	outFolder := utils.JoinWithCreate(meta.PlotsFolder, utils.RemoveExtension(data.Name))
 	outFolder = utils.JoinWithCreate(outFolder, "neurons")
 	outFolder = utils.JoinWithCreate(outFolder, "psc")
 	fileName := fmt.Sprintf("%v.png", nI)
@@ -107,7 +107,7 @@ func NeuronEpscPlot(meta *experiment.Meta, data *experiment.Data, nI uint32) err
 		return errors.New(msg)
 	}
 
-	outFolder := utils.JoinWithCreate(meta.Folder, utils.RemoveExtension(data.Name))
+	outFolder := utils.JoinWithCreate(meta.PlotsFolder, utils.RemoveExtension(data.Name))
 	outFolder = utils.JoinWithCreate(outFolder, "neurons")
 	outFolder = utils.JoinWithCreate(outFolder, "epsc")
 	fileName := fmt.Sprintf("%v.png", nI)
@@ -136,7 +136,7 @@ func NeuronIpscPlot(meta *experiment.Meta, data *experiment.Data, nI uint32) err
 		return errors.New(msg)
 	}
 
-	outFolder := utils.JoinWithCreate(meta.Folder, utils.RemoveExtension(data.Name))
+	outFolder := utils.JoinWithCreate(meta.PlotsFolder, utils.RemoveExtension(data.Name))
 	outFolder = utils.JoinWithCreate(outFolder, "neurons")
 	outFolder = utils.JoinWithCreate(outFolder, "ipsc")
 	fileName := fmt.Sprintf("%v.png", nI)
