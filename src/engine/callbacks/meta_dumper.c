@@ -52,6 +52,8 @@ callback_meta_dumper_create(Memory* memory, String* output_folder, Network* netw
     fflush(fp);
     fclose(fp);
 
+	// TODO: probably need also some meta for the neurons
+
     // NOTE: Create the callback
     Callback* callback = (Callback*)memory_push(memory, sizeof(*callback));
     check_memory(callback);

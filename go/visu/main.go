@@ -6,7 +6,6 @@ import (
 	"os"
 	"strings"
 	"sync"
-	"tango/go/utils"
 	"tango/go/visu/experiment"
 	"tango/go/visu/plotting"
 )
@@ -42,26 +41,25 @@ func main() {
 	}
 	meta, _ := experiment.BuildMeta(args.binFolder)
 
-	wHistPlotter, _ := plotting.WeightsHistPlotterCreate(utils.Join(meta.Folder, "weights_hist"))
-
 	var wg sync.WaitGroup
 	for sampleName := range meta.Samples {
 		sampleNameCopy := strings.Clone(sampleName)
 
-		CreatePlots(meta, sampleNameCopy, wHistPlotter)
+		CreatePlots(meta, sampleNameCopy)
 		continue
 		wg.Add(1)
 
 		go func() {
-			CreatePlots(meta, sampleNameCopy, wHistPlotter)
+			CreatePlots(meta, sampleNameCopy)
 			wg.Done()
 		}()
 	}
 	wg.Wait()
 }
 
-func CreatePlots(meta *experiment.Meta, sampleName string, wHistPlotter *plotting.WeightsHistPlotter) {
+func CreatePlots(meta *experiment.Meta, sampleName string) {
 	fmt.Printf("[INFO] Begin processing sample %v\n", sampleName)
+
 	data, err := experiment.BuildData(meta, sampleName)
 	if err == nil {
 		plotting.SynapseConductancePlot(meta, data, 1000)
@@ -87,7 +85,7 @@ func CreatePlots(meta *experiment.Meta, sampleName string, wHistPlotter *plottin
 	if err != nil {
 		fmt.Println(err.Error())
 	} else {
-		wHistPlotter.Plot(weights)
+		plotting.PlotWeightHistograms(meta, weights)
 	}
 
 	fmt.Printf("[INFO] Finished processing sample %v\n", sampleName)
