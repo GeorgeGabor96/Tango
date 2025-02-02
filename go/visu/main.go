@@ -79,6 +79,9 @@ func CreatePlots(meta *experiment.Meta, sampleName string) {
 	} else {
 		plotting.ActivityPlot(meta, spikes)
 		plotting.ActivityPlotForLayer(2, meta, spikes)
+
+		layersI := [2]uint32{3, 4}
+		plotting.ActivityPlotForLayers(layersI[:], meta, spikes)
 	}
 
 	weights, err := plotting.BuildWeights(meta, sampleName)

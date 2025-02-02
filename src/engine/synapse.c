@@ -107,7 +107,7 @@ synapse_cls_create(Memory* memory,
     cls->tau_exp = math_exp_f32(-1/tau_ms);
     cls->delay = delay;
 
-    // NOTE: init learning rule stuff
+    // NOTE: init learning rule stuff with 0
     LearningInfo* learning_info = &(cls->learning_info);
     memset(learning_info, 0, sizeof(*learning_info));
     learning_info->type = SYNAPSE_LEARNING_NO_LEARNING;
@@ -119,19 +119,18 @@ synapse_cls_create(Memory* memory,
     return NULL;
 }
 
+
+// TODO: why did I set it to 1??? the amp? I know its simpler to understand but is it correct?
+#define SYNAPSE_DEFAULT_AMP 1.0f
+
 internal SynapseCls*
-synapse_cls_create_exci(Memory* memory, String* name, SynapseType type) {
-    return synapse_cls_create(memory, name, type, 0.0f, 0.1f, 1, 10);
+synapse_cls_create_exci(Memory* memory, String* name, SynapseType type, u32 delay) {
+    return synapse_cls_create(memory, name, type, 0.0f, SYNAPSE_DEFAULT_AMP, 1, delay);
 }
 
 internal SynapseCls*
-synapse_cls_create_fast_exci(Memory* memory, String* name, SynapseType type) {
-    return synapse_cls_create(memory, name, type, 0.0f, 0.1f, 1, 1);
-}
-
-internal SynapseCls*
-synapse_cls_create_inhi(Memory* memory, String* name, SynapseType type) {
-    return synapse_cls_create(memory, name, type, -90.0f, 0.05, 5, 1);
+synapse_cls_create_inhi(Memory* memory, String* name, SynapseType type, u32 delay) {
+    return synapse_cls_create(memory, name, type, -90.0f, SYNAPSE_DEFAULT_AMP, 5, delay);
 }
 
 /*******************
@@ -288,6 +287,10 @@ synapse_potentiation(Synapse* synapse, u32 neuron_spike_time) {
     check(synapse != NULL, "synapse is NULL");
 
     SynapseCls* cls = synapse->cls;
+
+    // NOTE: if learning not enabled then nothing to do
+    if (cls->learning_info.enable == FALSE) return;
+
     u32 synapse_spike_time = synapse->last_spike_time;
 
     // NOTE: The post_neuron spiked, the synapse should have also spiked to be able to do something
@@ -330,6 +333,10 @@ synapse_depression(Synapse* synapse, u32 neuron_spike_time) {
     check(synapse != NULL, "synapse is NULL");
 
     SynapseCls* cls = synapse->cls;
+
+    // NOTE: if learning not enabled then nothing to do
+    if (cls->learning_info.enable == FALSE) return;
+
     u32 synapse_spike_time = synapse->last_spike_time;
 
     // NOTE: the synapse spiked, the post neuron should have also spiked to be able to do something
@@ -345,7 +352,7 @@ synapse_depression(Synapse* synapse, u32 neuron_spike_time) {
 
     LearningInfo* learning_info = &(cls->learning_info);
     if (learning_info->type == SYNAPSE_LEARNING_NO_LEARNING) {
-        dw = 0;
+        dw = 0.0f;
     } else if (learning_info->type == SYNAPSE_LEARNING_EXPONENTIAL) {
         SynapseLearningExponential* rule = &(learning_info->stdp_exponential);
         dw = rule->B * math_exp_f32(-(f32)dt / rule->tau);

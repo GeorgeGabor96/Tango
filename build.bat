@@ -1,6 +1,6 @@
 @echo off
 
-set debug_flags=-DCHECKS -DMEMORY_MANAGE -DTIMING
+set debug_flags=-DCHECKS -DMEMORY_MANAGE -DTIMING -D_DEBUG_
 set release_flags=-O2 -DTIMING
 set crazy_flags=-O2
 

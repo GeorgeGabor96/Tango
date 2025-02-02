@@ -21,11 +21,11 @@ int main() {
     Layer* out = layer_create(memory, string_create(memory, "out"), LAYER_DENSE, 100, n_cls);
     Layer* out_inhi = layer_create(memory, string_create(memory, "out_inhi"), LAYER_DENSE, 20, n_cls_inhi);
 
-    SynapseCls* s_cls = synapse_cls_create_exci(memory, string_create(memory, "s_cls"), SYNAPSE_VOLTAGE);
+    SynapseCls* s_cls = synapse_cls_create_exci(memory, string_create(memory, "s_cls"), SYNAPSE_VOLTAGE, 10);
 
     // NOTE: No learning yet
-    SynapseCls* s_cls_exci_fast = synapse_cls_create_fast_exci(memory, string_create(memory, "s_cls_fast_exci"), SYNAPSE_VOLTAGE);
-    SynapseCls* s_cls_inhi = synapse_cls_create_inhi(memory, string_create(memory, "s_cls_inhi"), SYNAPSE_VOLTAGE);
+    SynapseCls* s_cls_exci_fast = synapse_cls_create_exci(memory, string_create(memory, "s_cls_fast_exci"), SYNAPSE_VOLTAGE, 1);
+    SynapseCls* s_cls_inhi = synapse_cls_create_inhi(memory, string_create(memory, "s_cls_inhi"), SYNAPSE_VOLTAGE, 1);
 
     network_add_neuron_cls(net, n_cls, memory);
     network_add_neuron_cls(net, n_cls_inhi, memory);
