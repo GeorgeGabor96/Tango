@@ -3,6 +3,7 @@ package plotting
 import (
 	"errors"
 	"fmt"
+	"strconv"
 	"tango/go/utils"
 	"tango/go/visu/experiment"
 
@@ -70,6 +71,24 @@ func ActivityPlotForLayer(i uint32, meta *experiment.Meta, spikesData *experimen
 	layersI[0] = i
 
 	outFolder := utils.JoinWithCreate(meta.PlotsFolder, fmt.Sprintf("activity_%v", i))
+
+	return activityPlot(layersI, outFolder, meta, spikesData)
+}
+
+func ActivityPlotForLayers(layersI []uint32, meta *experiment.Meta, spikesData *experiment.SpikesData) error {
+	layersStr := ""
+	for i := 0; i < len(layersI); i++ {
+		if layersI[i] >= meta.NLayers {
+			return errors.New(fmt.Sprintf("Layer index %v is invalid, Number of layers is %v\n", i, meta.NLayers))
+		}
+		layerStr := strconv.FormatUint(uint64(layersI[i]), 10)
+		if i == len(layersI)-1 {
+			layersStr += layerStr
+		} else {
+			layersStr += layerStr + "_"
+		}
+	}
+	outFolder := utils.JoinWithCreate(meta.PlotsFolder, "activity_layers_"+layersStr)
 
 	return activityPlot(layersI, outFolder, meta, spikesData)
 }
