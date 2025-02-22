@@ -4,13 +4,15 @@ def get_spikes_for_times(times):
     return [1 for _ in times]
 
 class Neuron:
-    def __init__(self):
+    def __init__(self, tag = ''):
+        self.tag = tag
         self.th = 1.0
         self.rest = 0.0
 
         self.in_synapses = []
         self.out_synapses = []
 
+        self.injected_current = 0.0
         self.v = 0.0
         self.last_spike_time = -1
         self.spike = False
@@ -22,26 +24,31 @@ class Neuron:
     def add_out_synapse(self, synapse):
         self.out_synapses.append(synapse)
 
-    def update(self, current, time):
-        '''
-        current = 0
+    def inject_current(self, current):
+        self.injected_current = current
+
+    def update(self, time):
+        current = self.injected_current
+        current_eq = ''
         for synapse in self.in_synapses:
             current += synapse.get_current()
-            synapse.update(self.spike)
-        '''
+            current_eq += str(synapse.get_current()) + '+'
 
-        if time - self.last_spike_time < 3:
-            self.spike = False
-            return
+        if self.tag == 'DEBUG':
+            print(current_eq, '=', current)
 
         self.v = self.v * 0.5 + current
-        if self.v >= self.th:
+
+        if self.v >= self.th and time - self.last_spike_time >= 3:
             self.v = self.rest
             self.last_spike_time = time
             self.spike = True
             self.spike_times.append(time)
         else:
             self.spike = False
+
+        for synapse in self.out_synapses:
+            synapse.update(self.spike)
 
         return
 
@@ -150,56 +157,56 @@ def test_xor():
     neuron_in_4 = Neuron()
 
     # Hidden layer poz
-    neuron_hidden_1 = Neuron()
     synapse_in_1_hidden_1 = Synapse(w = 1)
     synapse_in_2_hidden_1 = Synapse(w = -1)
 
-    neuron_hidden_2 = Neuron()
     synapse_in_1_hidden_2 = Synapse(w = -1)
     synapse_in_2_hidden_2 = Synapse(w = 1)
 
+    neuron_hidden_1 = Neuron()
+    neuron_hidden_2 = Neuron()
+
+    neuron_in_1.add_out_synapse(synapse_in_1_hidden_1)
+    neuron_in_1.add_out_synapse(synapse_in_1_hidden_2)
+
+    neuron_in_2.add_out_synapse(synapse_in_2_hidden_1)
+    neuron_in_2.add_out_synapse(synapse_in_2_hidden_2)
+
+    neuron_hidden_1.add_in_synapse(synapse_in_1_hidden_1)
+    neuron_hidden_1.add_in_synapse(synapse_in_2_hidden_1)
+
+    neuron_hidden_2.add_in_synapse(synapse_in_1_hidden_2)
+    neuron_hidden_2.add_in_synapse(synapse_in_2_hidden_2)
+
     # hidden layer neg
-    '''
     neuron_hidden_3 = Neuron()
-    synapse_in_3_hidden_3 = Synapse()
-    synapse_in_4_hidden_3 = Synapse()
-    '''
+    synapse_in_3_hidden_3 = Synapse(0)
+    synapse_in_4_hidden_3 = Synapse(0)
 
     # Output Layer
     synapse_hidden_1_output_xor = Synapse(w = 1)
     synapse_hidden_2_output_xor = Synapse(w = 1)
     neuron_output_xor = Neuron()
 
+    neuron_hidden_1.add_out_synapse(synapse_hidden_1_output_xor)
+    neuron_hidden_2.add_out_synapse(synapse_hidden_2_output_xor)
+
+    neuron_output_xor.add_in_synapse(synapse_hidden_1_output_xor)
+    neuron_output_xor.add_in_synapse(synapse_hidden_2_output_xor)
+
     for time in range(100):
-        neuron_in_1_current = 1 if (25 <= time < 50 or 75 <= time < 100) and time % 3 == 0 else 0
-        neuron_in_1.update(neuron_in_1_current, time)
+        neuron_in_1_inject_current = 1 if (25 <= time < 50 or 75 <= time < 100) and time % 3 == 0 else 0
+        neuron_in_1.inject_current(neuron_in_1_inject_current)
+        neuron_in_1.update(time)
 
-        neuron_in_2_current = 1 if (50 <= time < 100) and time % 3 == 0 else 0
-        neuron_in_2.update(neuron_in_2_current, time)
+        neuron_in_2_inject_current = 1 if (50 <= time < 100) and time % 3 == 0 else 0
+        neuron_in_2.inject_current(neuron_in_2_inject_current)
+        neuron_in_2.update(time)
 
-        # Hidden neuron 1
-        synapse_in_1_hidden_1_current = synapse_in_1_hidden_1.get_current()
-        synapse_in_2_hidden_1_current = synapse_in_2_hidden_1.get_current()
-        synapse_in_1_hidden_1.update(neuron_in_1.spike)
-        synapse_in_2_hidden_1.update(neuron_in_2.spike)
-        neuron_hidden_1_current = synapse_in_1_hidden_1_current + synapse_in_2_hidden_1_current
-        neuron_hidden_1.update(neuron_hidden_1_current, time)
+        neuron_hidden_1.update(time)
+        neuron_hidden_2.update(time)
 
-        # Hidden neuron 2
-        synapse_in_1_hidden_2_current = synapse_in_1_hidden_2.get_current()
-        synapse_in_2_hidden_2_current = synapse_in_2_hidden_2.get_current()
-        synapse_in_1_hidden_2.update(neuron_in_1.spike)
-        synapse_in_2_hidden_2.update(neuron_in_2.spike)
-        neuron_hidden_2_current = synapse_in_1_hidden_2_current + synapse_in_2_hidden_2_current
-        neuron_hidden_2.update(neuron_hidden_2_current, time)
-
-        # Output xor
-        synapse_hidden_1_output_xor_current = synapse_hidden_1_output_xor.get_current()
-        synapse_hidden_2_output_xor_current = synapse_hidden_2_output_xor.get_current()
-        synapse_hidden_1_output_xor.update(neuron_hidden_1.spike)
-        synapse_hidden_2_output_xor.update(neuron_hidden_2.spike)
-        neuron_output_xor_current = synapse_hidden_1_output_xor_current + synapse_hidden_2_output_xor_current
-        neuron_output_xor.update(neuron_output_xor_current, time)
+        neuron_output_xor.update(time)
 
     _, ax = plt.subplots(5, sharex='all')
     plt.xlim(0, 100)
