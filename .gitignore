@@ -9,3 +9,5 @@
 **__pycache__**
 **.bin
 **.vscode/settings.json
+**/output/**
+**/outputs/**
