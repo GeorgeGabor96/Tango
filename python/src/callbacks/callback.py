@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 class Callback(ABC):
 
     @abstractmethod
-    def before_run(self, net):
+    def before_example(self, net):
         pass
 
     @abstractmethod
@@ -11,5 +11,5 @@ class Callback(ABC):
         pass
 
     @abstractmethod
-    def after_run(self, net):
+    def after_example(self, net):
         pass

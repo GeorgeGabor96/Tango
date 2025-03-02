@@ -13,8 +13,11 @@ class VoltagePlotCallback(Callback):
         self.n_neurons = 0
         self.max_time = 0
 
-    def before_run(self, net):
+    def before_example(self, net):
+        self.neurons_voltages = []
+        self.max_time = 0
         self.n_neurons = net.get_n_neurons()
+
         for i in range(self.n_neurons):
             self.neurons_voltages.append([])
 
@@ -26,7 +29,7 @@ class VoltagePlotCallback(Callback):
                 neuron_i += 1
         self.max_time = time
 
-    def after_run(self, net):
+    def after_example(self, net):
         _, ax = plt.subplots(self.n_neurons, sharex='all')
         plt.xlim(0, self.max_time)
 
@@ -34,3 +37,7 @@ class VoltagePlotCallback(Callback):
             ax[i].plot(get_times(self.max_time + 1), neuron_voltages)
 
         plt.show()
+
+        plt.cla()
+        plt.clf()
+        plt.close()

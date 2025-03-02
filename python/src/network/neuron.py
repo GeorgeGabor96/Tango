@@ -7,12 +7,17 @@ class Neuron:
 
         self.in_synapses = []
         self.out_synapses = []
+        self.reset()
 
+    def reset(self):
         self.injected_current = 0.0
         self.v = 0.0
         self.last_spike_time = -1
         self.spike = False
         self.spike_times = []
+
+        for synapse in self.in_synapses:
+            synapse.reset()
 
     def add_in_synapse(self, synapse):
         self.in_synapses.append(synapse)

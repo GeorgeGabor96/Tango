@@ -1,4 +1,5 @@
 from network.layer import Layer, link_layers
+from network.weight_init import SynapseWeightInitializer
 
 class Network:
     def __init__(self):
@@ -26,14 +27,14 @@ class Network:
     def add_layer(self, layer):
         self.layers.append(layer)
 
-    def build(self):
+    def build(self, weight_initializer: SynapseWeightInitializer):
         assert len(self.layers) > 0
 
         # assume sequential model for now
         for i in range(len(self.layers) - 1):
             layer_in = self.layers[i]
             layer_out = self.layers[i + 1]
-            link_layers(layer_in, layer_out)
+            link_layers(layer_in, layer_out, weight_initializer)
 
         for layer in self.layers:
             self.n_neurons += len(layer.neurons)
@@ -46,3 +47,7 @@ class Network:
 
         for layer in self.layers:
             layer.update(time)
+
+    def reset(self):
+        for layer in self.layers:
+            layer.reset()

@@ -1,9 +1,9 @@
 from network.network import Network
 from network.layer import Layer
+from network.weight_init import ZeroWeightInitializer
 from callbacks.spike_plot import SpikePlotCallback
 from callbacks.voltage_plot import VoltagePlotCallback
-from datagen.random_data_generator import RandomDataGenerator
-from network.weight_init import UniformWeightInitializer
+from datagen.xor_data_generator import XorDataGenerator
 
 def main():
     in_layer = Layer(4)
@@ -13,17 +13,18 @@ def main():
     net.add_layer(in_layer)
     net.add_layer(hidden_layer)
     net.add_layer(out_layer)
-    net.build(weight_initializer=UniformWeightInitializer())
+    net.build(weight_initializer=ZeroWeightInitializer())
 
     callbacks = [
         SpikePlotCallback(),
-        VoltagePlotCallback()
+        #VoltagePlotCallback()
     ]
 
-    data = RandomDataGenerator()
+    data = XorDataGenerator()
 
-    for example_i in range(10):
+    for example_i in range(3):
         example = data.get_example(example_i)
+        net.reset()
 
         for callback in callbacks:
             callback.before_example(net)
