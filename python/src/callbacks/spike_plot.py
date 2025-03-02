@@ -27,7 +27,7 @@ class SpikePlotCallback(Callback):
                 neuron_i += 1
         self.max_time = time
 
-    def after_example(self, net):
+    def after_example(self, net, winners):
         _, ax = plt.subplots(self.n_neurons, sharex='all')
         plt.xlim(0, self.max_time)
 

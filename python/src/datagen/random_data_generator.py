@@ -12,6 +12,9 @@ class RandomDataExample(DataExample):
         currents = [random.uniform(0, 1) for _ in range(n_currents)]
         return currents
 
+    def get_winners(self, net, time):
+        return []
+
 class RandomDataGenerator(DataGenerator):
     def __init__(self):
         pass

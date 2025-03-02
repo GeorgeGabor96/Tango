@@ -3,12 +3,13 @@ from network.layer import Layer
 from network.weight_init import ZeroWeightInitializer
 from callbacks.spike_plot import SpikePlotCallback
 from callbacks.voltage_plot import VoltagePlotCallback
+from callbacks.net_learn import NetLearnCallback
 from datagen.xor_data_generator import XorDataGenerator
 
 def main():
-    in_layer = Layer(4)
-    hidden_layer = Layer(4)
-    out_layer = Layer(2)
+    in_layer = Layer(4, 'in')
+    hidden_layer = Layer(4, 'hidden')
+    out_layer = Layer(2, 'out')
     net = Network()
     net.add_layer(in_layer)
     net.add_layer(hidden_layer)
@@ -17,12 +18,13 @@ def main():
 
     callbacks = [
         SpikePlotCallback(),
+        NetLearnCallback(),
         #VoltagePlotCallback()
     ]
 
     data = XorDataGenerator()
 
-    for example_i in range(3):
+    for example_i in range(10):
         example = data.get_example(example_i)
         net.reset()
 
@@ -37,8 +39,10 @@ def main():
             for callback in callbacks:
                 callback.update(net, time)
 
+        winners = example.get_winners(net, time)
+
         for callback in callbacks:
-            callback.after_example(net)
+            callback.after_example(net, winners)
 
     print('success')
 

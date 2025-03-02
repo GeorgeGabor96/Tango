@@ -3,8 +3,9 @@ from network.synapse import Synapse
 from network.weight_init import SynapseWeightInitializer
 
 class Layer:
-    def __init__(self, n_neurons):
+    def __init__(self, n_neurons, name):
         self.neurons = [Neuron() for _ in range(n_neurons)]
+        self.name = name
 
     def inject_currents(self, currents):
         assert len(currents) == len(self.neurons)
@@ -26,5 +27,7 @@ def link_layers(layer1, layer2, weight_initializer: SynapseWeightInitializer):
             synapse = Synapse(w = weight_initializer.get_weight())
             neuron1.add_out_synapse(synapse)
             neuron2.add_in_synapse(synapse)
+            synapse.set_in_neuron(neuron1)
+            synapse.set_out_neuron(neuron2)
             n_synapses_created += 1
     return n_synapses_created
