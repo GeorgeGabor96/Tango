@@ -11,5 +11,5 @@ class Callback(ABC):
         pass
 
     @abstractmethod
-    def after_example(self, net, winners):
+    def after_example(self, net, winners, example_i):
         pass

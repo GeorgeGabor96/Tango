@@ -21,7 +21,7 @@ class NetLearnCallback(Callback):
             neuron_i += 1
         self.max_time = time
 
-    def after_example(self, net, winners):
+    def after_example(self, net, winners, example_i):
         self.out_neurons_total_spikes = [0 for i in range(len(self.out_neurons_spike_times))]
         for i in range(len(self.out_neurons_spike_times)):
             self.out_neurons_total_spikes[i] = len(self.out_neurons_spike_times[i])
@@ -43,6 +43,8 @@ class NetLearnCallback(Callback):
 
                 if i == true_winner:
                     self.increase_weights_on_paths_for_neuron(net, i)
+                else:
+                    self.decrease_weights_on_paths_for_neruon(net, i)
         self.show_weights(net)
 
     def increase_weights_on_paths_for_neuron(self, net, i):
@@ -55,7 +57,21 @@ class NetLearnCallback(Callback):
 
             for synapse in neuron.in_synapses:
                 synapse.w += 0.1
-                synapse.w = min(1, synapse.w) # cap at one
+                synapse.w = min(1, synapse.w) # cap at 1
+
+                neurons_queue.append(synapse.in_neuron)
+
+    def decrease_weights_on_paths_for_neruon(self, net, i):
+        neuron = net.get_out_layer().neurons[i]
+
+        neurons_queue = [neuron]
+
+        while len(neurons_queue) > 0:
+            neuron = neurons_queue.pop(0)
+
+            for synapse in neuron.in_synapses:
+                synapse.w -= 0.1
+                synapse.w = max(-1, synapse.w) # cannot go lower than -1
 
                 neurons_queue.append(synapse.in_neuron)
 

@@ -4,10 +4,12 @@ class Synapse:
 
         self.in_neuron = None
         self.out_neuron = None
+        self.w_changed = False
         self.reset()
 
     def reset(self):
         self.conductance = 0.0
+        self.w_changed = False
 
     def set_in_neuron(self, neuron):
         self.in_neuron = neuron
