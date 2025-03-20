@@ -1,9 +1,13 @@
 
+from numba import jit
+
 class Neuron:
     def __init__(self, tag = ''):
         self.tag = tag
         self.th = 1.0
         self.rest = 0.0
+        self.spike = False
+        self.spike_times = []
 
         self.in_synapses = []
         self.out_synapses = []

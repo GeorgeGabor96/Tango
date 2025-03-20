@@ -26,8 +26,10 @@ class WeightHistCallback(Callback):
 
         plt.hist(self.weights)
         plt.title(f'{example_i}')
-        plt.show()
+
+        plt.show(block=False)
+        plt.pause(1)
+        plt.close()
 
         plt.cla()
         plt.clf()
-        plt.close()

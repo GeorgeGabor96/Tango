@@ -6,12 +6,12 @@ from callbacks.voltage_plot import VoltagePlotCallback
 from callbacks.net_learn import NetLearnCallback
 from callbacks.stdp import StdpCallback, StdpWithHistoryCallback
 from callbacks.weight_hist import WeightHistCallback
-from datagen.xor_data_generator import XorDataGenerator
+from datagen.mnist_generator import MnistSmallDataLoader
 
 def main():
-    in_layer = Layer(4, 'in')
-    hidden_layer = Layer(4, 'hidden')
-    out_layer = Layer(2, 'out')
+    in_layer = Layer(28*28, 'in')
+    hidden_layer = Layer(100, 'hidden')
+    out_layer = Layer(10, 'out')
     net = Network()
     net.add_layer(in_layer)
     net.add_layer(hidden_layer)
@@ -19,15 +19,15 @@ def main():
     net.build(weight_initializer=UniformWeightInitializer())
 
     callbacks = [
-        WeightHistCallback(),
-        #SpikePlotCallback(),
+        #WeightHistCallback(),
+        SpikePlotCallback(),
         #StdpCallback(),
-        StdpWithHistoryCallback(),
+        #StdpWithHistoryCallback(),
         #NetLearnCallback(),
         #VoltagePlotCallback()
     ]
 
-    data = XorDataGenerator()
+    data = MnistSmallDataLoader()
 
     for example_i in range(100):
         example = data.get_example(example_i)

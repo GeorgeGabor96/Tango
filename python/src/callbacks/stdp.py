@@ -19,10 +19,8 @@ class StdpCallback(Callback):
                 for synapse in neuron.in_synapses:
                     self.update_synapse_w(synapse)
 
-
     def after_example(self, net, winners, example_i):
         pass
-
 
     def update_synapse_w(self, synapse):
         if synapse.w_changed:
@@ -54,4 +52,37 @@ class StdpCallback(Callback):
         synapse.w_changed = True
         return
 
-    # TODO: try with full history?
+class StdpWithHistoryCallback(Callback):
+    def __init__(self):
+        pass
+
+    def before_example(self, net):
+        pass
+
+    def update(self, net, time):
+        pass
+
+    def after_example(self, net, winners, example_i):
+        for layer in net.layers:
+            for neuron in layer.neurons:
+
+                # process only input synapses
+                for synapse in neuron.in_synapses:
+                    in_neuron = synapse.in_neuron
+                    out_neruon = synapse.out_neuron
+
+                    in_neuron_spike_times = in_neuron.spike_times
+                    out_neuron_spike_times = out_neruon.spike_times
+
+                    dw = 0
+                    for in_spike_time in in_neuron_spike_times:
+                        for out_spike_time in out_neuron_spike_times:
+                            if in_spike_time > out_spike_time:
+                                dt = in_spike_time - out_spike_time
+                                dw += -0.01 * math.exp(dt / 20)
+                            else:
+                                dt = out_spike_time - in_spike_time
+                                dw += 0.01 * math.exp(dt / 20)
+
+                    synapse.w += dw
+                    synapse.w = min(max(synapse.w, -1), 1)

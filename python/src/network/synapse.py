@@ -1,3 +1,5 @@
+from numba import jit
+
 class Synapse:
     def __init__(self, w):
         self.w = w
@@ -18,6 +20,8 @@ class Synapse:
         self.out_neuron = neuron
 
     def update(self, spike):
+        self.conductance = synapse_update(self.conductance, spike)
+        return
         if spike == True:
             self.conductance += 1.0
         else:
@@ -29,3 +33,14 @@ class Synapse:
     def get_current(self):
         c = self.w * self.conductance
         return c
+
+@jit
+def synapse_update(conductance, spike):
+    if spike == True:
+        conductance += 1.0
+    else:
+        if conductance < 0.01:
+            conductance == 0
+        else:
+            conductance *= 0.5
+    return conductance

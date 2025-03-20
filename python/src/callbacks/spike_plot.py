@@ -37,8 +37,9 @@ class SpikePlotCallback(Callback):
         for i, neuron_spike_times in enumerate(self.neurons_spike_times):
             ax[i].scatter(neuron_spike_times, get_spikes_for_times(neuron_spike_times), marker='|')
 
-        plt.show()
+        plt.show(block=False)
+        plt.pause(1)
+        plt.close()
 
         plt.cla()
         plt.clf()
-        plt.close()

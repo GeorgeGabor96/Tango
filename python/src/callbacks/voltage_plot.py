@@ -36,8 +36,9 @@ class VoltagePlotCallback(Callback):
         for i, neuron_voltages in enumerate(self.neurons_voltages):
             ax[i].plot(get_times(self.max_time + 1), neuron_voltages)
 
-        plt.show()
+        plt.show(block=False)
+        plt.pause(1)
+        plt.close()
 
         plt.cla()
         plt.clf()
-        plt.close()

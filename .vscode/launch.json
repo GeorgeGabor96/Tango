@@ -44,6 +44,16 @@
             "cwd": "${workspaceFolder}/bin/crazy",
             "environment": [],
             "console":"newExternalWindow",
-        }
+        },
+        {
+            "name": "Debug XOR",
+            "console": "integratedTerminal",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "D:/repos/Tango/python/src/xor_exp.py",
+            "cwd": "D:/repos/Tango/python/src/",
+            "python": "C:/Users/gabor/anaconda3/envs/neuro/python.exe",
+            "args": []
+        },
     ]
 }
