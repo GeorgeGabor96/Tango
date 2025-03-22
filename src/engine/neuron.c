@@ -46,7 +46,6 @@ _neuron_cls_create(Memory* memory, String* name) {
 
     neuron_cls->name = name;
     neuron_cls->type = NEURON_INVALID;
-    neuron_cls->allow_learning = FALSE;
 
     return neuron_cls;
 

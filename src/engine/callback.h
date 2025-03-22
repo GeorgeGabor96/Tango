@@ -82,6 +82,8 @@ typedef struct SynapticRescale {
 ****************************/
 typedef struct STDPv1 {
     Network* network;
+    u8* cooldown;
+    u8 cooldown_value;
 } STDPv1;
 
 /**********************
@@ -270,7 +272,8 @@ internal void callback_synaptic_rescale_end_sample(
 *************************/
 internal Callback* callback_stdp_v1_create(
     Memory* memory,
-    Network* network);
+    Network* network,
+    u8 cooldown_value);
 
 
 internal void callback_stdp_v1_begin_sample(

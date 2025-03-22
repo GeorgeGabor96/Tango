@@ -280,9 +280,6 @@ internal void network_set_learning(Network* network, b32 value) {
     check(network != NULL, "network is NULL");
     check(value == FALSE || value == TRUE, "invalid value for b32 %d", value);
 
-    for (NetworkNeuronClsLink* link = network->neuron_classes; link != NULL; link = link->next) {
-        link->cls->allow_learning = value;
-    }
     for (NetworkSynapseClsLink* link = network->synapse_classes; link != NULL; link = link->next) {
         link->cls->learning_info.enable = value;
     }

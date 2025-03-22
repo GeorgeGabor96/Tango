@@ -2,15 +2,15 @@
 
 
 int main() {
-    Experiment* exp = experiment_create(0, 723104, "D:\\repos\\Tango\\outputs\\142_no_learning");
+    Experiment* exp = experiment_create(0, 723104, "D:\\repos\\Tango\\outputs\\142");
 
     Memory* memory = exp->permanent_memory;
 
     //DataGen* spike_train_data = data_gen_create_spike_train(memory, 300, "d:/datasets/MNIST/encoding_10_imgs", "d:/datasets/MNIST/encoding_10_imgs/samples.txt", 230, 10);
-    DataGen* spike_train_data = data_gen_create_spike_pulses(memory, exp->random, 3, 200, 30, 30, 40, 0.05f, 0.001f);
+    DataGen* spike_train_data = data_gen_create_spike_pulses(memory, exp->random, 100, 200, 30, 30, 40, 0.05f, 0.001f);
 
     Network* net = network_create(memory);
-    NeuronCls* n_cls = neuron_cls_create_if_refract(memory, string_create(memory, "if"), 50);
+    NeuronCls* n_cls = neuron_cls_create_if_refract(memory, string_create(memory, "if"), 10);
     //NeuronCls* n_cls_inhi = neuron_cls_create_if_refract(memory, string_create(memory, "if_inhi"), 50);
 
     Layer* in = layer_create(memory, string_create(memory, "in"), LAYER_DENSE, 100, n_cls);
@@ -34,10 +34,10 @@ int main() {
     //network_add_synapse_cls(net, s_cls_inhi, memory);
 
     //synapse_cls_add_learning_rule_exponential(s_cls, 0.0f, 2.0f, 0.2f, -0.7f, 50);
-    synapse_cls_add_learning_rule_step(s_cls, -1.0f, 1.0f, 50, 0.1f, 50, -0.1f);
+    synapse_cls_add_learning_rule_step(s_cls, -1.0f, 1.0f, 20, 0.1f, 20, -0.1f);
 
-    layer_link(hidden, in, s_cls, 0.0f, 1.0f, 0.1f, memory);
-    layer_link(out, hidden, s_cls, 0.0f, 1.0f, 0.1f, memory);
+    layer_link(hidden, in, s_cls, -1.0f, 1.0f, 1.0f, memory);
+    layer_link(out, hidden, s_cls, -1.0f, 1.0f, 1.0f, memory);
 
     //layer_link(hidden_inhi, hidden, s_cls_exci_fast, 0.01f, 0.2f, 0.2f, memory);
     //layer_link(hidden, hidden_inhi, s_cls_inhi, 0.01f, 0.2f, 0.1f, memory);
@@ -58,9 +58,9 @@ int main() {
     Callback* cb_meta = callback_meta_dumper_create(memory, exp->output_folder, net);
     Callback* cb_spikes = callback_spikes_dumper_create(memory, exp->output_folder, net);
     Callback* cb_weights = callback_weights_dumper_create(memory, 1, 100, exp->output_folder, net);
-    Callback* cb_rescale = callback_synaptic_rescale_create(memory, net, 20000); // add 10000 because we added inhi
+    //Callback* cb_rescale = callback_synaptic_rescale_create(memory, net, 20000); // add 10000 because we added inhi
     Callback* cb_data = callback_network_data_dumper_create(memory, exp->output_folder, net);
-    Callback* stdp_v1 = callback_stdp_v1_create(memory, net);
+    Callback* stdp_v1 = callback_stdp_v1_create(memory, net, 30);
 
     experiment_set_network(exp, net);
     experiment_set_data_gen(exp, spike_train_data);
@@ -72,7 +72,8 @@ int main() {
     //experiment_add_callback(exp, cb_rescale);
     experiment_add_callback(exp, stdp_v1);
 
-    experiment_set_learning(exp, FALSE);
+    experiment_set_learning(exp, TRUE);
+
     experiment_run(exp);
 
     experiment_destroy(exp);
