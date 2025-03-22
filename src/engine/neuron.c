@@ -285,24 +285,6 @@ _neuron_update_out_synapses(Neuron* neuron, u32 time) {
     }
 }
 
-internal void
-_neuron_potentiate_in_synapses(Neuron* neuron, u32 time) {
-    u32 in_spike_time = 0;
-    u32 out_spike_time = 0;
-    u32 synapse_i = 0;
-    Synapse* synapse = NULL;
-    SynapseRefArray* it = NULL;
-
-    if (neuron->spike == FALSE) return;
-
-    // NOTE: potentiate the synapses that spiked close the when the neuron did
-    for (it = neuron->in_synapse_arrays; it != NULL; it = it->next) {
-        for (synapse_i = 0; synapse_i < it->length; ++synapse_i) {
-            synapse = it->synapses[synapse_i];
-            synapse_potentiation(synapse, neuron->last_spike_time);
-        }
-    }
-}
 
 internal void
 neuron_step(Neuron* neuron, u32 time) {
@@ -313,10 +295,6 @@ neuron_step(Neuron* neuron, u32 time) {
     f32 psc = _neuron_compute_psc(neuron, time);
     _neuron_update(neuron, time, psc);
     _neuron_update_out_synapses(neuron, time);
-    // TODO:
-    if (neuron->cls->allow_learning == TRUE) {
-        _neuron_potentiate_in_synapses(neuron, time);
-    }
 
     TIMING_COUNTER_END(NEURON_STEP);
 
@@ -336,10 +314,6 @@ neuron_step_force_spike(Neuron* neuron, u32 time) {
     neuron->last_spike_time = time;
     neuron->voltage = NEURON_VOLTAGE_REST[neuron->cls->type];
     _neuron_update_out_synapses(neuron, time);
-    // TODO:
-    if (neuron->cls->allow_learning == TRUE) {
-        _neuron_potentiate_in_synapses(neuron, time);
-    }
 
     TIMING_COUNTER_END(NEURON_STEP_FORCE_SPIKE);
 
@@ -357,10 +331,6 @@ neuron_step_inject_current(Neuron* neuron, f32 psc, u32 time) {
     psc = _neuron_compute_psc(neuron, time) + psc;
     _neuron_update(neuron, time, psc);
     _neuron_update_out_synapses(neuron, time);
-    // TODO: can't I just do the learning fully in the synapse??????
-    if (neuron->cls->allow_learning == TRUE) {
-        _neuron_potentiate_in_synapses(neuron, time);
-    }
 
     TIMING_COUNTER_END(NEURON_STEP_INJECT_CURRENT);
 

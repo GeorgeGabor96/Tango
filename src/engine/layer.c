@@ -407,8 +407,8 @@ layer_link(Layer* layer, Layer* in_layer, SynapseCls* cls,
     check(layer != NULL, "layer is NULL");
     check(in_layer != NULL, "input_layer is NULL");
     check(cls != NULL, "cls is NULL");
-    check(min_weight >= 0.0f, "min_weight %f should be positive", min_weight);
-    check(max_weight >= 0.0f, "max_weight %f should be positive", max_weight);
+    //check(min_weight >= 0.0f, "min_weight %f should be positive", min_weight);
+    //check(max_weight >= 0.0f, "max_weight %f should be positive", max_weight);
     check(min_weight <= max_weight, "min_weight %f > max_weight %f", min_weight, max_weight);
     check(synapse_chance >= 0.0f && synapse_chance <= 1.0f, "synapse_chance should be in [0, 1]");
     check(memory != NULL, "memory is NULL");

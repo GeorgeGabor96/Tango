@@ -48,8 +48,8 @@ synapse_cls_add_learning_rule_step(SynapseCls* cls,
                                    u32 max_time_p, f32 amp_p,
                                    u32 max_time_d, f32 amp_d) {
     check(cls != NULL, "cls is NULL");
-    check(min_w >= 0, "synapse weights should be positive. min_weight %f", min_w);
-    check(max_w >= 0, "synapse weights should be positive. max_weight %f", max_w);
+    //check(min_w >= 0, "synapse weights should be positive. min_weight %f", min_w);
+    //check(max_w >= 0, "synapse weights should be positive. max_weight %f", max_w);
     check(min_w <= max_w, "min_w %f > max_w %f", min_w, max_w);
     LearningInfo* info = &(cls->learning_info);
     info->type = SYNAPSE_LEARNING_STEP;
@@ -158,7 +158,7 @@ synapse_init(Synapse* synapse, SynapseCls* cls, f32 weight) {
     check(cls != NULL, "cls is NULL");
     // NOTE: the weight should be positive because the inhibition or excitation is driven by the reversal potential
     // NOTE: not the weight
-    check(weight >= 0.0f, "weight is negative");
+    //check(weight >= 0.0f, "weight is negative");
 
     synapse->cls = cls;
     synapse->weight = weight;
@@ -241,9 +241,6 @@ synapse_step(Synapse* synapse, u32 time) {
         synapse->last_spike_time = time;
         // NOTE: The spike arrived at the synapse, if the neuron spike before this,
         // need to reduce strength of this synapse
-        if (synapse->cls->learning_info.enable == TRUE) {
-            synapse_depression(synapse, synapse->out_neuron->last_spike_time);
-        }
     } else {
         // NOTE: conductance should always be positive
         // NOTE: clip the conductance if its too low
@@ -273,99 +270,6 @@ synapse_clear(Synapse* synapse) {
     synapse->spike = FALSE;
     synapse->last_spike_time = INVALID_SPIKE_TIME;
     synapse->spike_queue = 0;
-
-    error:
-    return;
-}
-
-
-internal void
-synapse_potentiation(Synapse* synapse, u32 neuron_spike_time) {
-    // NOTE: it considers the time difference between the moment the synapse prosessed the spike
-    // (the pre-spike travelled the axon and reached the synapse) and the time the post-neuron spiked.
-    // The axonal dealy doesn't matter
-    check(synapse != NULL, "synapse is NULL");
-
-    SynapseCls* cls = synapse->cls;
-
-    // NOTE: if learning not enabled then nothing to do
-    if (cls->learning_info.enable == FALSE) return;
-
-    u32 synapse_spike_time = synapse->last_spike_time;
-
-    // NOTE: The post_neuron spiked, the synapse should have also spiked to be able to do something
-    if (synapse_spike_time == INVALID_SPIKE_TIME) return;
-    // NOTE: if the neuron spike and the synapse spiked at the same moment, the effect of the synapse appears at the next step
-    if (neuron_spike_time == synapse_spike_time) return;
-    check(neuron_spike_time > synapse_spike_time,
-          "post neuron time %u should be at least the synapse time %u",
-          neuron_spike_time, synapse_spike_time);
-
-    u32 dt = neuron_spike_time - synapse_spike_time;
-    f32 dw = 0.0f;
-
-    LearningInfo* learning_info = &(cls->learning_info);
-    if (learning_info->type == SYNAPSE_LEARNING_NO_LEARNING) {
-        dw = 0;
-    } else if (learning_info->type == SYNAPSE_LEARNING_EXPONENTIAL) {
-        SynapseLearningExponential* rule = &(learning_info->stdp_exponential);
-        dw = rule->A * math_exp_f32(-(f32)dt / rule->tau);
-    } else if (learning_info->type == SYNAPSE_LEARNING_STEP) {
-        SynapseLearningStep* rule = &(learning_info->stdp_step);
-        if (dt <= rule->max_time_p) dw = rule->amp_p;
-    } else {
-        log_error("Unkown Synapse Learning Rule %s (%u)",
-        synapse_learning_rule_get_c_str(learning_info->type),
-        learning_info->type);
-    }
-
-    synapse->weight = math_clip_f32(synapse->weight + dw, learning_info->min_w, learning_info->max_w);
-    error:
-    return;
-}
-
-
-internal void
-synapse_depression(Synapse* synapse, u32 neuron_spike_time) {
-    // NOTE: it considers the time difference between the moment the synapse prosessed the spike
-    // (the pre-spike travelled the axon and reached the synapse) and the time the post-neuron spiked.
-    // The axonal dealy doesn't matter
-    check(synapse != NULL, "synapse is NULL");
-
-    SynapseCls* cls = synapse->cls;
-
-    // NOTE: if learning not enabled then nothing to do
-    if (cls->learning_info.enable == FALSE) return;
-
-    u32 synapse_spike_time = synapse->last_spike_time;
-
-    // NOTE: the synapse spiked, the post neuron should have also spiked to be able to do something
-    if (neuron_spike_time == INVALID_SPIKE_TIME) return;
-    // NOTE: if the neuron spike and the synapse spiked at the same moment, the effect of the synapse appears at the next step
-    if (neuron_spike_time == synapse_spike_time) return;
-    check(synapse_spike_time > neuron_spike_time,
-          "synapse_spike_time %u should be at most the neuron_spike-time %u",
-          synapse_spike_time, neuron_spike_time);
-
-    u32 dt = synapse_spike_time - neuron_spike_time;
-    u32 dw = 0.0f;
-
-    LearningInfo* learning_info = &(cls->learning_info);
-    if (learning_info->type == SYNAPSE_LEARNING_NO_LEARNING) {
-        dw = 0.0f;
-    } else if (learning_info->type == SYNAPSE_LEARNING_EXPONENTIAL) {
-        SynapseLearningExponential* rule = &(learning_info->stdp_exponential);
-        dw = rule->B * math_exp_f32(-(f32)dt / rule->tau);
-    } else if (learning_info->type == SYNAPSE_LEARNING_STEP) {
-        SynapseLearningStep* rule = &(learning_info->stdp_step);
-        if (dt <= rule->max_time_d) dw = rule->amp_d;
-    } else {
-        log_error("Unkown Synapse Learning Rule %s (%u)",
-        synapse_learning_rule_get_c_str(learning_info->type),
-        learning_info->type);
-    }
-
-    synapse->weight = math_clip_f32(synapse->weight + dw, learning_info->min_w, learning_info->max_w);
 
     error:
     return;

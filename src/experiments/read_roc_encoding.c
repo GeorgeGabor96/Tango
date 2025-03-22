@@ -2,7 +2,7 @@
 
 
 int main() {
-    Experiment* exp = experiment_create(4, 723104, "D:\\repos\\Tango\\outputs\\127-catch-up-with-current-state");
+    Experiment* exp = experiment_create(4, 723104, "D:\\repos\\Tango\\outputs\\127-catch-up-with-current-state_verify");
 
     Memory* memory = exp->permanent_memory;
 
@@ -64,6 +64,7 @@ int main() {
 
     experiment_set_network(exp, net);
     experiment_set_data_gen(exp, spike_train_data);
+
     experiment_add_callback(exp, cb_meta);
     experiment_add_callback(exp, cb_spikes);
     experiment_add_callback(exp, cb_weights);
@@ -71,7 +72,7 @@ int main() {
     //experiment_add_callback(exp, cb_rescale);
     experiment_add_callback(exp, stdp_v1);
 
-    experiment_set_learning(exp, TRUE);
+    experiment_set_learning(exp, FALSE);
     experiment_run(exp);
 
     experiment_destroy(exp);
