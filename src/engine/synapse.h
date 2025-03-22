@@ -116,7 +116,4 @@ internal void synapse_step(Synapse* synapse, u32 time);
 
 internal void synapse_clear(Synapse* synapse);
 
-internal void synapse_potentiation(Synapse* synapse, u32 neuron_spike_time);
-internal void synapse_depression(Synapse* synapse, u32 neuron_spike_time);
-
 #endif // __SYNAPSE_H__

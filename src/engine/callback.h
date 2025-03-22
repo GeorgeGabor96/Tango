@@ -77,6 +77,15 @@ typedef struct SynapticRescale {
 } SynapticRescale;
 
 
+/****************************
+* Callback STDP V1
+****************************/
+typedef struct STDPv1 {
+    Network* network;
+    u8* cooldown;
+    u8 cooldown_value;
+} STDPv1;
+
 /**********************
 * Callback definitions
 **********************/
@@ -86,6 +95,7 @@ typedef enum {
     CALLBACK_SPIKES_DUMPER = 2,
     CALLBACK_WEIGHTS_DUMPER = 3,
     CALLBACK_SYNAPTIC_RESCALE = 4,
+    CALLBACK_STDP_V1 = 5,
 
     CALLBACK_INVALID,
 } CallbackType;
@@ -102,6 +112,7 @@ typedef struct Callback {
         DumperSpikes dumper_spikes;
         DumperWeights dumper_weights;
         SynapticRescale synaptic_rescale;
+        STDPv1 stdp_v1;
     };
 } Callback, *CallbackP;
 
@@ -252,6 +263,32 @@ internal void callback_synaptic_rescale_update(
 
 
 internal void callback_synaptic_rescale_end_sample(
+    Callback* callback,
+    Memory* memory);
+
+
+/*************************
+* Callback STDP V1
+*************************/
+internal Callback* callback_stdp_v1_create(
+    Memory* memory,
+    Network* network,
+    u8 cooldown_value);
+
+
+internal void callback_stdp_v1_begin_sample(
+    Callback* callback,
+    DataSample* sample,
+    Memory* memory);
+
+
+internal void callback_stdp_v1_update(
+    Callback* callback,
+    u32 time,
+    Memory* memory);
+
+
+internal void callback_stdp_v1_end_sample(
     Callback* callback,
     Memory* memory);
 

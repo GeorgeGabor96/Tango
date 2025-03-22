@@ -10,6 +10,8 @@ callback_type_get_c_str(CallbackType type) {
         return "CALLBACK_WEIGHTS_DUMPER";
     if (type == CALLBACK_SYNAPTIC_RESCALE)
         return "CALLBACK_SYNAPTIC_RESCALE";
+    if (type == CALLBACK_STDP_V1)
+        return "CALLBACK_STDP_V1";
     return "CALLBACK_INVALID";
 }
 
@@ -32,6 +34,8 @@ callback_begin_sample(Callback* callback,
         callback_weights_dumper_begin_sample(callback, sample, memory);
     } else if (callback->type == CALLBACK_SYNAPTIC_RESCALE) {
         callback_synaptic_rescale_begin_sample(callback, sample, memory);
+    } else if (callback->type == CALLBACK_STDP_V1) {
+        callback_stdp_v1_begin_sample(callback, sample, memory);
     } else {
         log_error("Unknown callback type %u (%s)",
                   callback->type,
@@ -58,6 +62,8 @@ callback_update(Callback* callback, u32 time, Memory* memory) {
         callback_weights_dumper_update(callback, time, memory);
     } else if (callback->type == CALLBACK_SYNAPTIC_RESCALE) {
         callback_synaptic_rescale_update(callback, time, memory);
+    } else if (callback->type == CALLBACK_STDP_V1) {
+        callback_stdp_v1_update(callback, time, memory);
     } else {
         log_error("Unknown callback type %u (%s)",
                   callback->type,
@@ -84,6 +90,8 @@ callback_end_sample(Callback* callback, Memory* memory) {
         callback_weights_dumper_end_sample(callback, memory);
     } else if (callback->type == CALLBACK_SYNAPTIC_RESCALE) {
         callback_synaptic_rescale_end_sample(callback, memory);
+    } else if (callback->type == CALLBACK_STDP_V1) {
+        callback_stdp_v1_end_sample(callback, memory);
     } else {
         log_error("Unknown callback type %u (%s)",
                   callback->type,
