@@ -8,6 +8,7 @@ typedef enum {
     DATA_GEN_RANDOM_SPIKES,
     DATA_GEN_SPIKE_PULSES,
     DATA_GEN_SPIKE_TRAIN,
+    DATA_GEN_BASIC_EXPERIMENT,
 } DataGenType;
 
 
@@ -29,13 +30,17 @@ typedef struct DataGenSpikePulses {
     f32 between_pulses_spike_chance;
 } DataGenSpikePulses;
 
-
 typedef struct DataGenSpikeTrain {
     StringNode* first_file_name;
     StringNode* current_sample;
     String* encodings_path;
     u32 max_time_to_use_from_train;
 } DataGenSpikeTrain;
+
+typedef struct DataGenBasicExperiment {
+    Random* random;
+    f32 spike_chance;
+} DataGenBasicExperiment;
 
 
 typedef struct DataGen {
@@ -50,6 +55,7 @@ typedef struct DataGen {
         DataGenRandomSpikes random_spikes;
         DataGenSpikePulses spike_pulses;
         DataGenSpikeTrain spike_train;
+        DataGenBasicExperiment basic_exp;
     };
 } DataGen;
 
@@ -58,11 +64,13 @@ internal DataGen* data_gen_create_constant_current(Memory* memory,
                                                    f32 value,
                                                    u32 n_samples,
                                                    u32 sample_duration);
+
 internal DataGen* data_gen_create_random_spikes(Memory* memory,
                                                 Random* random,
                                                 f32 chance,
                                                 u32 n_samples,
                                                 u32 sample_duration);
+
 internal DataGen* data_gen_create_spike_pulses(Memory* memory,
                                                Random* random,
                                                u32 n_samples,
@@ -72,6 +80,7 @@ internal DataGen* data_gen_create_spike_pulses(Memory* memory,
                                                u32 between_pulses_duration,
                                                f32 pulse_spike_chance,
                                                f32 between_pulses_spike_chance);
+
 internal DataGen* data_gen_create_spike_train(Memory* memory,
                                               u32 duration,
                                               const char* encodings_path,
@@ -79,12 +88,18 @@ internal DataGen* data_gen_create_spike_train(Memory* memory,
                                               u32 max_time_to_use_from_train, // DEFAULT 0
                                               u32 n_samples);   // DEFAULT 0
 
+internal DataGen* data_gen_create_basic_experiment(Memory* memory,
+                                                   Random* random,
+                                                   f32 spike_chance,
+                                                   u32 n_samples);
+
 typedef enum {
     DATA_SAMPLE_INVALID,
     DATA_SAMPLE_RANDOM_SPIKES,
     DATA_SAMPLE_CONSTANT_CURRENT,
     DATA_SAMPLE_SPIKE_PULSES,
     DATA_SAMPLE_SPIKE_TRAIN,
+    DATA_SAMPLE_BASIC_EXPERIMENT,
 } DataSampleType;
 
 
@@ -98,6 +113,9 @@ typedef struct DataSampleSpikeTrain {
     SpikeTrain* spikes;
 } DataSampleSpikeTrain;
 
+typedef struct DataSampleBasicExperiment {
+    f32 spike_chance;
+} DataSampleBasicExperiment;
 
 typedef struct DataSample {
     DataSampleType type;
@@ -111,9 +129,9 @@ typedef struct DataSample {
         void* const_current;
         DataSampleSpikePulses spike_pulses;
         DataSampleSpikeTrain spike_train;
+        DataSampleBasicExperiment basic_exp;
     };
 } DataSample;
-
 
 internal DataSample* data_gen_sample_create(Memory* memory, DataGen* data, u32 idx);
 
