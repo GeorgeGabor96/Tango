@@ -80,15 +80,34 @@ _callback_stdp_v1_synapse_update(Synapse* synapse)
     {
         u32 dt = out_neuron_spike_time - synapse_spike_time;
 
-        if (learning_info->type == SYNAPSE_LEARNING_NO_LEARNING) {
+        if (learning_info->type == SYNAPSE_LEARNING_NO_LEARNING)
+        {
             dw = 0;
-        } else if (learning_info->type == SYNAPSE_LEARNING_EXPONENTIAL) {
+        }
+        else if (learning_info->type == SYNAPSE_LEARNING_EXPONENTIAL)
+        {
             SynapseLearningExponential* rule = &(learning_info->stdp_exponential);
             dw = rule->A * math_exp_f32(-(f32)dt / rule->tau);
-        } else if (learning_info->type == SYNAPSE_LEARNING_STEP) {
+        }
+        else if (learning_info->type == SYNAPSE_LEARNING_STEP)
+        {
             SynapseLearningStep* rule = &(learning_info->stdp_step);
             if (dt <= rule->max_time_p) dw = rule->amp_p;
-        } else {
+        }
+        else if (learning_info->type == SYNAPSE_LEARNING_RSTDP_EXPONENTIAL)
+        {
+            SynapseLearningRSTDPExpeonential* rule = &(learning_info->r_stdp_exponential);
+            if (reward)
+            {
+                dw = rule->reward_potentiation_factor * synapse->weight * (1 - synapse->weight);
+            }
+            else
+            {
+                dw = rule->punishment_potentiation_factor * synapse->weight * (1 - synapse->weight);
+            }
+        }
+        else
+        {
             log_error("Unkown Synapse Learning Rule %s (%u)",
             synapse_learning_rule_get_c_str(learning_info->type),
             learning_info->type);
@@ -100,15 +119,34 @@ _callback_stdp_v1_synapse_update(Synapse* synapse)
     {
         u32 dt = synapse_spike_time - out_neuron_spike_time;
 
-        if (learning_info->type == SYNAPSE_LEARNING_NO_LEARNING) {
+        if (learning_info->type == SYNAPSE_LEARNING_NO_LEARNING)
+        {
             dw = 0.0f;
-        } else if (learning_info->type == SYNAPSE_LEARNING_EXPONENTIAL) {
+        }
+        else if (learning_info->type == SYNAPSE_LEARNING_EXPONENTIAL)
+        {
             SynapseLearningExponential* rule = &(learning_info->stdp_exponential);
             dw = rule->B * math_exp_f32(-(f32)dt / rule->tau);
-        } else if (learning_info->type == SYNAPSE_LEARNING_STEP) {
+        }
+        else if (learning_info->type == SYNAPSE_LEARNING_STEP)
+        {
             SynapseLearningStep* rule = &(learning_info->stdp_step);
             if (dt <= rule->max_time_d) dw = rule->amp_d;
-        } else {
+        }
+        else if (learning_info->type == SYNAPSE_LEARNING_RSTDP_EXPONENTIAL)
+        {
+            SynapseLearningRSTDPExpeonential* rule = &(learning_info->r_stdp_exponential);
+            if (reward)
+            {
+                dw = rule->reward_depression_factor * synapse->weight * (1 - synapse->weight);
+            }
+            else
+            {
+                dw = rule->punishment_depression_factor * synapse->weight * (1 - synapse->weight);
+            }
+        }
+        else
+        {
             log_error("Unkown Synapse Learning Rule %s (%u)",
             synapse_learning_rule_get_c_str(learning_info->type),
             learning_info->type);
