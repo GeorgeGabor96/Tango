@@ -62,15 +62,15 @@ func CreatePlots(meta *experiment.Meta, sampleName string) {
 
 	data, err := experiment.BuildData(meta, sampleName)
 	if err == nil {
-		plotting.SynapseConductancePlot(meta, data, 1000)
-		plotting.SynapseWeightPlot(meta, data, 1000)
-		plotting.SynapsesHistPlot(meta, data, 1000)
+		plotting.SynapseConductancePlot(meta, data, 200)
+		plotting.SynapseWeightPlot(meta, data, 200)
+		plotting.SynapsesHistPlot(meta, data, 200)
 
-		plotting.NeuronVoltagePlot(meta, data, 1000)
-		plotting.NeuronSpikesPlot(meta, data, 1000)
-		plotting.NeuronPscPlot(meta, data, 1000)
-		plotting.NeuronEpscPlot(meta, data, 1000)
-		plotting.NeuronIpscPlot(meta, data, 1000)
+		plotting.NeuronVoltagePlot(meta, data, 200)
+		plotting.NeuronSpikesPlot(meta, data, 200)
+		plotting.NeuronPscPlot(meta, data, 200)
+		plotting.NeuronEpscPlot(meta, data, 200)
+		plotting.NeuronIpscPlot(meta, data, 200)
 	}
 
 	spikes, err := experiment.BuildSpikes(meta, sampleName)

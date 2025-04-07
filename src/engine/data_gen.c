@@ -186,7 +186,31 @@ data_gen_create_basic_experiment(Memory* memory, Random* random, f32 spike_chanc
     return NULL;
 }
 
+internal DataGen*
+data_gen_create_background_activity(Memory* memory, Random* random, f32 spike_chance_input, f32 spike_chance_background, u32 n_samples, u32 sample_duration)
+{
+    check(memory != NULL, "memory is NULL");
+    check(random != NULL, "random is NULL");
+    check(spike_chance_input >= 0.0f, "spike_chance_input < 0");
+    check(spike_chance_input <= 1.0f, "spike_chance_input > 1 ");
+    check(spike_chance_input >= 0.0f, "spike_chance_input < 0");
+    check(spike_chance_input <= 1.0f, "spike_chance_input > 1");
 
+    DataGen* data = (DataGen*) memory_push(memory, sizeof(*data));
+    check_memory(data);
+
+    data->type = DATA_GEN_BACKGROUND_ACTIVITY;
+    data->n_samples = n_samples;
+    data->sample_i = 0;
+    data->sample_duration = sample_duration;
+    data->background_activity.random = random;
+    data->background_activity.chance_input = spike_chance_input;
+    data->background_activity.change_background = spike_chance_background;
+    return data;
+
+    error:
+    return NULL;
+}
 
 /***********************
 * DATA SAMPLE
@@ -250,12 +274,23 @@ data_gen_sample_create(Memory* memory, DataGen* data, u32 idx) {
             string_get_c_str(data_spike_train->current_sample->name));
         data_spike_train->current_sample = data_spike_train->current_sample->next;
 
-    } else if (data->type == DATA_GEN_BASIC_EXPERIMENT) {
+    }
+    else if (data->type == DATA_GEN_BASIC_EXPERIMENT)
+    {
         sample->type = DATA_SAMPLE_BASIC_EXPERIMENT;
         sprintf(sample_name, "basic_exp_%06d", sample->sample_i);
         sample->basic_exp.spike_chance = data->basic_exp.spike_chance;
 
-    } else {
+    }
+    else if (data->type == DATA_GEN_BACKGROUND_ACTIVITY)
+    {
+        sample->type = DATA_SAMPLE_BACKGROUND_ACTIVITY;
+        sprintf(sample_name, "background_activity_%06d", sample->sample_i);
+        sample->background_activity.spike_chance_input = data->background_activity.chance_input;
+        sample->background_activity.spike_chance_background = data->background_activity.change_background;
+    }
+    else
+    {
         log_error("Unknown Generator type %u", data->type);
     }
     sample->name = string_create(memory, sample_name);
@@ -272,6 +307,8 @@ data_gen_sample_create(Memory* memory, DataGen* data, u32 idx) {
 /***********************
 * NETWORK INPUTS
 ***********************/
+internal void _background_activity_create_input(Memory* memory, Input* input, u32 n_neurons, DataGenBackgroundActivity* data_gen, u32 layer_index, DataSample* sample);
+
 internal Inputs*
 data_network_inputs_create(Memory* memory, DataSample* sample, Network* network, u32 time) {
     check(memory != NULL, "memory is NULL");
@@ -364,7 +401,9 @@ data_network_inputs_create(Memory* memory, DataSample* sample, Network* network,
             }
             input->spikes.spikes = spikes;
             input->spikes.n_spikes = layer->n_neurons;
-        } else if (sample->type == DATA_SAMPLE_BASIC_EXPERIMENT) {
+        }
+        else if (sample->type == DATA_SAMPLE_BASIC_EXPERIMENT)
+        {
             check(layer->n_neurons == 4, "Should be 4 input neurons for the basic exp");
             spikes = (b32*) memory_push(memory, layer->n_neurons * sizeof(b32));
             check_memory(spikes);
@@ -405,7 +444,13 @@ data_network_inputs_create(Memory* memory, DataSample* sample, Network* network,
             input->spikes.spikes = spikes;
             input->spikes.n_spikes = layer->n_neurons;
 
-        } else {
+        }
+        else if (sample->type == DATA_SAMPLE_BACKGROUND_ACTIVITY)
+        {
+            _background_activity_create_input(memory, input, layer->n_neurons, &sample->data_gen->background_activity, i, sample);
+        }
+        else
+        {
             log_error("Unknown data sample type %u", sample->type);
         }
     }
@@ -413,4 +458,37 @@ data_network_inputs_create(Memory* memory, DataSample* sample, Network* network,
 
     error:
     return NULL;
+}
+
+internal void
+_background_activity_create_input(Memory* memory, Input* input, u32 n_neurons, DataGenBackgroundActivity* data_gen, u32 layer_index, DataSample* sample)
+{
+    b32* spikes = (b32*)memory_push(memory, n_neurons * sizeof(b32));
+    check_memory(spikes);
+
+    for (u32 neuron_i = 0; neuron_i < n_neurons; ++neuron_i)
+    {
+        if (layer_index == 0) // assume first layer is input second is backgournd
+        {
+            // NOTE: only for even samples have input activity
+            if ((sample->sample_i & 1) == 1)
+            {
+                spikes[neuron_i] = random_get_b8(data_gen->random, data_gen->chance_input);
+            }
+            else
+            {
+                spikes[neuron_i] = FALSE;
+            }
+        }
+        else
+        {
+            spikes[neuron_i] = random_get_b8(data_gen->random, data_gen->change_background);
+        }
+    }
+    input->type = INPUT_SPIKES;
+    input->spikes.spikes = spikes;
+    input->spikes.n_spikes = n_neurons;
+
+    error:
+    return;
 }

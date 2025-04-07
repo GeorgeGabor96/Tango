@@ -80,7 +80,8 @@ neuron_cls_create_if_refract(Memory* memory, String* name, u32 refract_time) {
 }
 
 
-internal NeuronCls* neuron_cls_create_if_one_spike(Memory* memory, String* name) {
+internal NeuronCls*
+neuron_cls_create_if_one_spike(Memory* memory, String* name) {
     NeuronCls* n_cls = _neuron_cls_create(memory, name);
     check_memory(n_cls);
 
@@ -172,7 +173,6 @@ _neuron_compute_psc(Neuron* neuron, u32 time) {
             synapse = it->synapses[synapse_i];
 
             current = synapse_compute_psc(synapse, neuron->voltage);
-
             // NOTE: update the synapse after we interogate it, to simulate a 1ms dendritic delay?
             synapse_step(synapse, time);
 
