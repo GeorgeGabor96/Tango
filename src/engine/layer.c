@@ -1,3 +1,29 @@
+/************************************
+*   LayerLinkSynapseInitMeta TYPE
+************************************/
+internal LayerLinkSynapseInitMeta*
+create_layer_init_synapse_init_meta(Memory* memory, f32 min_w, f32 max_w, f32 connect_chance, f32 excitatory_chance)
+{
+    check(connect_chance >= 0, "connect chance should be >= 0");
+    check(connect_chance <= 1, "connect chance should be <= 1");
+    check(excitatory_chance >= 0, "excitatory chance should be >= 0");
+    check(excitatory_chance <= 1, "excitatory chance should be <=1");
+
+    LayerLinkSynapseInitMeta* result = memory_push(memory, sizeof(*result));
+    check_memory(result);
+
+    result->min_w = min_w;
+    result->max_w = max_w;
+    result->connect_chance = connect_chance;
+    result->excitatory_chance = excitatory_chance;
+    return result;
+
+    error:
+    return NULL;
+}
+
+
+
 /******************
 *   LAYER TYPE
 ******************/
@@ -278,9 +304,10 @@ _layer_link_dense(Layer* layer, LayerLink* link, Synapse* synapses, u32 offset, 
     Neuron* neuron = NULL;
     Layer* in_layer = link->layer;
     SynapseRefArray* synapse_refs = NULL;
+    LayerLinkSynapseInitMeta* synapse_meta = link->synapse_meta;
 
     // NOTE: Consider 10% more synapses just so we could allocate enough in a continuous array
-    f32 synapse_chance = link->synapse_chance;
+    f32 synapse_chance = synapse_meta->connect_chance;
     if (synapse_chance < 1.0f) synapse_chance = math_clip_f32(synapse_chance + 0.1f, 0.0f, 1.0f);
     u32 n_synapses_per_neuron = (u32)(synapse_chance * in_layer->n_neurons);
 
@@ -312,15 +339,22 @@ _layer_link_dense(Layer* layer, LayerLink* link, Synapse* synapses, u32 offset, 
     Synapse* synapse = NULL;
     for (out_neuron_i = 0; out_neuron_i < layer->n_neurons; ++out_neuron_i) {
         for (in_neuron_i = 0; in_neuron_i < in_layer->n_neurons; ++in_neuron_i) {
-            if (random_get_chance_f32(random) > link->synapse_chance) continue;
+            if (random_get_chance_f32(random) > synapse_meta->connect_chance) continue;
 
             synapse = synapses + offset;
 
-            // NOTE: weight of 0 means dead synapse, don't add them
-            weight = 0;
-            while (math_float_equals_f32(weight, 0.0f)) {
-                weight = random_get_in_range_f32(random, link->min_weight, link->max_weight);
+            // Pick between excitatory and inhibitory synapses
+            if (random_get_chance_f32(random) <= synapse_meta->excitatory_chance)
+            {
+                // NOTE: excitatory synapse
+                weight = random_get_in_range_f32(random, 0, synapse_meta->max_w);
             }
+            else
+            {
+                // NOTE: inhibitory synaspe
+                weight = random_get_in_range_f32(random, synapse_meta->min_w, 0);
+            }
+
             synapse_init(synapse, link->cls, weight);
 
             in_neuron = in_layer->neurons + in_neuron_i;
@@ -378,16 +412,12 @@ layer_init_neurons(Layer* layer) {
 }
 
 
-LayerLink* _layer_link_create(Layer* layer, SynapseCls* cls,
-                              f32 min_weight, f32 max_weight, f32 synapse_chance,
-                              Memory* memory) {
+LayerLink* _layer_link_create(Layer* layer, SynapseCls* cls, LayerLinkSynapseInitMeta* synapse_meta, Memory* memory) {
     LayerLink* link = (LayerLink*) memory_push(memory, sizeof(*link));
     check_memory(link);
     link->layer = layer;
     link->cls = cls;
-    link->min_weight = min_weight;
-    link->max_weight = max_weight;
-    link->synapse_chance = synapse_chance;
+    link->synapse_meta = synapse_meta;
 
     error:
     return link;
@@ -401,25 +431,21 @@ LayerLink* _layer_link_add(LayerLink* chain, LayerLink* link) {
 
 
 internal b32
-layer_link(Layer* layer, Layer* in_layer, SynapseCls* cls,
-           f32 min_weight, f32 max_weight, f32 synapse_chance, Memory* memory) {
+layer_link(Layer* layer, Layer* in_layer, SynapseCls* cls, LayerLinkSynapseInitMeta* synapse_meta, Memory* memory) {
     b32 status = FALSE;
     check(layer != NULL, "layer is NULL");
     check(in_layer != NULL, "input_layer is NULL");
+    check(synapse_meta != NULL, "synapse connection information is NULL");
     check(cls != NULL, "cls is NULL");
-    //check(min_weight >= 0.0f, "min_weight %f should be positive", min_weight);
-    //check(max_weight >= 0.0f, "max_weight %f should be positive", max_weight);
-    check(min_weight <= max_weight, "min_weight %f > max_weight %f", min_weight, max_weight);
-    check(synapse_chance >= 0.0f && synapse_chance <= 1.0f, "synapse_chance should be in [0, 1]");
     check(memory != NULL, "memory is NULL");
 
     // NOTE: Save references between layers
-    LayerLink* link = _layer_link_create(in_layer, cls, min_weight, max_weight, synapse_chance, memory);
+    LayerLink* link = _layer_link_create(in_layer, cls, synapse_meta, memory);
     check_memory(link);
     layer->inputs = _layer_link_add(layer->inputs, link);
     layer->n_inputs++;
 
-    link = _layer_link_create(layer, cls, min_weight, max_weight, synapse_chance, memory);
+    link = _layer_link_create(layer, cls, synapse_meta, memory);
     check_memory(link);
     in_layer->outputs = _layer_link_add(layer->outputs, link);
     in_layer->n_outputs++;

@@ -60,10 +60,10 @@ network_build(Network* network, Memory* memory, Random* random) {
 
         in_layer_it = NULL;
         for (in_layer_it = layer->inputs; in_layer_it != NULL; in_layer_it = in_layer_it->next) {
-            if (in_layer_it->synapse_chance >= 1.0f) {
+            if (in_layer_it->synapse_meta->connect_chance >= 1.0f) {
                 n_max_synapses += layer->n_neurons * in_layer_it->layer->n_neurons;
             } else {
-                chance = math_clip_f32(in_layer_it->synapse_chance + 0.1f, 0.0f, 1.0f);
+                chance = math_clip_f32(in_layer_it->synapse_meta->connect_chance + 0.1f, 0.0f, 1.0f);
                 n_max_synapses += (u32)((f32)layer->n_neurons * chance * (f32)in_layer_it->layer->n_neurons);
             }
         }
