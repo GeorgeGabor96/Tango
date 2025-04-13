@@ -30,7 +30,6 @@ typedef struct DumperSynapseData {
 } DumperSynapseData;
 
 typedef struct DataDumper {
-    Network* network;
     String* output_folder;
     FILE* sample_fp;
 
@@ -43,7 +42,6 @@ typedef struct DataDumper {
 * Callback Spikes Dumper
 ************************/
 typedef struct DumperSpikes {
-    Network* network;
     String* output_folder;
     FILE* sample_fp;
 
@@ -56,7 +54,6 @@ typedef struct DumperSpikes {
 * Callback Weigth Dumper
 ************************/
 typedef struct DumperWeights {
-    Network* network;
     String* output_folder;
     FILE* sample_fp;
 
@@ -72,7 +69,6 @@ typedef struct DumperWeights {
 * Callback Synaptic Rescale
 ****************************/
 typedef struct SynapticRescale {
-    Network* network;
     f32 neurotransmitter_quantity;
 } SynapticRescale;
 
@@ -81,7 +77,6 @@ typedef struct SynapticRescale {
 * Callback STDP V1
 ****************************/
 typedef struct STDPv1 {
-    Network* network;
     u8* cooldown;
     u8 cooldown_value;
 } STDPv1;
@@ -105,6 +100,7 @@ internal char* callback_type_get_c_str(CallbackType type);
 
 typedef struct Callback {
     CallbackType type;
+    Network* network;
 
     union {
         DumperMeta dumper_meta;
@@ -127,11 +123,13 @@ internal void callback_begin_sample(
 
 internal void callback_update(
     Callback* callback,
+    Inputs* inputs,
     u32 time,
     Memory* memory);
 
 internal void callback_end_sample(
     Callback* callback,
+    DataSample* sample,
     Memory* memory);
 
 
@@ -152,12 +150,14 @@ internal void callback_meta_dumper_begin_sample(
 
 internal void callback_meta_dumper_update(
     Callback* callback,
+    Inputs* inputs,
     u32 time,
     Memory* memory);
 
 
 internal void callback_meta_dumper_end_sample(
     Callback* callback,
+    DataSample* sample,
     Memory* memory);
 
 
@@ -178,12 +178,14 @@ internal void callback_network_data_dumper_begin_sample(
 
 internal void callback_network_data_dumper_update(
     Callback* callback,
+    Inputs* inputs,
     u32 time,
     Memory* memory);
 
 
 internal void callback_network_data_dumper_end_sample(
     Callback* callback,
+    DataSample* sample,
     Memory* memory);
 
 
@@ -204,12 +206,14 @@ internal void callback_spikes_dumper_begin_sample(
 
 internal void callback_spikes_dumper_update(
     Callback* callback,
+    Inputs* inputs,
     u32 time,
     Memory* memory);
 
 
 internal void callback_spikes_dumper_end_sample(
     Callback* callback,
+    DataSample* sample,
     Memory* memory);
 
 
@@ -232,12 +236,14 @@ internal void callback_weights_dumper_begin_sample(
 
 internal void callback_weights_dumper_update(
     Callback* callback,
+    Inputs* inputs,
     u32 time,
     Memory* memory);
 
 
 internal void callback_weights_dumper_end_sample(
     Callback* callback,
+    DataSample* sample,
     Memory* memory);
 
 
@@ -258,12 +264,14 @@ internal void callback_synaptic_rescale_begin_sample(
 
 internal void callback_synaptic_rescale_update(
     Callback* callback,
+    Inputs* inputs,
     u32 time,
     Memory* memory);
 
 
 internal void callback_synaptic_rescale_end_sample(
     Callback* callback,
+    DataSample* sample,
     Memory* memory);
 
 
@@ -284,12 +292,14 @@ internal void callback_stdp_v1_begin_sample(
 
 internal void callback_stdp_v1_update(
     Callback* callback,
+    Inputs* inputs,
     u32 time,
     Memory* memory);
 
 
 internal void callback_stdp_v1_end_sample(
     Callback* callback,
+    DataSample* sample,
     Memory* memory);
 
 

@@ -143,19 +143,28 @@ experiment_run(Experiment* experiment) {
                                                 time);
 
             network_time_start = clock();
-            network_step(experiment->network, inputs, time, experiment->transient_memory, experiment->pool);
+            network_step(experiment->network,
+                inputs,
+                time,
+                experiment->transient_memory,
+                experiment->pool);
             network_time += clock() - network_time_start;
 
             for (callback_it = experiment->callbacks;
                 callback_it != NULL;
                 callback_it = callback_it->next)
-                callback_update(callback_it->callback, time, experiment->transient_memory);
+                callback_update(callback_it->callback,
+                    inputs,
+                    time,
+                    experiment->transient_memory);
         }
 
         for (callback_it = experiment->callbacks;
              callback_it != NULL;
              callback_it = callback_it->next)
-            callback_end_sample(callback_it->callback, experiment->transient_memory);
+            callback_end_sample(callback_it->callback,
+                sample,
+                experiment->transient_memory);
 
         memory_clear(experiment->transient_memory);
 

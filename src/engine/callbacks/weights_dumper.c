@@ -29,7 +29,7 @@ callback_weights_dumper_create(
     check_memory(weights);
 
     callback->type = CALLBACK_WEIGHTS_DUMPER;
-    callback->dumper_weights.network = network;
+    callback->network = network;
     callback->dumper_weights.time_step = time_step;
     callback->dumper_weights.next_time_to_dump_i = 0;
     callback->dumper_weights.sample_step = sample_step;
@@ -80,7 +80,7 @@ callback_weights_dumper_begin_sample(Callback* callback, DataSample* sample, Mem
 
 
 internal void
-callback_weights_dumper_update(Callback* callback, u32 time, Memory* memory) {
+callback_weights_dumper_update(Callback* callback, Inputs* inputs, u32 time, Memory* memory) {
     DumperWeights* data = &callback->dumper_weights;
     if (data->sample_fp == NULL) return;
 
@@ -88,7 +88,7 @@ callback_weights_dumper_update(Callback* callback, u32 time, Memory* memory) {
     data->next_time_to_dump_i += data->time_step;
 
     u32 synapse_i = 0;
-    Network* network = data->network;
+    Network* network = callback->network;
     Synapse* synapse = NULL;
     Synapse* synapses = network->synapses;
     float* weights = data->weights;
@@ -103,7 +103,7 @@ callback_weights_dumper_update(Callback* callback, u32 time, Memory* memory) {
 
 
 internal void
-callback_weights_dumper_end_sample(Callback* callback, Memory* memory) {
+callback_weights_dumper_end_sample(Callback* callback, DataSample* sample, Memory* memory) {
     DumperWeights* data = &callback->dumper_weights;
 
     if (data->sample_fp == NULL) return;

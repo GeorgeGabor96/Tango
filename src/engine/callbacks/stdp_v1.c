@@ -15,7 +15,7 @@ callback_stdp_v1_create(Memory* memory, Network* network, u8 cooldown_value)
     }
 
     callback->type = CALLBACK_STDP_V1;
-    callback->stdp_v1.network = network;
+    callback->network = network;
     callback->stdp_v1.cooldown = cooldown;
     callback->stdp_v1.cooldown_value = cooldown_value;
 
@@ -32,14 +32,13 @@ callback_stdp_v1_begin_sample(Callback* callback, DataSample* sample, Memory* me
 
 }
 
-static b8 _callback_stdp_v1_synapse_update(Synapse* synapse);
+static b8 _callback_stdp_v1_synapse_update(Synapse* synapse, Inputs* inputs, Network* network);
 
 internal void
-callback_stdp_v1_update(Callback* callback, u32 time, Memory* memory)
+callback_stdp_v1_update(Callback* callback, Inputs* inputs, u32 time, Memory* memory)
 {
     STDPv1* data = &callback->stdp_v1;
-
-    Network* net = data->network;
+    Network* net = callback->network;
 
     for (u32 i = 0; i < net->n_synapses; ++i)
     {
@@ -50,7 +49,7 @@ callback_stdp_v1_update(Callback* callback, u32 time, Memory* memory)
         }
 
         Synapse* synapse = net->synapses + i;
-        b8 did_change = _callback_stdp_v1_synapse_update(synapse);
+        b8 did_change = _callback_stdp_v1_synapse_update(synapse, inputs, callback->network);
         if (did_change)
         {
             data->cooldown[i] = data->cooldown_value;
@@ -58,9 +57,12 @@ callback_stdp_v1_update(Callback* callback, u32 time, Memory* memory)
     }
 }
 
+b32 _get_reward(Network* network, Inputs* inputs);
+f32 _r_stdp_potentiation_learning_rule(Synapse* synapse, LearningInfo* learning_info, b32 reward);
+f32 _r_stdp_depression_learning_rule(Synapse* synapse, LearningInfo* learning_info, b32 reward);
 
 static b8
-_callback_stdp_v1_synapse_update(Synapse* synapse)
+_callback_stdp_v1_synapse_update(Synapse* synapse, Inputs* inputs, Network* network)
 {
     f32 dw = 0.0f;
     SynapseCls* cls = synapse->cls;
@@ -74,6 +76,8 @@ _callback_stdp_v1_synapse_update(Synapse* synapse)
     // NOTE: no spike, no update
     if (synapse_spike_time == INVALID_SPIKE_TIME) return FALSE;
     if (out_neuron_spike_time == INVALID_SPIKE_TIME) return FALSE;
+
+    b32 reward = _get_reward(network, inputs);
 
     // NOTE: synapse contribution is before the out neuron spiked -> Potentiation
     if (synapse_spike_time < out_neuron_spike_time)
@@ -96,15 +100,7 @@ _callback_stdp_v1_synapse_update(Synapse* synapse)
         }
         else if (learning_info->type == SYNAPSE_LEARNING_RSTDP_EXPONENTIAL)
         {
-            SynapseLearningRSTDPExpeonential* rule = &(learning_info->r_stdp_exponential);
-            if (reward)
-            {
-                dw = rule->reward_potentiation_factor * synapse->weight * (1 - synapse->weight);
-            }
-            else
-            {
-                dw = rule->punishment_potentiation_factor * synapse->weight * (1 - synapse->weight);
-            }
+            dw = _r_stdp_potentiation_learning_rule(synapse, learning_info, reward);
         }
         else
         {
@@ -135,15 +131,7 @@ _callback_stdp_v1_synapse_update(Synapse* synapse)
         }
         else if (learning_info->type == SYNAPSE_LEARNING_RSTDP_EXPONENTIAL)
         {
-            SynapseLearningRSTDPExpeonential* rule = &(learning_info->r_stdp_exponential);
-            if (reward)
-            {
-                dw = rule->reward_depression_factor * synapse->weight * (1 - synapse->weight);
-            }
-            else
-            {
-                dw = rule->punishment_depression_factor * synapse->weight * (1 - synapse->weight);
-            }
+            dw = _r_stdp_depression_learning_rule(synapse, learning_info, reward);
         }
         else
         {
@@ -163,7 +151,79 @@ _callback_stdp_v1_synapse_update(Synapse* synapse)
 }
 
 internal void
-callback_stdp_v1_end_sample(Callback* callback, Memory* memory)
+callback_stdp_v1_end_sample(Callback* callback, DataSample* sample, Memory* memory)
 {
 
+}
+
+
+b32 _get_reward(Network* network, Inputs* inputs)
+{
+    b32 reward = TRUE;
+    check(network->n_out_layers == 1, "Only one output layers for now");
+
+    u32 network_winner_neuron_i = 0;
+    b32 network_winner_is_valid = FALSE;
+
+    Layer* output_layer = network->out_layers.first->layer;
+    Neuron* output_neurons = output_layer->neurons;
+    for (u32 i = 0; i < output_layer->n_neurons; ++i)
+    {
+        Neuron* neuron = output_neurons + i;
+        // TODO: for now set the winner the first to spike
+        if (neuron->spike == TRUE)
+        {
+            network_winner_neuron_i = i;
+            network_winner_is_valid = TRUE;
+            break;
+        }
+    }
+
+
+    if (network_winner_is_valid == TRUE)
+    {
+        u32 actual_winner_neuron_i = inputs->inputs[0].label;
+        if (network_winner_neuron_i == actual_winner_neuron_i)
+        {
+            reward = TRUE;
+        }
+        else
+        {
+            reward = FALSE;
+        }
+    }
+
+    error:
+    return reward;
+}
+
+// NOTE: R-STDP helpers
+f32 _r_stdp_potentiation_learning_rule(Synapse* synapse, LearningInfo* learning_info, b32 reward)
+{
+    f32 dw = 0;
+    SynapseLearningRSTDPExpeonential* rule = &(learning_info->r_stdp_exponential);
+    if (reward)
+    {
+        dw = rule->reward_potentiation_factor * synapse->weight * (1 - synapse->weight);
+    }
+    else
+    {
+        dw = rule->punishment_potentiation_factor * synapse->weight * (1 - synapse->weight);
+    }
+    return dw;
+}
+
+f32 _r_stdp_depression_learning_rule(Synapse* synapse, LearningInfo* learning_info, b32 reward)
+{
+    f32 dw = 0;
+    SynapseLearningRSTDPExpeonential* rule = &(learning_info->r_stdp_exponential);
+    if (reward)
+    {
+        dw = rule->reward_depression_factor * synapse->weight * (1 - synapse->weight);
+    }
+    else
+    {
+        dw = rule->punishment_depression_factor * synapse->weight * (1 - synapse->weight);
+    }
+    return dw;
 }

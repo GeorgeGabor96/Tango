@@ -466,6 +466,8 @@ _background_activity_create_input(Memory* memory, Input* input, u32 n_neurons, D
     b32* spikes = (b32*)memory_push(memory, n_neurons * sizeof(b32));
     check_memory(spikes);
 
+    u32 label = 0;
+
     for (u32 neuron_i = 0; neuron_i < n_neurons; ++neuron_i)
     {
         if (layer_index == 0) // assume first layer is input second is backgournd
@@ -474,10 +476,12 @@ _background_activity_create_input(Memory* memory, Input* input, u32 n_neurons, D
             if ((sample->sample_i & 1) == 1)
             {
                 spikes[neuron_i] = random_get_b8(data_gen->random, data_gen->chance_input);
+                label = 1;
             }
             else
             {
                 spikes[neuron_i] = FALSE;
+                label = 0;
             }
         }
         else
@@ -486,6 +490,7 @@ _background_activity_create_input(Memory* memory, Input* input, u32 n_neurons, D
         }
     }
     input->type = INPUT_SPIKES;
+    input->label = label;
     input->spikes.spikes = spikes;
     input->spikes.n_spikes = n_neurons;
 

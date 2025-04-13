@@ -22,7 +22,7 @@ callback_network_data_dumper_create(Memory* memory, String* output_folder, Netwo
     check_memory(synapse_data);
 
     callback->type = CALLBACK_NETWORK_DATA_DUMPER;
-    callback->dumper_data.network = network;
+    callback->network = network;
     callback->dumper_data.output_folder = output_folder;
     callback->dumper_data.sample_fp = NULL;
     callback->dumper_data.neuron_data = neuron_data;
@@ -60,13 +60,13 @@ callback_network_data_dumper_begin_sample(Callback* callback, DataSample* sample
 
 
 internal void
-callback_network_data_dumper_update(Callback* callback, u32 time, Memory* memory) {
+callback_network_data_dumper_update(Callback* callback, Inputs* inputs, u32 time, Memory* memory) {
     DumperData* data = &callback->dumper_data;
 
     // NOTE: dump the neurons
     u32 neuron_i = 0;
     Neuron* neuron = NULL;
-    Network* network = data->network;
+    Network* network = callback->network;
     DumperNeuronData* neuron_data = NULL;
     Neuron* neurons = network->neurons;
     DumperNeuronData* neurons_data = data->neuron_data;
@@ -108,7 +108,7 @@ callback_network_data_dumper_update(Callback* callback, u32 time, Memory* memory
 
 
 internal void
-callback_network_data_dumper_end_sample(Callback* callback, Memory* memory) {
+callback_network_data_dumper_end_sample(Callback* callback, DataSample* sample, Memory* memory) {
     DumperData* data = &callback->dumper_data;
 
     fflush(data->sample_fp);

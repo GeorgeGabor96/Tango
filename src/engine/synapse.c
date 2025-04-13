@@ -27,8 +27,8 @@ synapse_cls_add_learning_rule_exponential(SynapseCls* cls,
                                      f32 min_w, f32 max_w,
                                      f32 A, f32 B, f32 tau) {
     check(cls != NULL, "cls is NULL");
-    check(min_w >= 0, "synapse weights should be positive. min_weight %f", min_w);
-    check(max_w >= 0, "synapse weights should be positive. max_weight %f", max_w);
+    //check(min_w >= 0, "synapse weights should be positive. min_weight %f", min_w);
+    //check(max_w >= 0, "synapse weights should be positive. max_weight %f", max_w);
     check(min_w <= max_w, "min_w %f > max_w %f", min_w, max_w);
     LearningInfo* info = &(cls->learning_info);
     info->min_w = min_w;

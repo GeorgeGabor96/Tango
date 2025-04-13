@@ -48,22 +48,22 @@ callback_begin_sample(Callback* callback,
 
 
 internal void
-callback_update(Callback* callback, u32 time, Memory* memory) {
+callback_update(Callback* callback, Inputs* inputs, u32 time, Memory* memory) {
     check(callback != NULL, "callback is NULL");
     check(memory != NULL, "memory is NULL");
 
     if (callback->type == CALLBACK_META_DUMPER) {
-        callback_meta_dumper_update(callback, time, memory);
+        callback_meta_dumper_update(callback, inputs, time, memory);
     } else if (callback->type == CALLBACK_NETWORK_DATA_DUMPER) {
-        callback_network_data_dumper_update(callback, time, memory);
+        callback_network_data_dumper_update(callback, inputs, time, memory);
     } else if (callback->type == CALLBACK_SPIKES_DUMPER) {
-        callback_spikes_dumper_update(callback, time, memory);
+        callback_spikes_dumper_update(callback, inputs, time, memory);
     } else if (callback->type == CALLBACK_WEIGHTS_DUMPER) {
-        callback_weights_dumper_update(callback, time, memory);
+        callback_weights_dumper_update(callback, inputs, time, memory);
     } else if (callback->type == CALLBACK_SYNAPTIC_RESCALE) {
-        callback_synaptic_rescale_update(callback, time, memory);
+        callback_synaptic_rescale_update(callback, inputs, time, memory);
     } else if (callback->type == CALLBACK_STDP_V1) {
-        callback_stdp_v1_update(callback, time, memory);
+        callback_stdp_v1_update(callback, inputs, time, memory);
     } else {
         log_error("Unknown callback type %u (%s)",
                   callback->type,
@@ -76,22 +76,22 @@ callback_update(Callback* callback, u32 time, Memory* memory) {
 
 
 internal void
-callback_end_sample(Callback* callback, Memory* memory) {
+callback_end_sample(Callback* callback, DataSample* sample, Memory* memory) {
     check(callback != NULL, "callback is NULL");
     check(memory != NULL, "memory is NULL");
 
     if (callback->type == CALLBACK_META_DUMPER) {
-        callback_meta_dumper_end_sample(callback, memory);
+        callback_meta_dumper_end_sample(callback, sample, memory);
     } else if (callback->type == CALLBACK_NETWORK_DATA_DUMPER) {
-        callback_network_data_dumper_end_sample(callback, memory);
+        callback_network_data_dumper_end_sample(callback, sample, memory);
     } else if (callback->type == CALLBACK_SPIKES_DUMPER) {
-        callback_spikes_dumper_end_sample(callback, memory);
+        callback_spikes_dumper_end_sample(callback, sample, memory);
     } else if (callback->type == CALLBACK_WEIGHTS_DUMPER) {
-        callback_weights_dumper_end_sample(callback, memory);
+        callback_weights_dumper_end_sample(callback, sample, memory);
     } else if (callback->type == CALLBACK_SYNAPTIC_RESCALE) {
-        callback_synaptic_rescale_end_sample(callback, memory);
+        callback_synaptic_rescale_end_sample(callback, sample, memory);
     } else if (callback->type == CALLBACK_STDP_V1) {
-        callback_stdp_v1_end_sample(callback, memory);
+        callback_stdp_v1_end_sample(callback, sample, memory);
     } else {
         log_error("Unknown callback type %u (%s)",
                   callback->type,
