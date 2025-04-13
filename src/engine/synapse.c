@@ -125,7 +125,7 @@ synapse_cls_create(Memory* memory,
 
 internal SynapseCls*
 synapse_cls_create_exci(Memory* memory, String* name, SynapseType type, u32 delay) {
-    return synapse_cls_create(memory, name, type, 0.0f, SYNAPSE_DEFAULT_AMP, 1, delay);
+    return synapse_cls_create(memory, name, type, 0.0f, SYNAPSE_DEFAULT_AMP, 5, delay);
 }
 
 internal SynapseCls*

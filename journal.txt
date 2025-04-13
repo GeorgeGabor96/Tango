@@ -1,0 +1,21 @@
+10.04.2025
+- From last experiment
+	- have background population activity
+	- can alternate between input and output
+	- went back to conductance based synapses because they are much easier to understand
+	
+- 1. Add inhibitory synapses
+	- need to add negative weight -> equal amount of inhibitory and execitatory -> no activity
+	- Add ability to specify how much excitation I want -> I have activity, for now it makes sense, I have much more activity when both inputs are on
+	
+- 2. Add sdtp -> it will probably to crazy with activity, lets see -> actually no, but because I think each synapse make to little of a contribution,
+	lets increase the amp values, yes it goes crazy
+	
+- 3. Add refract to neurons, lets see if something happens, not really, a gap in the activity of layer
+
+- 4. Change the amp value -> it varies the degree of activity but in the end it ends up in epilepsy
+
+- 5. I also change weight of the background population, should I?
+	- lets keep the population connectivity fixed -> its better, but still much more activity when both are one, as expected
+	
+- 6. Lets add more randomness but setting connect chance to 80

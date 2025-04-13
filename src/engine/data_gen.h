@@ -9,6 +9,7 @@ typedef enum {
     DATA_GEN_SPIKE_PULSES,
     DATA_GEN_SPIKE_TRAIN,
     DATA_GEN_BASIC_EXPERIMENT,
+    DATA_GEN_BACKGROUND_ACTIVITY,
 } DataGenType;
 
 
@@ -42,6 +43,12 @@ typedef struct DataGenBasicExperiment {
     f32 spike_chance;
 } DataGenBasicExperiment;
 
+typedef struct DataGenBackgroundActivity
+{
+    Random* random;
+    f32 chance_input;
+    f32 change_background;
+} DataGenBackgroundActivity;
 
 typedef struct DataGen {
     DataGenType type;
@@ -56,6 +63,7 @@ typedef struct DataGen {
         DataGenSpikePulses spike_pulses;
         DataGenSpikeTrain spike_train;
         DataGenBasicExperiment basic_exp;
+        DataGenBackgroundActivity background_activity;
     };
 } DataGen;
 
@@ -93,6 +101,13 @@ internal DataGen* data_gen_create_basic_experiment(Memory* memory,
                                                    f32 spike_chance,
                                                    u32 n_samples);
 
+internal DataGen* data_gen_create_background_activity(Memory* memory,
+                                                      Random* random,
+                                                      f32 chance_input,
+                                                      f32 chance_background,
+                                                      u32 n_samples,
+                                                      u32 sample_duration);
+
 typedef enum {
     DATA_SAMPLE_INVALID,
     DATA_SAMPLE_RANDOM_SPIKES,
@@ -100,6 +115,7 @@ typedef enum {
     DATA_SAMPLE_SPIKE_PULSES,
     DATA_SAMPLE_SPIKE_TRAIN,
     DATA_SAMPLE_BASIC_EXPERIMENT,
+    DATA_SAMPLE_BACKGROUND_ACTIVITY,
 } DataSampleType;
 
 
@@ -117,6 +133,12 @@ typedef struct DataSampleBasicExperiment {
     f32 spike_chance;
 } DataSampleBasicExperiment;
 
+typedef struct DataSampleBackgroundActivity
+{
+    f32 spike_chance_input;
+    f32 spike_chance_background;
+} DataSampleBackgroundActivity;
+
 typedef struct DataSample {
     DataSampleType type;
     u32 duration;
@@ -130,6 +152,7 @@ typedef struct DataSample {
         DataSampleSpikePulses spike_pulses;
         DataSampleSpikeTrain spike_train;
         DataSampleBasicExperiment basic_exp;
+        DataSampleBackgroundActivity background_activity;
     };
 } DataSample;
 
