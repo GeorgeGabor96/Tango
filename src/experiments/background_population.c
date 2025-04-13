@@ -2,7 +2,7 @@
 
 
 int main() {
-    Experiment* exp = experiment_create(0, 723104, "D:\\repos\\Tango\\outputs\\147_background_activity_10_04_2025\\6_connection_prob");
+    Experiment* exp = experiment_create(0, 723104, "D:\\repos\\Tango\\outputs\\147_background_activity_13_04_2025\\6_connection_prob");
     Memory* memory = exp->permanent_memory;
     DataGen* data_gen = data_gen_create_background_activity(memory, exp->random, 0.005f, 0.005f, 100, 1000);
 
