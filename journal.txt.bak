@@ -28,3 +28,5 @@
 - 1. Merge everything
 
 - 2. Continue with R-STDP
+	- Not sure exactly how to implement it because right now the stdp works during the sample propagation, not after
+	- and how do i know when to apply reward if I don't have the answer
