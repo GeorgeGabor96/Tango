@@ -35,8 +35,8 @@ callback_network_data_dumper_create(Memory* memory, String* output_folder, Netwo
 }
 
 
-internal void
-callback_network_data_dumper_begin_sample(Callback* callback, DataSample* sample, Memory* memory) {
+internal CALLBACK_BEGIN_SAMPLE(callback_network_data_dumper_begin_sample)
+{
     DumperData* data = &callback->dumper_data;
 
     char file_name[100];
@@ -59,8 +59,8 @@ callback_network_data_dumper_begin_sample(Callback* callback, DataSample* sample
 }
 
 
-internal void
-callback_network_data_dumper_update(Callback* callback, Inputs* inputs, u32 time, Memory* memory) {
+internal CALLBACK_UPDATE(callback_network_data_dumper_update)
+{
     DumperData* data = &callback->dumper_data;
 
     // NOTE: dump the neurons
@@ -107,10 +107,22 @@ callback_network_data_dumper_update(Callback* callback, Inputs* inputs, u32 time
 }
 
 
-internal void
-callback_network_data_dumper_end_sample(Callback* callback, DataSample* sample, Memory* memory) {
+internal CALLBACK_END_SAMPLE(callback_network_data_dumper_end_sample)
+{
     DumperData* data = &callback->dumper_data;
 
     fflush(data->sample_fp);
     fclose(data->sample_fp);
+}
+
+
+internal CALLBACK_BEGIN_EXPERIMENT(callback_network_data_dumper_begin_experiment)
+{
+
+}
+
+
+internal CALLBACK_END_EXPERIMENT(callback_network_data_dumper_end_experiment)
+{
+
 }

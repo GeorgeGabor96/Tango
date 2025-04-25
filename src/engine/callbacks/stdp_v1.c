@@ -26,16 +26,15 @@ callback_stdp_v1_create(Memory* memory, Network* network, u8 cooldown_value)
 }
 
 
-internal void
-callback_stdp_v1_begin_sample(Callback* callback, DataSample* sample, Memory* memory)
+internal CALLBACK_BEGIN_SAMPLE(callback_stdp_v1_begin_sample)
 {
 
 }
 
 static b8 _callback_stdp_v1_synapse_update(Synapse* synapse, Inputs* inputs, Network* network);
 
-internal void
-callback_stdp_v1_update(Callback* callback, Inputs* inputs, u32 time, Memory* memory)
+
+internal CALLBACK_UPDATE(callback_stdp_v1_update)
 {
     STDPv1* data = &callback->stdp_v1;
     Network* net = callback->network;
@@ -150,8 +149,8 @@ _callback_stdp_v1_synapse_update(Synapse* synapse, Inputs* inputs, Network* netw
     return w_changed;
 }
 
-internal void
-callback_stdp_v1_end_sample(Callback* callback, DataSample* sample, Memory* memory)
+
+internal CALLBACK_END_SAMPLE(callback_stdp_v1_end_sample)
 {
 
 }
@@ -226,4 +225,16 @@ f32 _r_stdp_depression_learning_rule(Synapse* synapse, LearningInfo* learning_in
         dw = rule->punishment_depression_factor * synapse->weight * (1 - synapse->weight);
     }
     return dw;
+}
+
+
+internal CALLBACK_BEGIN_EXPERIMENT(callback_stdp_v1_begin_experiment)
+{
+
+}
+
+
+internal CALLBACK_END_EXPERIMENT(callback_stdp_v1_end_experiment)
+{
+
 }

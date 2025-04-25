@@ -53,32 +53,31 @@ callback_synaptic_rescale_create(
 }
 
 
-internal void
-callback_synaptic_rescale_begin_sample(
-    Callback* callback,
-    DataSample* sample,
-    Memory* memory)
+internal CALLBACK_BEGIN_SAMPLE(callback_synaptic_rescale_begin_sample)
 {
 
 }
 
 
-internal void
-callback_synaptic_rescale_update(
-    Callback* callback,
-    Inputs* inputs,
-    u32 time,
-    Memory* memory)
+internal CALLBACK_UPDATE(callback_synaptic_rescale_update)
 {
 
 }
 
 
-internal void
-callback_synaptic_rescale_end_sample(
-    Callback* callback,
-    DataSample* sample,
-    Memory* memory)
+internal CALLBACK_END_SAMPLE(callback_synaptic_rescale_end_sample)
 {
     _rescale_weights(callback);
+}
+
+
+internal CALLBACK_BEGIN_EXPERIMENT(callback_synaptic_rescale_begin_experiment)
+{
+
+}
+
+
+internal CALLBACK_END_EXPERIMENT(callback_synaptic_rescale_end_experiment)
+{
+
 }

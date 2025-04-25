@@ -35,8 +35,8 @@ callback_spikes_dumper_create(Memory* memory, String* output_folder, Network* ne
 }
 
 
-internal void
-callback_spikes_dumper_begin_sample(Callback* callback, DataSample* sample, Memory* memory) {
+internal CALLBACK_BEGIN_SAMPLE(callback_spikes_dumper_begin_sample)
+{
     DumperSpikes* spikes = &callback->dumper_spikes;
 
     char file_name[100];
@@ -64,8 +64,8 @@ callback_spikes_dumper_begin_sample(Callback* callback, DataSample* sample, Memo
 }
 
 
-internal void
-callback_spikes_dumper_update(Callback* callback, Inputs* inputs, u32 time, Memory* memory) {
+internal CALLBACK_UPDATE(callback_spikes_dumper_update)
+{
     DumperSpikes* spikes = &callback->dumper_spikes;
 
     // NOTE: get the spike data
@@ -98,8 +98,8 @@ callback_spikes_dumper_update(Callback* callback, Inputs* inputs, u32 time, Memo
 }
 
 
-internal void
-callback_spikes_dumper_end_sample(Callback* callback, DataSample* sample, Memory* memory) {
+internal CALLBACK_END_SAMPLE(callback_spikes_dumper_end_sample)
+{
     DumperSpikes* spikes = &callback->dumper_spikes;
     Network* network = callback->network;
 
@@ -118,4 +118,16 @@ callback_spikes_dumper_end_sample(Callback* callback, DataSample* sample, Memory
     }
     log_info("N_weights zero %u", n_weights_zero);
 #endif
+}
+
+
+internal CALLBACK_BEGIN_EXPERIMENT(callback_spikes_dumper_begin_experiment)
+{
+
+}
+
+
+internal CALLBACK_END_EXPERIMENT(callback_spikes_dumper_end_experiment)
+{
+
 }

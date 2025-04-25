@@ -70,8 +70,8 @@ callback_meta_dumper_create(Memory* memory, String* output_folder, Network* netw
 }
 
 
-internal void
-callback_meta_dumper_begin_sample(Callback* callback, DataSample* sample, Memory* memory) {
+internal CALLBACK_BEGIN_SAMPLE(callback_meta_dumper_begin_sample)
+{
     DumperMeta* meta = &callback->dumper_meta;
     meta->sample_name = sample->name;
     meta->sample_duration = sample->duration;
@@ -79,8 +79,8 @@ callback_meta_dumper_begin_sample(Callback* callback, DataSample* sample, Memory
 }
 
 
-internal void
-callback_meta_dumper_update(Callback* callback, Inputs* inputs, u32 time, Memory* memory) {
+internal CALLBACK_UPDATE(callback_meta_dumper_update)
+{
     DumperMeta* meta =  &callback->dumper_meta;
 
     check(meta->sample_time < meta->sample_duration,
@@ -93,8 +93,8 @@ callback_meta_dumper_update(Callback* callback, Inputs* inputs, u32 time, Memory
 }
 
 
-internal void
-callback_meta_dumper_end_sample(Callback* callback, DataSample* sample, Memory* memory) {
+internal CALLBACK_END_SAMPLE(callback_meta_dumper_end_sample)
+{
     DumperMeta* meta =  &callback->dumper_meta;
 
     // NOTE: append sample information
@@ -112,4 +112,16 @@ callback_meta_dumper_end_sample(Callback* callback, DataSample* sample, Memory* 
 
     error:
     return;
+}
+
+
+internal CALLBACK_BEGIN_EXPERIMENT(callback_meta_dumper_begin_experiment)
+{
+
+}
+
+
+internal CALLBACK_END_EXPERIMENT(callback_meta_dumper_end_experiment)
+{
+
 }

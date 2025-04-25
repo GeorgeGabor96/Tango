@@ -45,8 +45,8 @@ callback_weights_dumper_create(
 }
 
 
-internal void
-callback_weights_dumper_begin_sample(Callback* callback, DataSample* sample, Memory* memory) {
+internal CALLBACK_BEGIN_SAMPLE(callback_weights_dumper_begin_sample)
+{
     DumperWeights* data = &callback->dumper_weights;
 
     if (sample->sample_i != data->next_sample_to_dump_i) {
@@ -79,8 +79,8 @@ callback_weights_dumper_begin_sample(Callback* callback, DataSample* sample, Mem
 }
 
 
-internal void
-callback_weights_dumper_update(Callback* callback, Inputs* inputs, u32 time, Memory* memory) {
+internal CALLBACK_UPDATE(callback_weights_dumper_update)
+{
     DumperWeights* data = &callback->dumper_weights;
     if (data->sample_fp == NULL) return;
 
@@ -102,12 +102,24 @@ callback_weights_dumper_update(Callback* callback, Inputs* inputs, u32 time, Mem
 }
 
 
-internal void
-callback_weights_dumper_end_sample(Callback* callback, DataSample* sample, Memory* memory) {
+internal CALLBACK_END_SAMPLE(callback_weights_dumper_end_sample)
+{
     DumperWeights* data = &callback->dumper_weights;
 
     if (data->sample_fp == NULL) return;
 
     fflush(data->sample_fp);
     fclose(data->sample_fp);
+}
+
+
+internal CALLBACK_BEGIN_EXPERIMENT(callback_weights_dumper_begin_experiment)
+{
+
+}
+
+
+internal CALLBACK_END_EXPERIMENT(callback_weights_dumper_end_experiment)
+{
+
 }
