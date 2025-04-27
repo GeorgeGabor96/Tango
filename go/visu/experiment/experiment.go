@@ -19,6 +19,12 @@ type SynapseMeta struct {
 	OutNeuronIdx uint32
 }
 
+type SampleData struct {
+	Name     string
+	Duration uint32
+	Epoch    uint32
+}
+
 type Meta struct {
 	Folder      string
 	PlotsFolder string
@@ -28,7 +34,7 @@ type Meta struct {
 
 	Layers   []LayerMeta
 	Synapses []SynapseMeta
-	Samples  map[string]uint32
+	Samples  []SampleData
 }
 
 type NeuronData struct {
@@ -78,7 +84,7 @@ func BuildMeta(folder string) (*Meta, error) {
 	meta.NSynapses = nSynapses
 	meta.Layers = make([]LayerMeta, nLayers)
 	meta.Synapses = make([]SynapseMeta, nSynapses)
-	meta.Samples = make(map[string]uint32)
+	meta.Samples = make([]SampleData, 0)
 
 	var layerI uint32
 	for layerI = 0; layerI < nLayers; layerI++ {
@@ -98,18 +104,20 @@ func BuildMeta(folder string) (*Meta, error) {
 	}
 
 	for !parser.IsFinished() {
-		meta.Samples[parser.String()] = parser.Uint32()
+		var sample_data SampleData
+		sample_data.Name = parser.String()
+		sample_data.Duration = parser.Uint32()
+		sample_data.Epoch = parser.Uint32()
+
+		meta.Samples = append(meta.Samples, sample_data)
 	}
 
 	return meta, nil
 }
 
-func BuildData(meta *Meta, sampleName string) (*Data, error) {
-	duration, present := meta.Samples[sampleName]
-	if !present {
-		return nil, errors.New(fmt.Sprintf("Sample %v is not present", sampleName))
-	}
-	fileName := fmt.Sprintf("data_%v.bin", sampleName)
+func BuildData(meta *Meta, sample SampleData) (*Data, error) {
+	duration := sample.Duration
+	fileName := fmt.Sprintf("data_%v_e%v.bin", sample.Name, sample.Epoch)
 
 	filePath := utils.Join(meta.Folder, fileName)
 
@@ -181,13 +189,8 @@ type SpikesData struct {
 	Layers   []SpikesLayer
 }
 
-func BuildSpikes(meta *Meta, sampleName string) (*SpikesData, error) {
-	duration, present := meta.Samples[sampleName]
-	if !present {
-		return nil, errors.New(fmt.Sprintf("Sample %v is not present", sampleName))
-	}
-
-	spikesFile := fmt.Sprintf("spikes_%v.bin", sampleName)
+func BuildSpikes(meta *Meta, sample SampleData) (*SpikesData, error) {
+	spikesFile := fmt.Sprintf("spikes_%v_e%v.bin", sample.Name, sample.Epoch)
 	filePath := utils.Join(meta.Folder, "spikes")
 	filePath = utils.Join(filePath, spikesFile)
 
@@ -198,7 +201,7 @@ func BuildSpikes(meta *Meta, sampleName string) (*SpikesData, error) {
 
 	spikesData := new(SpikesData)
 	spikesData.Name = spikesFile
-	spikesData.Duration = duration
+	spikesData.Duration = sample.Duration
 	spikesData.Layers = make([]SpikesLayer, meta.NLayers)
 
 	var layerI uint32 = 0

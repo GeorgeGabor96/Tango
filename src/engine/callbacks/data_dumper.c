@@ -40,7 +40,7 @@ internal CALLBACK_BEGIN_SAMPLE(callback_network_data_dumper_begin_sample)
     DumperData* data = &callback->dumper_data;
 
     char file_name[100];
-    sprintf(file_name, "data_%s.bin", string_get_c_str(sample->name));
+    sprintf(file_name, "data_%s_e%u.bin", string_get_c_str(sample->name), epoch_i);
     String* file_name_s = string_create(memory, file_name);
     check_memory(file_name_s);
 
@@ -116,13 +116,13 @@ internal CALLBACK_END_SAMPLE(callback_network_data_dumper_end_sample)
 }
 
 
-internal CALLBACK_BEGIN_EXPERIMENT(callback_network_data_dumper_begin_experiment)
+internal CALLBACK_BEGIN_EPOCH(callback_network_data_dumper_begin_epoch)
 {
 
 }
 
 
-internal CALLBACK_END_EXPERIMENT(callback_network_data_dumper_end_experiment)
+internal CALLBACK_END_EPOCH(callback_network_data_dumper_end_epoch)
 {
 
 }

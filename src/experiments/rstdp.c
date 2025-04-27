@@ -2,9 +2,9 @@
 
 
 int main() {
-    Experiment* exp = experiment_create(0, 723104, "D:\\repos\\Tango\\outputs\\146_rstdp_13_04_2025\\1_rstdp_dummy_small_net");
+    Experiment* exp = experiment_create(0, 723104, "D:\\repos\\Tango\\outputs\\146_rstdp_13_04_2025\\2_accuracy");
     Memory* memory = exp->permanent_memory;
-    DataGen* data_gen = data_gen_create_background_activity(memory, exp->random, 0.005f, 0.005f, 100, 1000);
+    DataGen* data_gen = data_gen_create_background_activity(memory, exp->random, 0.005f, 0.005f, 10, 1000);
 
     Network* net = network_create(memory);
     NeuronCls* n_cls = neuron_cls_create_lif_refract(memory, string_create(memory, "if"), 5);
@@ -44,15 +44,18 @@ int main() {
     Callback* cb_weights = callback_weights_dumper_create(memory, 1, 5000, exp->output_folder, net);
     Callback* cb_data = callback_network_data_dumper_create(memory, exp->output_folder, net);
     Callback* cb_stdp = callback_stdp_v1_create(memory, net, 10);
+    Callback* cb_accuracy = callback_accuracy_create(memory, net);
 
     experiment_set_network(exp, net);
     experiment_set_data_gen(exp, data_gen);
+    experiment_set_epoch_count(exp, 3);
 
     experiment_add_callback(exp, cb_meta);
     experiment_add_callback(exp, cb_spikes);
     experiment_add_callback(exp, cb_weights);
     //experiment_add_callback(exp, cb_data);
     experiment_add_callback(exp, cb_stdp);
+    experiment_add_callback(exp, cb_accuracy);
 
     experiment_set_learning(exp, TRUE);
 

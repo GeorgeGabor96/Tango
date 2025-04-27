@@ -106,6 +106,7 @@ internal CALLBACK_END_SAMPLE(callback_meta_dumper_end_sample)
     fwrite(&(meta->sample_name->length), sizeof(u32), 1, fp);
     fwrite(meta->sample_name->data, sizeof(char), meta->sample_name->length, fp);
     fwrite(&(meta->sample_duration), sizeof(u32), 1, fp);
+    fwrite(&epoch_i, sizeof(u32), 1, fp);
 
     fflush(fp);
     fclose(fp);
@@ -115,13 +116,13 @@ internal CALLBACK_END_SAMPLE(callback_meta_dumper_end_sample)
 }
 
 
-internal CALLBACK_BEGIN_EXPERIMENT(callback_meta_dumper_begin_experiment)
+internal CALLBACK_BEGIN_EPOCH(callback_meta_dumper_begin_epoch)
 {
 
 }
 
 
-internal CALLBACK_END_EXPERIMENT(callback_meta_dumper_end_experiment)
+internal CALLBACK_END_EPOCH(callback_meta_dumper_end_epoch)
 {
 
 }

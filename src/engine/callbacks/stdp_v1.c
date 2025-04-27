@@ -228,13 +228,13 @@ f32 _r_stdp_depression_learning_rule(Synapse* synapse, LearningInfo* learning_in
 }
 
 
-internal CALLBACK_BEGIN_EXPERIMENT(callback_stdp_v1_begin_experiment)
+internal CALLBACK_BEGIN_EPOCH(callback_stdp_v1_begin_epoch)
 {
 
 }
 
 
-internal CALLBACK_END_EXPERIMENT(callback_stdp_v1_end_experiment)
+internal CALLBACK_END_EPOCH(callback_stdp_v1_end_epoch)
 {
 
 }

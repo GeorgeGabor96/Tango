@@ -71,13 +71,13 @@ internal CALLBACK_END_SAMPLE(callback_synaptic_rescale_end_sample)
 }
 
 
-internal CALLBACK_BEGIN_EXPERIMENT(callback_synaptic_rescale_begin_experiment)
+internal CALLBACK_BEGIN_EPOCH(callback_synaptic_rescale_begin_epoch)
 {
 
 }
 
 
-internal CALLBACK_END_EXPERIMENT(callback_synaptic_rescale_end_experiment)
+internal CALLBACK_END_EPOCH(callback_synaptic_rescale_end_epoch)
 {
 
 }

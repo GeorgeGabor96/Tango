@@ -58,7 +58,7 @@ internal CALLBACK_BEGIN_SAMPLE(callback_weights_dumper_begin_sample)
     data->next_time_to_dump_i = 0;
 
     char file_name[100];
-    sprintf(file_name, "weights_%s.bin", string_get_c_str(sample->name));
+    sprintf(file_name, "weights_%s_e%u.bin", string_get_c_str(sample->name), epoch_i);
     String* file_name_s = string_create(memory, file_name);
     check_memory(file_name_s);
 
@@ -113,13 +113,13 @@ internal CALLBACK_END_SAMPLE(callback_weights_dumper_end_sample)
 }
 
 
-internal CALLBACK_BEGIN_EXPERIMENT(callback_weights_dumper_begin_experiment)
+internal CALLBACK_BEGIN_EPOCH(callback_weights_dumper_begin_epoch)
 {
-
+    callback->dumper_weights.next_sample_to_dump_i = 0;
 }
 
 
-internal CALLBACK_END_EXPERIMENT(callback_weights_dumper_end_experiment)
+internal CALLBACK_END_EPOCH(callback_weights_dumper_end_epoch)
 {
 
 }

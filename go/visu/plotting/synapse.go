@@ -19,12 +19,8 @@ type WeightsData struct {
 	Weights  [][]float32 // steps x synapses
 }
 
-func BuildWeights(meta *experiment.Meta, sampleName string) (*WeightsData, error) {
-	duration, present := meta.Samples[sampleName]
-	if !present {
-		return nil, errors.New(fmt.Sprintf("Sample %v is not present", sampleName))
-	}
-	fileName := fmt.Sprintf("weights_%v", sampleName)
+func BuildWeights(meta *experiment.Meta, sample experiment.SampleData) (*WeightsData, error) {
+	fileName := fmt.Sprintf("weights_%v_e%v", sample.Name, sample.Epoch)
 
 	filePath := utils.Join(meta.Folder, "weights")
 	filePath = utils.Join(filePath, fileName+".bin")
@@ -36,14 +32,14 @@ func BuildWeights(meta *experiment.Meta, sampleName string) (*WeightsData, error
 
 	data := new(WeightsData)
 	data.Name = fileName
-	data.Duration = duration
+	data.Duration = sample.Duration
 	data.TimeStep = parser.Uint32()
 
 	// NOTE: if duration < timestep => nsteps = 0 -> crash
-	if duration < data.TimeStep {
+	if sample.Duration < data.TimeStep {
 		data.NSteps = 1
 	} else {
-		data.NSteps = duration / data.TimeStep
+		data.NSteps = sample.Duration / data.TimeStep
 	}
 
 	data.Weights = make([][]float32, data.NSteps)

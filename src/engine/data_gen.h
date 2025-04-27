@@ -53,7 +53,6 @@ typedef struct DataGenBackgroundActivity
 typedef struct DataGen {
     DataGenType type;
     u32 n_samples;
-    u32 sample_i;
     // NOTE: This may be specific per type but for now its good here
     u32 sample_duration;
 

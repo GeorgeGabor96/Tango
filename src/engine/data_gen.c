@@ -12,7 +12,6 @@ data_gen_create_constant_current(Memory* memory, f32 value, u32 n_samples, u32 s
 
     data->type = DATA_GEN_CONSTANT_CURRENT;
     data->n_samples = n_samples;
-    data->sample_i = 0;
     data->sample_duration = sample_duration;
     data->const_current.value = value;
 
@@ -37,7 +36,6 @@ data_gen_create_random_spikes(Memory* memory, Random* random, f32 chance, u32 n_
 
     data->type = DATA_GEN_RANDOM_SPIKES;
     data->n_samples = n_samples;
-    data->sample_i = 0;
     data->sample_duration = sample_duration;
     data->random_spikes.random = random;
     data->random_spikes.chance = chance;
@@ -78,7 +76,6 @@ data_gen_create_spike_pulses(Memory* memory,
 
     data->type = DATA_GEN_SPIKE_PULSES;
     data->n_samples = n_samples;
-    data->sample_i = 0;
     data->sample_duration = sample_duration;
 
     DataGenSpikePulses* pulses = &(data->spike_pulses);
@@ -151,7 +148,6 @@ data_gen_create_spike_train(Memory* memory,
         data->n_samples = n_samples_in_file;
     else
         data->n_samples = n_samples;
-    data->sample_i = 0;
 
     data->spike_train.first_file_name = sample_name_list;
     data->spike_train.current_sample = sample_name_list;
@@ -176,7 +172,6 @@ data_gen_create_basic_experiment(Memory* memory, Random* random, f32 spike_chanc
 
     data->type = DATA_GEN_BASIC_EXPERIMENT;
     data->n_samples = n_samples;
-    data->sample_i = 0;
     data->sample_duration = 1000;
     data->basic_exp.random = random;
     data->basic_exp.spike_chance = spike_chance;
@@ -201,7 +196,6 @@ data_gen_create_background_activity(Memory* memory, Random* random, f32 spike_ch
 
     data->type = DATA_GEN_BACKGROUND_ACTIVITY;
     data->n_samples = n_samples;
-    data->sample_i = 0;
     data->sample_duration = sample_duration;
     data->background_activity.random = random;
     data->background_activity.chance_input = spike_chance_input;
@@ -219,13 +213,14 @@ internal DataSample*
 data_gen_sample_create(Memory* memory, DataGen* data, u32 idx) {
     check(memory != NULL, "memory is NULL");
     check(data != NULL, "data is NULL");
+    check(idx < data->n_samples, "sample idx is invalid, n_samples %u", data->n_samples);
 
     DataSample* sample = (DataSample*) memory_push(memory, sizeof(*sample));
     check_memory(sample);
 
     sample->duration = data->sample_duration;
     sample->data_gen = data;
-    sample->sample_i = data->sample_i;
+    sample->sample_i = idx;
 
     char sample_name[100];
     if (data->type == DATA_GEN_CONSTANT_CURRENT) {
@@ -255,7 +250,7 @@ data_gen_sample_create(Memory* memory, DataGen* data, u32 idx) {
         DataSampleSpikeTrain* sample_spike_train = &(sample->spike_train);
 
         if (data_spike_train->current_sample == NULL) {
-            if (data->sample_i < data->n_samples) {
+            if (idx < data->n_samples) {
                 data_spike_train->current_sample = data_spike_train->first_file_name;
             } else {
                 log_error("NO MORE SAMPLES. Shouldn't be called this much");
@@ -296,7 +291,6 @@ data_gen_sample_create(Memory* memory, DataGen* data, u32 idx) {
     sample->name = string_create(memory, sample_name);
     check_memory(sample->name);
 
-    ++(data->sample_i);
     return sample;
 
     error:

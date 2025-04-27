@@ -131,7 +131,7 @@ typedef struct Callback {
 /********************
 * Callback functions
 ********************/
-#define CALLBACK_BEGIN_SAMPLE(name) void name(Callback* callback, DataSample* sample, Memory* memory)
+#define CALLBACK_BEGIN_SAMPLE(name) void name(Callback* callback, DataSample* sample, u32 epoch_i, Memory* memory)
 typedef CALLBACK_BEGIN_SAMPLE(CALLBACK_BEGIN_SAMPLE_FN);
 internal CALLBACK_BEGIN_SAMPLE(callback_begin_sample);
 
@@ -139,17 +139,17 @@ internal CALLBACK_BEGIN_SAMPLE(callback_begin_sample);
 typedef CALLBACK_UPDATE(CALLBACK_UPDATE_FN);
 internal CALLBACK_UPDATE(callback_update);
 
-#define CALLBACK_END_SAMPLE(name) void name(Callback* callback, DataSample* sample, Memory* memory)
+#define CALLBACK_END_SAMPLE(name) void name(Callback* callback, DataSample* sample, u32 epoch_i, Memory* memory)
 typedef CALLBACK_END_SAMPLE(CALLBACK_END_SAMPLE_FN);
 internal CALLBACK_END_SAMPLE(callback_end_sample);
 
-#define CALLBACK_BEGIN_EXPERIMENT(name) void name(Callback* callback, Memory* memory)
-typedef CALLBACK_BEGIN_EXPERIMENT(CALLBACK_BEGIN_EXPERIMENT_FN);
-internal CALLBACK_BEGIN_EXPERIMENT(callback_begin_experiment);
+#define CALLBACK_BEGIN_EPOCH(name) void name(Callback* callback, u32 epoch_i, Memory* memory)
+typedef CALLBACK_BEGIN_EPOCH(CALLBACK_BEGIN_EPOCH_FN);
+internal CALLBACK_BEGIN_EPOCH(callback_begin_epoch);
 
-#define CALLBACK_END_EXPERIMENT(name) void name(Callback* callback, Memory* memory)
-typedef CALLBACK_END_EXPERIMENT(CALLBACK_END_EXPERIMENT_FN);
-internal CALLBACK_END_EXPERIMENT(callback_end_experiment);
+#define CALLBACK_END_EPOCH(name) void name(Callback* callback, u32 epoch_i, Memory* memory)
+typedef CALLBACK_END_EPOCH(CALLBACK_END_EPOCH_FN);
+internal CALLBACK_END_EPOCH(callback_end_epoch);
 
 /**********************
 * Callback Meta Dumper
@@ -162,8 +162,8 @@ internal Callback* callback_meta_dumper_create(
 internal CALLBACK_BEGIN_SAMPLE(callback_meta_dumper_begin_sample);
 internal CALLBACK_UPDATE(callback_meta_dumper_update);
 internal CALLBACK_END_SAMPLE(callback_meta_dumper_end_sample);
-internal CALLBACK_BEGIN_EXPERIMENT(callback_meta_dumper_begin_experiment);
-internal CALLBACK_END_EXPERIMENT(callback_meta_dumper_end_experiment);
+internal CALLBACK_BEGIN_EPOCH(callback_meta_dumper_begin_epoch);
+internal CALLBACK_END_EPOCH(callback_meta_dumper_end_epoch);
 
 /***********************
 * Callback Data Dumper
@@ -176,8 +176,8 @@ internal Callback* callback_network_data_dumper_create(
 internal CALLBACK_BEGIN_SAMPLE(callback_network_data_dumper_begin_sample);
 internal CALLBACK_UPDATE(callback_network_data_dumper_update);
 internal CALLBACK_END_SAMPLE(callback_network_data_dumper_end_sample);
-internal CALLBACK_BEGIN_EXPERIMENT(callback_network_data_dumper_begin_experiment);
-internal CALLBACK_END_EXPERIMENT(callback_network_data_dumper_end_experiment);
+internal CALLBACK_BEGIN_EPOCH(callback_network_data_dumper_begin_epoch);
+internal CALLBACK_END_EPOCH(callback_network_data_dumper_end_epoch);
 
 /***********************
 * Callback Spikes Dumper
@@ -190,8 +190,8 @@ internal Callback* callback_spikes_dumper_create(
 internal CALLBACK_BEGIN_SAMPLE(callback_spikes_dumper_begin_sample);
 internal CALLBACK_UPDATE(callback_spikes_dumper_update);
 internal CALLBACK_END_SAMPLE(callback_spikes_dumper_end_sample);
-internal CALLBACK_BEGIN_EXPERIMENT(callback_spikes_dumper_begin_experiment);
-internal CALLBACK_END_EXPERIMENT(callback_spikes_dumper_end_experiment);
+internal CALLBACK_BEGIN_EPOCH(callback_spikes_dumper_begin_epoch);
+internal CALLBACK_END_EPOCH(callback_spikes_dumper_end_epoch);
 
 
 /*************************
@@ -207,8 +207,8 @@ internal Callback* callback_weights_dumper_create(
 internal CALLBACK_BEGIN_SAMPLE(callback_weights_dumper_begin_sample);
 internal CALLBACK_UPDATE(callback_weights_dumper_update);
 internal CALLBACK_END_SAMPLE(callback_weights_dumper_end_sample);
-internal CALLBACK_BEGIN_EXPERIMENT(callback_weights_dumper_begin_experiment);
-internal CALLBACK_END_EXPERIMENT(callback_weights_dumper_end_experiment);
+internal CALLBACK_BEGIN_EPOCH(callback_weights_dumper_begin_epoch);
+internal CALLBACK_END_EPOCH(callback_weights_dumper_end_epoch);
 
 /*************************
 * Callback Synaptic Rescale
@@ -221,8 +221,8 @@ internal Callback* callback_synaptic_rescale_create(
 internal CALLBACK_BEGIN_SAMPLE(callback_synaptic_rescale_begin_sample);
 internal CALLBACK_UPDATE(callback_synaptic_rescale_update);
 internal CALLBACK_END_SAMPLE(callback_synaptic_rescale_end_sample);
-internal CALLBACK_BEGIN_EXPERIMENT(callback_synaptic_rescale_begin_experiment);
-internal CALLBACK_END_EXPERIMENT(callback_synaptic_rescale_end_experiment);
+internal CALLBACK_BEGIN_EPOCH(callback_synaptic_rescale_begin_epoch);
+internal CALLBACK_END_EPOCH(callback_synaptic_rescale_end_epoch);
 
 
 /*************************
@@ -236,21 +236,20 @@ internal Callback* callback_stdp_v1_create(
 internal CALLBACK_BEGIN_SAMPLE(callback_stdp_v1_begin_sample);
 internal CALLBACK_UPDATE(callback_stdp_v1_update);
 internal CALLBACK_END_SAMPLE(callback_stdp_v1_end_sample);
-internal CALLBACK_BEGIN_EXPERIMENT(callback_stdp_v1_begin_experiment);
-internal CALLBACK_END_EXPERIMENT(callback_stdp_v1_end_experiment);
+internal CALLBACK_BEGIN_EPOCH(callback_stdp_v1_begin_epoch);
+internal CALLBACK_END_EPOCH(callback_stdp_v1_end_epoch);
 
 /*************************
 * Callback Accuracy
 *************************/
 internal Callback* callback_accuracy_create(
     Memory* memory,
-    Network* network,
-    u8 cooldown_value);
+    Network* network);
 
 internal CALLBACK_BEGIN_SAMPLE(callback_accuracy_begin_sample);
 internal CALLBACK_UPDATE(callback_accuracy_update);
 internal CALLBACK_END_SAMPLE(callback_accuracy_end_sample);
-internal CALLBACK_BEGIN_EXPERIMENT(callback_accuracy_begin_experiment);
-internal CALLBACK_END_EXPERIMENT(callback_accuracy_end_experiment);
+internal CALLBACK_BEGIN_EPOCH(callback_accuracy_begin_epoch);
+internal CALLBACK_END_EPOCH(callback_accuracy_end_epoch);
 
 #endif // __ENGINE_CALLBACK_H__
