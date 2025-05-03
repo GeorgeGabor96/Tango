@@ -2,7 +2,7 @@
 
 
 int main() {
-    Experiment* exp = experiment_create(0, 723104, "D:\\repos\\Tango\\outputs\\146_rstdp_13_04_2025\\2_accuracy");
+    Experiment* exp = experiment_create(0, 723104, "D:\\repos\\Tango\\outputs\\150-add-accuracy-metric\\1_accuracy");
     Memory* memory = exp->permanent_memory;
     DataGen* data_gen = data_gen_create_background_activity(memory, exp->random, 0.005f, 0.005f, 10, 1000);
 
@@ -44,7 +44,7 @@ int main() {
     Callback* cb_weights = callback_weights_dumper_create(memory, 1, 5000, exp->output_folder, net);
     Callback* cb_data = callback_network_data_dumper_create(memory, exp->output_folder, net);
     Callback* cb_stdp = callback_stdp_v1_create(memory, net, 10);
-    Callback* cb_accuracy = callback_accuracy_create(memory, net);
+    Callback* cb_accuracy = callback_accuracy_create(memory, exp->output_folder, net);
 
     experiment_set_network(exp, net);
     experiment_set_data_gen(exp, data_gen);

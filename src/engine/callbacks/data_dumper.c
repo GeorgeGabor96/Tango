@@ -5,8 +5,7 @@ callback_network_data_dumper_create(Memory* memory, String* output_folder, Netwo
     check(network != NULL, "network is NULL");
 
     b32 result = os_folder_create_str(output_folder);
-    check(result == TRUE, "couldn't create folder %s",
-          string_get_c_str(output_folder));
+    check(result == TRUE, "couldn't create folder %s", string_get_c_str(output_folder));
 
     Callback* callback = (Callback*)memory_push(memory, sizeof(*callback));
     check_memory(callback);

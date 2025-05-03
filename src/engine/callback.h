@@ -89,6 +89,7 @@ typedef struct Accuracy
 {
     u32 hits;
     u32 total;
+    FILE* fp;
 } Accuracy;
 
 /**********************
@@ -260,6 +261,7 @@ internal CALLBACK_END_EXPERIMENT(callback_stdp_v1_end_experiment);
 *************************/
 internal Callback* callback_accuracy_create(
     Memory* memory,
+    String* output_folder,
     Network* network);
 
 internal CALLBACK_BEGIN_SAMPLE(callback_accuracy_begin_sample);
