@@ -135,7 +135,7 @@ typedef struct Callback {
 typedef CALLBACK_BEGIN_SAMPLE(CALLBACK_BEGIN_SAMPLE_FN);
 internal CALLBACK_BEGIN_SAMPLE(callback_begin_sample);
 
-#define CALLBACK_UPDATE(name) void name(Callback* callback, Inputs* inputs, u32 time, Memory* memory)
+#define CALLBACK_UPDATE(name) void name(Callback* callback, DataSample* sample, Inputs* inputs, u32 time, Memory* memory)
 typedef CALLBACK_UPDATE(CALLBACK_UPDATE_FN);
 internal CALLBACK_UPDATE(callback_update);
 

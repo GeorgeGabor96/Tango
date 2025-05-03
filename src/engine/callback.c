@@ -67,7 +67,7 @@ internal CALLBACK_UPDATE(callback_update)
 
     check(callback_is_valid(callback) == TRUE, "callback is invalid");
     check(memory != NULL, "memory is NULL");
-    callbacks[callback->type](callback, inputs, time, memory);
+    callbacks[callback->type](callback, sample, inputs, time, memory);
 
     error:
     return;

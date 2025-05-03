@@ -165,7 +165,7 @@ experiment_run(Experiment* experiment) {
                     callback_it != NULL;
                     callback_it = callback_it->next)
                 {
-                    callback_update(callback_it->callback, inputs, time, experiment->transient_memory);
+                    callback_update(callback_it->callback, sample, inputs, time, experiment->transient_memory);
                 }
             }
 

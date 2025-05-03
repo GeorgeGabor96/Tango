@@ -221,6 +221,7 @@ data_gen_sample_create(Memory* memory, DataGen* data, u32 idx) {
     sample->duration = data->sample_duration;
     sample->data_gen = data;
     sample->sample_i = idx;
+    sample->winner_neuron = 0;
 
     char sample_name[100];
     if (data->type == DATA_GEN_CONSTANT_CURRENT) {
@@ -283,6 +284,14 @@ data_gen_sample_create(Memory* memory, DataGen* data, u32 idx) {
         sprintf(sample_name, "background_activity_%06d", sample->sample_i);
         sample->background_activity.spike_chance_input = data->background_activity.chance_input;
         sample->background_activity.spike_chance_background = data->background_activity.change_background;
+        if ((sample->sample_i & 1) == 1)
+        {
+            sample->winner_neuron = 1;
+        }
+        else
+        {
+            sample->winner_neuron = 0;
+        }
     }
     else
     {
@@ -467,15 +476,13 @@ _background_activity_create_input(Memory* memory, Input* input, u32 n_neurons, D
         if (layer_index == 0) // assume first layer is input second is backgournd
         {
             // NOTE: only for even samples have input activity
-            if ((sample->sample_i & 1) == 1)
+            if (sample->winner_neuron == 1)
             {
                 spikes[neuron_i] = random_get_b8(data_gen->random, data_gen->chance_input);
-                label = 1;
             }
             else
             {
                 spikes[neuron_i] = FALSE;
-                label = 0;
             }
         }
         else
@@ -484,7 +491,6 @@ _background_activity_create_input(Memory* memory, Input* input, u32 n_neurons, D
         }
     }
     input->type = INPUT_SPIKES;
-    input->label = label;
     input->spikes.spikes = spikes;
     input->spikes.n_spikes = n_neurons;
 
