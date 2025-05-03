@@ -345,3 +345,19 @@ network_clear(Network* network) {
     error:
     return;
 }
+
+internal void
+network_set_neuron_history(Network* network, u32 sample_duration, Memory* memory)
+{
+    check(network != NULL, "network is NULL");
+    check(sample_duration > 0, "sample_duration is 0");
+    NetworkLayerLink* it = NULL;
+
+    for (it = network->layers.first; it != NULL; it = it->next)
+    {
+        layer_set_neuron_history(it->layer, sample_duration, memory);
+    }
+
+    error:
+    return;
+}

@@ -140,6 +140,7 @@ experiment_run(Experiment* experiment) {
                                             experiment->data, sample_idx);
 
             network_clear(experiment->network);
+            network_set_neuron_history(experiment->network, sample->duration, experiment->transient_memory);
 
             for (callback_it = experiment->callbacks;
                 callback_it != NULL;
@@ -176,8 +177,6 @@ experiment_run(Experiment* experiment) {
                 callback_end_sample(callback_it->callback, sample, epoch_idx, experiment->transient_memory);
             }
 
-            memory_clear(experiment->transient_memory);
-
             sample_time = clock() - sample_time_start;
 
             // NOTE: Timing logging
@@ -202,6 +201,9 @@ experiment_run(Experiment* experiment) {
         {
             callback_end_epoch(callback_it->callback, epoch_idx, experiment->transient_memory);
         }
+
+        // NOTE: clear memory after sample is complete
+        memory_clear(experiment->transient_memory);
 
         total_time = clock() - total_time_start;
         log_info("Total simulation time %lfs\n", (f64)total_time / CLOCKS_PER_SEC);

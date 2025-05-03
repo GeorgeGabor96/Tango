@@ -68,5 +68,6 @@ internal void network_set_learning(Network* network, b32 value);
 internal void network_step(Network* network, Inputs* inputs, u32 time,
                            Memory* memory, ThreadPool* pool);
 internal void network_clear(Network* network);
+internal void network_set_neuron_history(Network* network, u32 sample_duration, Memory* memory);
 
 #endif // __ENGINE_NETWORK_H__

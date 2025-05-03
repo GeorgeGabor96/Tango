@@ -548,3 +548,22 @@ layer_get_spikes(Memory* memory, Layer* layer) {
     error:
     return NULL;
 }
+
+
+internal void
+layer_set_neuron_history(Layer* layer, u32 sample_duration, Memory* memory)
+{
+    check(layer != NULL, "layer is NULL");
+    check(sample_duration > 0, "sample_duration is 0");
+    check(memory != NULL, "memory is NULL");
+
+    Neuron* neurons = layer->neurons;
+
+    for (u32 i = 0; i < layer->n_neurons; ++i)
+    {
+        neuron_set_history(neurons + i, sample_duration, memory);
+    }
+
+    error:
+    return;
+}

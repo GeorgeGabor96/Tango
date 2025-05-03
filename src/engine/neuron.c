@@ -154,6 +154,9 @@ neuron_init(Neuron* neuron, NeuronCls* cls) {
     neuron->n_in_synapse_arrays = 0;
     neuron->n_out_synapse_arrays = 0;
 
+    neuron->n_spikes = 0;
+    neuron->spike_times = NULL;
+
     error:
     return;
 }
@@ -238,15 +241,25 @@ NEURON_UPDATE_FN _NEURON_UPDATE_FNS[NEURON_TYPES_CNT] = {
     _neuron_lif_refract_voltage_update,
 };
 
+
+internal void
+_neuron_set_spike(Neuron* neuron, u32 time)
+{
+    neuron->voltage = NEURON_VOLTAGE_REST[neuron->cls->type];
+    neuron->spike = TRUE;
+    neuron->last_spike_time = time;
+
+    neuron->spike_times[neuron->n_spikes] = time;
+    neuron->n_spikes++;
+}
+
 internal void
 _neuron_update(Neuron* neuron, u32 time, f32 psc) {
     NeuronType n_type = neuron->cls->type;
 
     _NEURON_UPDATE_FNS[n_type](neuron, psc, time);
     if (neuron->voltage >= NEURON_VOLTAGE_TH[n_type]) {
-        neuron->voltage = NEURON_VOLTAGE_REST[n_type];
-        neuron->spike = TRUE;
-        neuron->last_spike_time = time;
+        _neuron_set_spike(neuron, time);
     } else {
         neuron->spike = FALSE;
     }
@@ -309,9 +322,8 @@ neuron_step_force_spike(Neuron* neuron, u32 time) {
     check(neuron != NULL, "neuron is NULL");
 
     _neuron_update_in_synapses(neuron, time);
-    neuron->spike = TRUE;
-    neuron->last_spike_time = time;
-    neuron->voltage = NEURON_VOLTAGE_REST[neuron->cls->type];
+    _neuron_set_spike(neuron, time);
+
     _neuron_update_out_synapses(neuron, time);
 
     TIMING_COUNTER_END(NEURON_STEP_FORCE_SPIKE);
@@ -356,6 +368,24 @@ neuron_clear(Neuron* neuron) {
             synapse_clear(synapse);
         }
     }
+
+    // clear spike history
+    neuron->n_spikes = 0;
+    neuron->spike_times = NULL;
+
+    error:
+    return;
+}
+
+internal void
+neuron_set_history(Neuron* neuron, u32 sample_duration, Memory* memory)
+{
+    check(neuron != NULL, "neuron is NULL");
+    check(memory != NULL, "memory is NULL");
+
+    neuron->n_spikes = 0;
+    neuron->spike_times = memory_push_zero(memory, sample_duration * sizeof(u32));
+    check_memory(neuron->spike_times);
 
     error:
     return;
