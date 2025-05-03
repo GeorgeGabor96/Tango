@@ -121,6 +121,13 @@ experiment_run(Experiment* experiment) {
     clock_t network_time = 0;
     f64 network_time_s = 0.0;
 
+    for (callback_it = experiment->callbacks;
+        callback_it != NULL;
+        callback_it = callback_it->next)
+    {
+        callback_begin_experiment(callback_it->callback);
+    }
+
     for (epoch_idx = 0; epoch_idx < experiment->n_epochs; ++epoch_idx)
     {
         log_info("EPOCH %u", epoch_idx);
@@ -140,6 +147,7 @@ experiment_run(Experiment* experiment) {
                                             experiment->data, sample_idx);
 
             network_clear(experiment->network);
+            network_set_neuron_history(experiment->network, sample->duration, experiment->transient_memory);
 
             for (callback_it = experiment->callbacks;
                 callback_it != NULL;
@@ -165,7 +173,7 @@ experiment_run(Experiment* experiment) {
                     callback_it != NULL;
                     callback_it = callback_it->next)
                 {
-                    callback_update(callback_it->callback, inputs, time, experiment->transient_memory);
+                    callback_update(callback_it->callback, sample, inputs, time, experiment->transient_memory);
                 }
             }
 
@@ -175,8 +183,6 @@ experiment_run(Experiment* experiment) {
             {
                 callback_end_sample(callback_it->callback, sample, epoch_idx, experiment->transient_memory);
             }
-
-            memory_clear(experiment->transient_memory);
 
             sample_time = clock() - sample_time_start;
 
@@ -203,8 +209,18 @@ experiment_run(Experiment* experiment) {
             callback_end_epoch(callback_it->callback, epoch_idx, experiment->transient_memory);
         }
 
+        // NOTE: clear memory after sample is complete
+        memory_clear(experiment->transient_memory);
+
         total_time = clock() - total_time_start;
         log_info("Total simulation time %lfs\n", (f64)total_time / CLOCKS_PER_SEC);
+    }
+
+    for (callback_it = experiment->callbacks;
+        callback_it != NULL;
+        callback_it = callback_it->next)
+    {
+        callback_end_experiment(callback_it->callback);
     }
 
     error:

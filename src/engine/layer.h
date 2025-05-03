@@ -106,4 +106,6 @@ internal f32* layer_get_epscs(Memory* memory, Layer* layer);
 internal f32* layer_get_ipscs(Memory* memory, Layer* layer);
 internal b32* layer_get_spikes(Memory* memory, Layer* layer);
 
+internal void layer_set_neuron_history(Layer* layer, u32 sample_duration, Memory* memory);
+
 #endif // __ENGINE_LAYER_H__

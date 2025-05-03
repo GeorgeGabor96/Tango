@@ -28,7 +28,6 @@ typedef struct Spikes {
 
 typedef struct Input {
     InputType type;
-    u32 label; // TODO: easiest thing to do for now, just the neuron that should win
     union {
         Spikes spikes;
         Currents currents;

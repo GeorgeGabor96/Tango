@@ -123,3 +123,15 @@ internal CALLBACK_END_EPOCH(callback_weights_dumper_end_epoch)
 {
 
 }
+
+
+internal CALLBACK_BEGIN_EXPERIMENT(callback_weights_dumper_begin_experiment)
+{
+
+}
+
+
+internal CALLBACK_END_EXPERIMENT(callback_weights_dumper_end_experiment)
+{
+
+}

@@ -67,7 +67,7 @@ internal CALLBACK_UPDATE(callback_update)
 
     check(callback_is_valid(callback) == TRUE, "callback is invalid");
     check(memory != NULL, "memory is NULL");
-    callbacks[callback->type](callback, inputs, time, memory);
+    callbacks[callback->type](callback, sample, inputs, time, memory);
 
     error:
     return;
@@ -131,6 +131,46 @@ internal CALLBACK_END_EPOCH(callback_end_epoch)
     check(callback_is_valid(callback) == TRUE, "callback is invalid");
     check(memory != NULL, "memory is NULL");
     callbacks[callback->type](callback, epoch_i, memory);
+
+    error:
+    return;
+}
+
+
+internal CALLBACK_BEGIN_EXPERIMENT(callback_begin_experiment)
+{
+    static CALLBACK_BEGIN_EXPERIMENT_FN* callbacks[CALLBACK_COUNT] = {
+        callback_meta_dumper_begin_experiment,
+        callback_network_data_dumper_begin_experiment,
+        callback_spikes_dumper_begin_experiment,
+        callback_weights_dumper_begin_experiment,
+        callback_synaptic_rescale_begin_experiment,
+        callback_stdp_v1_begin_experiment,
+        callback_accuracy_begin_experiment,
+    };
+
+    check(callback_is_valid(callback) == TRUE, "callback is invalid");
+    callbacks[callback->type](callback);
+
+    error:
+    return;
+}
+
+
+internal CALLBACK_END_EXPERIMENT(callback_end_experiment)
+{
+    static CALLBACK_END_EXPERIMENT_FN* callbacks[CALLBACK_COUNT] = {
+        callback_meta_dumper_end_experiment,
+        callback_network_data_dumper_end_experiment,
+        callback_spikes_dumper_end_experiment,
+        callback_weights_dumper_end_experiment,
+        callback_synaptic_rescale_end_experiment,
+        callback_stdp_v1_end_experiment,
+        callback_accuracy_end_experiment,
+    };
+
+    check(callback_is_valid(callback) == TRUE, "callback is invalid");
+    callbacks[callback->type](callback);
 
     error:
     return;

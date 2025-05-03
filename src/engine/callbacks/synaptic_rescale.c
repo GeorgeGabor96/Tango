@@ -81,3 +81,15 @@ internal CALLBACK_END_EPOCH(callback_synaptic_rescale_end_epoch)
 {
 
 }
+
+
+internal CALLBACK_BEGIN_EXPERIMENT(callback_synaptic_rescale_begin_experiment)
+{
+
+}
+
+
+internal CALLBACK_END_EXPERIMENT(callback_synaptic_rescale_end_experiment)
+{
+
+}

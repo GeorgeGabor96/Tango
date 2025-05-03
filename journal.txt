@@ -36,3 +36,8 @@
 
 25.04.2025
 - 1. Add accuracy callback
+	- Needs a lot of work, added epoch in the simulator and in go
+
+03.05.2025
+- 1. made a lot of changes need to submit them
+- 2. Added accuracy callback is DONE

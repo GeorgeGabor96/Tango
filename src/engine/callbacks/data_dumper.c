@@ -5,8 +5,7 @@ callback_network_data_dumper_create(Memory* memory, String* output_folder, Netwo
     check(network != NULL, "network is NULL");
 
     b32 result = os_folder_create_str(output_folder);
-    check(result == TRUE, "couldn't create folder %s",
-          string_get_c_str(output_folder));
+    check(result == TRUE, "couldn't create folder %s", string_get_c_str(output_folder));
 
     Callback* callback = (Callback*)memory_push(memory, sizeof(*callback));
     check_memory(callback);
@@ -123,6 +122,18 @@ internal CALLBACK_BEGIN_EPOCH(callback_network_data_dumper_begin_epoch)
 
 
 internal CALLBACK_END_EPOCH(callback_network_data_dumper_end_epoch)
+{
+
+}
+
+
+internal CALLBACK_BEGIN_EXPERIMENT(callback_network_data_dumper_begin_experiment)
+{
+
+}
+
+
+internal CALLBACK_END_EXPERIMENT(callback_network_data_dumper_end_experiment)
 {
 
 }

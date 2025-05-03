@@ -111,6 +111,12 @@ struct Neuron {
     SynapseRefArray* out_synapse_arrays;
     u32 n_in_synapse_arrays;
     u32 n_out_synapse_arrays;
+
+    // spike history
+    // TODO(GEORGE): this is very inneficient use of memory
+    // TODO(GEORGE): should we keep a list of bools, if spike TRUE for time corresponding to index?
+    u32 n_spikes;
+    u32* spike_times;
 };
 
 
@@ -122,6 +128,10 @@ internal void neuron_step_force_spike(Neuron* neuron, u32 time);
 internal void neuron_step_inject_current(Neuron* neuron, f32 psc, u32 time);
 
 internal void neuron_clear(Neuron* neuron);
+
+// TODO(GEORGE): if we keep this it will simplify the callbacks simnificantly
+internal void neuron_set_history(Neuron* neuron, u32 sample_duration, Memory* memory);
+
 
 #endif // __ENGINE_NEURON_H__
 

@@ -31,7 +31,7 @@ internal CALLBACK_BEGIN_SAMPLE(callback_stdp_v1_begin_sample)
 
 }
 
-static b8 _callback_stdp_v1_synapse_update(Synapse* synapse, Inputs* inputs, Network* network);
+static b8 _callback_stdp_v1_synapse_update(Synapse* synapse, DataSample* sample, Inputs* inputs, Network* network);
 
 
 internal CALLBACK_UPDATE(callback_stdp_v1_update)
@@ -48,7 +48,7 @@ internal CALLBACK_UPDATE(callback_stdp_v1_update)
         }
 
         Synapse* synapse = net->synapses + i;
-        b8 did_change = _callback_stdp_v1_synapse_update(synapse, inputs, callback->network);
+        b8 did_change = _callback_stdp_v1_synapse_update(synapse, sample, inputs, callback->network);
         if (did_change)
         {
             data->cooldown[i] = data->cooldown_value;
@@ -56,12 +56,12 @@ internal CALLBACK_UPDATE(callback_stdp_v1_update)
     }
 }
 
-b32 _get_reward(Network* network, Inputs* inputs);
+b32 _get_reward(Network* network, DataSample* sample);
 f32 _r_stdp_potentiation_learning_rule(Synapse* synapse, LearningInfo* learning_info, b32 reward);
 f32 _r_stdp_depression_learning_rule(Synapse* synapse, LearningInfo* learning_info, b32 reward);
 
 static b8
-_callback_stdp_v1_synapse_update(Synapse* synapse, Inputs* inputs, Network* network)
+_callback_stdp_v1_synapse_update(Synapse* synapse, DataSample* sample, Inputs* inputs, Network* network)
 {
     f32 dw = 0.0f;
     SynapseCls* cls = synapse->cls;
@@ -76,7 +76,7 @@ _callback_stdp_v1_synapse_update(Synapse* synapse, Inputs* inputs, Network* netw
     if (synapse_spike_time == INVALID_SPIKE_TIME) return FALSE;
     if (out_neuron_spike_time == INVALID_SPIKE_TIME) return FALSE;
 
-    b32 reward = _get_reward(network, inputs);
+    b32 reward = _get_reward(network, sample);
 
     // NOTE: synapse contribution is before the out neuron spiked -> Potentiation
     if (synapse_spike_time < out_neuron_spike_time)
@@ -156,7 +156,7 @@ internal CALLBACK_END_SAMPLE(callback_stdp_v1_end_sample)
 }
 
 
-b32 _get_reward(Network* network, Inputs* inputs)
+b32 _get_reward(Network* network, DataSample* sample)
 {
     b32 reward = TRUE;
     check(network->n_out_layers == 1, "Only one output layers for now");
@@ -178,10 +178,9 @@ b32 _get_reward(Network* network, Inputs* inputs)
         }
     }
 
-
     if (network_winner_is_valid == TRUE)
     {
-        u32 actual_winner_neuron_i = inputs->inputs[0].label;
+        u32 actual_winner_neuron_i = sample->winner_neuron_i;
         if (network_winner_neuron_i == actual_winner_neuron_i)
         {
             reward = TRUE;
@@ -235,6 +234,18 @@ internal CALLBACK_BEGIN_EPOCH(callback_stdp_v1_begin_epoch)
 
 
 internal CALLBACK_END_EPOCH(callback_stdp_v1_end_epoch)
+{
+
+}
+
+
+internal CALLBACK_BEGIN_EXPERIMENT(callback_stdp_v1_begin_experiment)
+{
+
+}
+
+
+internal CALLBACK_END_EXPERIMENT(callback_stdp_v1_end_experiment)
 {
 
 }

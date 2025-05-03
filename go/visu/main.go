@@ -41,6 +41,13 @@ func main() {
 	}
 	meta, _ := experiment.BuildMeta(args.binFolder)
 
+	accuracyData, err := experiment.BuildAccuracyData(meta)
+	if err != nil {
+		fmt.Println(err.Error())
+	} else {
+		plotting.AccuracyPlot(meta, accuracyData)
+	}
+
 	var wg sync.WaitGroup
 	for sampleI := range meta.Samples {
 		sample := meta.Samples[sampleI]

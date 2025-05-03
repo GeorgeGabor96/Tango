@@ -144,6 +144,7 @@ typedef struct DataSample {
     u32 sample_i;
     String* name;
     DataGen* data_gen;
+    u32 winner_neuron_i; // TODO: easiest thing to do for now, just the neuron that should win
 
     union {
         void* random_spikes;
