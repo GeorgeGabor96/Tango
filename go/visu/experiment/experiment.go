@@ -1,9 +1,12 @@
 package experiment
 
 import (
+	"bufio"
 	"errors"
 	"fmt"
 	"log"
+	"os"
+	"strconv"
 	"tango/go/utils"
 	"tango/go/visu/parser"
 )
@@ -60,6 +63,11 @@ type Data struct {
 	Neurons  [][]NeuronData
 	Synapses [][]SynapseData
 	Layers   []LayerData
+}
+
+type AccuracyData struct {
+	EpochsCount    uint32
+	AccuracyValues []float32
 }
 
 func BuildMeta(folder string) (*Meta, error) {
@@ -236,4 +244,33 @@ func BuildSpikes(meta *Meta, sample SampleData) (*SpikesData, error) {
 	}
 
 	return spikesData, nil
+}
+
+func BuildAccuracyData(meta *Meta) (*AccuracyData, error) {
+	accuracyData := new(AccuracyData)
+	accuracyData.EpochsCount = 0
+	accuracyData.AccuracyValues = make([]float32, 0)
+
+	accuracyFile := utils.Join(meta.Folder, "accuracy.txt")
+	file, err := os.Open(accuracyFile)
+	if err != nil {
+		return nil, errors.New(fmt.Sprintf("[WARNING] Cannot read accuracy file"))
+	}
+	defer file.Close()
+
+	scanner := bufio.NewScanner(file)
+	scanner.Split(bufio.ScanLines)
+
+	for scanner.Scan() {
+		value, err := strconv.ParseFloat(scanner.Text(), 32)
+		if err != nil {
+			return nil, errors.New(fmt.Sprintf("[WARNING] Cannot convert str %v to float", value))
+		}
+		accuracyValue := float32(value)
+
+		accuracyData.EpochsCount += 1
+		accuracyData.AccuracyValues = append(accuracyData.AccuracyValues, accuracyValue)
+	}
+
+	return accuracyData, nil
 }
