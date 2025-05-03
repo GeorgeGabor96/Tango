@@ -178,10 +178,9 @@ b32 _get_reward(Network* network, DataSample* sample)
         }
     }
 
-
     if (network_winner_is_valid == TRUE)
     {
-        u32 actual_winner_neuron_i = sample->winner_neuron;
+        u32 actual_winner_neuron_i = sample->winner_neuron_i;
         if (network_winner_neuron_i == actual_winner_neuron_i)
         {
             reward = TRUE;
@@ -235,6 +234,18 @@ internal CALLBACK_BEGIN_EPOCH(callback_stdp_v1_begin_epoch)
 
 
 internal CALLBACK_END_EPOCH(callback_stdp_v1_end_epoch)
+{
+
+}
+
+
+internal CALLBACK_BEGIN_EXPERIMENT(callback_stdp_v1_begin_experiment)
+{
+
+}
+
+
+internal CALLBACK_END_EXPERIMENT(callback_stdp_v1_end_experiment)
 {
 
 }

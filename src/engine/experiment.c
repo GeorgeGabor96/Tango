@@ -121,6 +121,13 @@ experiment_run(Experiment* experiment) {
     clock_t network_time = 0;
     f64 network_time_s = 0.0;
 
+    for (callback_it = experiment->callbacks;
+        callback_it != NULL;
+        callback_it = callback_it->next)
+    {
+        callback_begin_experiment(callback_it->callback);
+    }
+
     for (epoch_idx = 0; epoch_idx < experiment->n_epochs; ++epoch_idx)
     {
         log_info("EPOCH %u", epoch_idx);
@@ -207,6 +214,13 @@ experiment_run(Experiment* experiment) {
 
         total_time = clock() - total_time_start;
         log_info("Total simulation time %lfs\n", (f64)total_time / CLOCKS_PER_SEC);
+    }
+
+    for (callback_it = experiment->callbacks;
+        callback_it != NULL;
+        callback_it = callback_it->next)
+    {
+        callback_end_experiment(callback_it->callback);
     }
 
     error:
