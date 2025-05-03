@@ -23,7 +23,7 @@ callback_spikes_dumper_create(Memory* memory, String* output_folder, Network* ne
     check_memory(spikes_data);
 
     callback->type = CALLBACK_SPIKES_DUMPER;
-    callback->dumper_spikes.network = network;
+    callback->network = network;
     callback->dumper_spikes.output_folder = output_folder;
     callback->dumper_spikes.sample_fp = NULL;
     callback->dumper_spikes.spikes_data = spikes_data;
@@ -35,12 +35,12 @@ callback_spikes_dumper_create(Memory* memory, String* output_folder, Network* ne
 }
 
 
-internal void
-callback_spikes_dumper_begin_sample(Callback* callback, DataSample* sample, Memory* memory) {
+internal CALLBACK_BEGIN_SAMPLE(callback_spikes_dumper_begin_sample)
+{
     DumperSpikes* spikes = &callback->dumper_spikes;
 
     char file_name[100];
-    sprintf(file_name, "spikes_%s.bin", string_get_c_str(sample->name));
+    sprintf(file_name, "spikes_%s_e%u.bin", string_get_c_str(sample->name), epoch_i);
     String* file_path = string_path_join_c_str(
         memory, spikes->output_folder, file_name);
     check_memory(file_path);
@@ -64,14 +64,14 @@ callback_spikes_dumper_begin_sample(Callback* callback, DataSample* sample, Memo
 }
 
 
-internal void
-callback_spikes_dumper_update(Callback* callback, u32 time, Memory* memory) {
+internal CALLBACK_UPDATE(callback_spikes_dumper_update)
+{
     DumperSpikes* spikes = &callback->dumper_spikes;
 
     // NOTE: get the spike data
     u32 neuron_i = 0;
     u32 spike_i = 0;
-    Network* network = spikes->network;
+    Network* network = callback->network;
     Neuron* neurons = network->neurons;
     Neuron* neuron = NULL;
     NeuronTimeSpike* spikes_data = spikes->spikes_data;
@@ -98,9 +98,10 @@ callback_spikes_dumper_update(Callback* callback, u32 time, Memory* memory) {
 }
 
 
-internal void
-callback_spikes_dumper_end_sample(Callback* callback, Memory* memory) {
+internal CALLBACK_END_SAMPLE(callback_spikes_dumper_end_sample)
+{
     DumperSpikes* spikes = &callback->dumper_spikes;
+    Network* network = callback->network;
 
     // NOTE: Write the number of spikes at the beginning of the file
     fseek(spikes->sample_fp, 0, SEEK_SET);
@@ -111,10 +112,22 @@ callback_spikes_dumper_end_sample(Callback* callback, Memory* memory) {
 
 #ifdef _DEBUG_
     u32 n_weights_zero = 0;
-    for (u32 synapse_i = 0; synapse_i < spikes->network->n_synapses; ++synapse_i) {
-        Synapse* synapse = spikes->network->synapses + synapse_i;
+    for (u32 synapse_i = 0; synapse_i < network->n_synapses; ++synapse_i) {
+        Synapse* synapse = network->synapses + synapse_i;
         if (math_float_equals_f32(synapse->weight, 0.0f)) n_weights_zero++;
     }
     log_info("N_weights zero %u", n_weights_zero);
 #endif
+}
+
+
+internal CALLBACK_BEGIN_EPOCH(callback_spikes_dumper_begin_epoch)
+{
+
+}
+
+
+internal CALLBACK_END_EPOCH(callback_spikes_dumper_end_epoch)
+{
+
 }

@@ -22,7 +22,7 @@ callback_network_data_dumper_create(Memory* memory, String* output_folder, Netwo
     check_memory(synapse_data);
 
     callback->type = CALLBACK_NETWORK_DATA_DUMPER;
-    callback->dumper_data.network = network;
+    callback->network = network;
     callback->dumper_data.output_folder = output_folder;
     callback->dumper_data.sample_fp = NULL;
     callback->dumper_data.neuron_data = neuron_data;
@@ -35,12 +35,12 @@ callback_network_data_dumper_create(Memory* memory, String* output_folder, Netwo
 }
 
 
-internal void
-callback_network_data_dumper_begin_sample(Callback* callback, DataSample* sample, Memory* memory) {
+internal CALLBACK_BEGIN_SAMPLE(callback_network_data_dumper_begin_sample)
+{
     DumperData* data = &callback->dumper_data;
 
     char file_name[100];
-    sprintf(file_name, "data_%s.bin", string_get_c_str(sample->name));
+    sprintf(file_name, "data_%s_e%u.bin", string_get_c_str(sample->name), epoch_i);
     String* file_name_s = string_create(memory, file_name);
     check_memory(file_name_s);
 
@@ -59,14 +59,14 @@ callback_network_data_dumper_begin_sample(Callback* callback, DataSample* sample
 }
 
 
-internal void
-callback_network_data_dumper_update(Callback* callback, u32 time, Memory* memory) {
+internal CALLBACK_UPDATE(callback_network_data_dumper_update)
+{
     DumperData* data = &callback->dumper_data;
 
     // NOTE: dump the neurons
     u32 neuron_i = 0;
     Neuron* neuron = NULL;
-    Network* network = data->network;
+    Network* network = callback->network;
     DumperNeuronData* neuron_data = NULL;
     Neuron* neurons = network->neurons;
     DumperNeuronData* neurons_data = data->neuron_data;
@@ -107,10 +107,22 @@ callback_network_data_dumper_update(Callback* callback, u32 time, Memory* memory
 }
 
 
-internal void
-callback_network_data_dumper_end_sample(Callback* callback, Memory* memory) {
+internal CALLBACK_END_SAMPLE(callback_network_data_dumper_end_sample)
+{
     DumperData* data = &callback->dumper_data;
 
     fflush(data->sample_fp);
     fclose(data->sample_fp);
+}
+
+
+internal CALLBACK_BEGIN_EPOCH(callback_network_data_dumper_begin_epoch)
+{
+
+}
+
+
+internal CALLBACK_END_EPOCH(callback_network_data_dumper_end_epoch)
+{
+
 }

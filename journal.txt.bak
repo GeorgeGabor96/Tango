@@ -18,4 +18,15 @@
 - 5. I also change weight of the background population, should I?
 	- lets keep the population connectivity fixed -> its better, but still much more activity when both are one, as expected
 	
-- 6. Lets add more randomness but setting connect chance to 8
+- 6. Lets add more randomness but setting connect chance to 80
+
+13.04.2025
+- From last time
+	- everything happens as expected, if I increase the input activity the network output is stronger, background vs background with input
+	- stdp doesn't really do anything special, it just makes the connections stronger
+	
+- 1. Merge everything
+
+- 2. Continue with R-STDP
+	- Not sure exactly how to implement it because right now the stdp works during the sample propagation, not after
+	- and how do i know when to apply reward if I don't have the answer

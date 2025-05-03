@@ -70,8 +70,8 @@ callback_meta_dumper_create(Memory* memory, String* output_folder, Network* netw
 }
 
 
-internal void
-callback_meta_dumper_begin_sample(Callback* callback, DataSample* sample, Memory* memory) {
+internal CALLBACK_BEGIN_SAMPLE(callback_meta_dumper_begin_sample)
+{
     DumperMeta* meta = &callback->dumper_meta;
     meta->sample_name = sample->name;
     meta->sample_duration = sample->duration;
@@ -79,8 +79,8 @@ callback_meta_dumper_begin_sample(Callback* callback, DataSample* sample, Memory
 }
 
 
-internal void
-callback_meta_dumper_update(Callback* callback, u32 time, Memory* memory) {
+internal CALLBACK_UPDATE(callback_meta_dumper_update)
+{
     DumperMeta* meta =  &callback->dumper_meta;
 
     check(meta->sample_time < meta->sample_duration,
@@ -93,8 +93,8 @@ callback_meta_dumper_update(Callback* callback, u32 time, Memory* memory) {
 }
 
 
-internal void
-callback_meta_dumper_end_sample(Callback* callback, Memory* memory) {
+internal CALLBACK_END_SAMPLE(callback_meta_dumper_end_sample)
+{
     DumperMeta* meta =  &callback->dumper_meta;
 
     // NOTE: append sample information
@@ -106,10 +106,23 @@ callback_meta_dumper_end_sample(Callback* callback, Memory* memory) {
     fwrite(&(meta->sample_name->length), sizeof(u32), 1, fp);
     fwrite(meta->sample_name->data, sizeof(char), meta->sample_name->length, fp);
     fwrite(&(meta->sample_duration), sizeof(u32), 1, fp);
+    fwrite(&epoch_i, sizeof(u32), 1, fp);
 
     fflush(fp);
     fclose(fp);
 
     error:
     return;
+}
+
+
+internal CALLBACK_BEGIN_EPOCH(callback_meta_dumper_begin_epoch)
+{
+
+}
+
+
+internal CALLBACK_END_EPOCH(callback_meta_dumper_end_epoch)
+{
+
 }

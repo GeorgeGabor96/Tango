@@ -6,6 +6,7 @@ typedef enum {
     SYNAPSE_LEARNING_NO_LEARNING,
     SYNAPSE_LEARNING_EXPONENTIAL,
     SYNAPSE_LEARNING_STEP,
+    SYNAPSE_LEARNING_RSTDP_EXPONENTIAL,
 
     SYNAPSE_LEARNING_INVALID,
 } SynapseLearningRule;
@@ -28,6 +29,13 @@ typedef struct SynapseLearningStep {
     f32 amp_d;
 } SynapseLearningStep;
 
+typedef struct SynapseLearningRSTDPExpeonential
+{
+    f32 reward_potentiation_factor;
+    f32 reward_depression_factor;
+    f32 punishment_potentiation_factor;
+    f32 punishment_depression_factor;
+} SynapseLearningRSTDPExpeonential;
 
 typedef struct LearningInfo {
     SynapseLearningRule type;
@@ -37,6 +45,7 @@ typedef struct LearningInfo {
     union {
         SynapseLearningExponential stdp_exponential;
         SynapseLearningStep stdp_step;
+        SynapseLearningRSTDPExpeonential r_stdp_exponential;
     };
 } LearningInfo;
 
@@ -88,6 +97,15 @@ internal void synapse_cls_add_learning_rule_step(
     f32 min_w, f32 max_w,
     u32 max_time_p, f32 amp_p,
     u32 max_time_d, f32 amp_d);
+
+internal void syanpse_cls_add_learning_rule_rstdp_exponential(
+    SynapseCls* cls,
+    f32 min_w,
+    f32 max_w,
+    f32 reward_potentiation_factor,
+    f32 reward_depression_factor,
+    f32 punishment_potentiation_factor,
+    f32 punishment_depression_factor);
 
 
 #define SYNAPSE_QUEUE_CAPACITY (sizeof(u64) * 8 - 1)

@@ -42,25 +42,30 @@ func main() {
 	meta, _ := experiment.BuildMeta(args.binFolder)
 
 	var wg sync.WaitGroup
-	for sampleName := range meta.Samples {
-		sampleNameCopy := strings.Clone(sampleName)
+	for sampleI := range meta.Samples {
+		sample := meta.Samples[sampleI]
 
-		CreatePlots(meta, sampleNameCopy)
+		var sampleClone experiment.SampleData
+		sampleClone.Name = strings.Clone(sample.Name)
+		sampleClone.Duration = sample.Duration
+		sampleClone.Epoch = sample.Epoch
+
+		CreatePlots(meta, sampleClone)
 		continue
 		wg.Add(1)
 
 		go func() {
-			CreatePlots(meta, sampleNameCopy)
+			CreatePlots(meta, sampleClone)
 			wg.Done()
 		}()
 	}
 	wg.Wait()
 }
 
-func CreatePlots(meta *experiment.Meta, sampleName string) {
-	fmt.Printf("[INFO] Begin processing sample %v\n", sampleName)
+func CreatePlots(meta *experiment.Meta, sample experiment.SampleData) {
+	fmt.Printf("[INFO] Begin processing sample %v for epoch %v\n", sample.Name, sample.Epoch)
 
-	data, err := experiment.BuildData(meta, sampleName)
+	data, err := experiment.BuildData(meta, sample)
 	if err == nil {
 		plotting.SynapseConductancePlot(meta, data, 200)
 		plotting.SynapseWeightPlot(meta, data, 200)
@@ -73,7 +78,7 @@ func CreatePlots(meta *experiment.Meta, sampleName string) {
 		plotting.NeuronIpscPlot(meta, data, 200)
 	}
 
-	spikes, err := experiment.BuildSpikes(meta, sampleName)
+	spikes, err := experiment.BuildSpikes(meta, sample)
 	if err != nil {
 		fmt.Println(err.Error())
 	} else {
@@ -84,12 +89,12 @@ func CreatePlots(meta *experiment.Meta, sampleName string) {
 		plotting.ActivityPlotForLayers(layersI[:], meta, spikes)
 	}
 
-	weights, err := plotting.BuildWeights(meta, sampleName)
+	weights, err := plotting.BuildWeights(meta, sample)
 	if err != nil {
 		fmt.Println(err.Error())
 	} else {
 		plotting.PlotWeightHistograms(meta, weights)
 	}
 
-	fmt.Printf("[INFO] Finished processing sample %v\n", sampleName)
+	fmt.Printf("[INFO] Finished processing sample %v for epoch %v\n", sample.Name, sample.Epoch)
 }

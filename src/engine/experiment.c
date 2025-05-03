@@ -33,6 +33,8 @@ experiment_create(u32 n_workers, u32 seed, const char* output_folder) {
     experiment->data = NULL;
     experiment->callbacks = NULL;
 
+    experiment->n_epochs = 1;
+
     return experiment;
 
     error:
@@ -104,6 +106,7 @@ experiment_run(Experiment* experiment) {
     DataSample* sample = NULL;
     Inputs* inputs = NULL;
     u32 sample_idx = 0;
+    u32 epoch_idx = 0;
     u32 time = 0;
 
     // TIMING
@@ -118,66 +121,91 @@ experiment_run(Experiment* experiment) {
     clock_t network_time = 0;
     f64 network_time_s = 0.0;
 
-    total_time_start = clock();
-    for (sample_idx = 0; sample_idx < experiment->data->n_samples; ++sample_idx) {
-        sample_time_start = clock();
-
-        sample = data_gen_sample_create(experiment->transient_memory,
-                                        experiment->data, sample_idx);
-
-        network_clear(experiment->network);
+    for (epoch_idx = 0; epoch_idx < experiment->n_epochs; ++epoch_idx)
+    {
+        log_info("EPOCH %u", epoch_idx);
 
         for (callback_it = experiment->callbacks;
-             callback_it != NULL;
-             callback_it = callback_it->next)
-            callback_begin_sample(callback_it->callback,
-                                  sample,
-                                  experiment->transient_memory);
+            callback_it != NULL;
+            callback_it = callback_it->next)
+        {
+            callback_begin_epoch(callback_it->callback, epoch_idx, experiment->transient_memory);
+        }
 
-        for (time = 0; time < sample->duration; ++time) {
-            if (time % (sample->duration / 10) == 0)
-                printf("[%d/%d]\r", time, sample->duration);
-            inputs = data_network_inputs_create(experiment->transient_memory,
-                                                sample,
-                                                experiment->network,
-                                                time);
+        total_time_start = clock();
+        for (sample_idx = 0; sample_idx < experiment->data->n_samples; ++sample_idx) {
+            sample_time_start = clock();
 
-            network_time_start = clock();
-            network_step(experiment->network, inputs, time, experiment->transient_memory, experiment->pool);
-            network_time += clock() - network_time_start;
+            sample = data_gen_sample_create(experiment->transient_memory,
+                                            experiment->data, sample_idx);
+
+            network_clear(experiment->network);
 
             for (callback_it = experiment->callbacks;
                 callback_it != NULL;
                 callback_it = callback_it->next)
-                callback_update(callback_it->callback, time, experiment->transient_memory);
+            {
+                callback_begin_sample(callback_it->callback, sample, epoch_idx, experiment->transient_memory);
+            }
+
+            for (time = 0; time < sample->duration; ++time) {
+                if (time % (sample->duration / 10) == 0)
+                    printf("[%d/%d]\r", time, sample->duration);
+                inputs = data_network_inputs_create(experiment->transient_memory, sample, experiment->network, time);
+
+                network_time_start = clock();
+                network_step(experiment->network,
+                    inputs,
+                    time,
+                    experiment->transient_memory,
+                    experiment->pool);
+                network_time += clock() - network_time_start;
+
+                for (callback_it = experiment->callbacks;
+                    callback_it != NULL;
+                    callback_it = callback_it->next)
+                {
+                    callback_update(callback_it->callback, inputs, time, experiment->transient_memory);
+                }
+            }
+
+            for (callback_it = experiment->callbacks;
+                callback_it != NULL;
+                callback_it = callback_it->next)
+            {
+                callback_end_sample(callback_it->callback, sample, epoch_idx, experiment->transient_memory);
+            }
+
+            memory_clear(experiment->transient_memory);
+
+            sample_time = clock() - sample_time_start;
+
+            // NOTE: Timing logging
+            network_time_s = (f64)network_time / CLOCKS_PER_SEC;
+            printf("[%d/%d]           \n", sample_idx, experiment->data->n_samples);
+            log_info("Network time %lfs", network_time_s);
+            log_info("Network step time %lfs",
+                    network_time_s / (f64)sample->duration);
+            network_time = 0;
+
+            sample_time_s = (f64)sample_time / CLOCKS_PER_SEC;
+            log_info("Sample time %lfs", sample_time_s);
+            log_info("Non NETWORK time %lfs", sample_time_s - network_time_s);
+            sample_time = 0;
+
+            printf("\n");
         }
 
         for (callback_it = experiment->callbacks;
-             callback_it != NULL;
-             callback_it = callback_it->next)
-            callback_end_sample(callback_it->callback, experiment->transient_memory);
+            callback_it != NULL;
+            callback_it = callback_it->next)
+        {
+            callback_end_epoch(callback_it->callback, epoch_idx, experiment->transient_memory);
+        }
 
-        memory_clear(experiment->transient_memory);
-
-        sample_time = clock() - sample_time_start;
-
-        // NOTE: Timing logging
-        network_time_s = (f64)network_time / CLOCKS_PER_SEC;
-        printf("[%d/%d]           \n", sample_idx, experiment->data->n_samples);
-        log_info("Network time %lfs", network_time_s);
-        log_info("Network step time %lfs",
-                 network_time_s / (f64)sample->duration);
-        network_time = 0;
-
-        sample_time_s = (f64)sample_time / CLOCKS_PER_SEC;
-        log_info("Sample time %lfs", sample_time_s);
-        log_info("Non NETWORK time %lfs", sample_time_s - network_time_s);
-        sample_time = 0;
-
-        printf("\n");
+        total_time = clock() - total_time_start;
+        log_info("Total simulation time %lfs\n", (f64)total_time / CLOCKS_PER_SEC);
     }
-    total_time = clock() - total_time_start;
-    log_info("Total simulation time %lfs\n", (f64)total_time / CLOCKS_PER_SEC);
 
     error:
     return;
@@ -226,4 +254,16 @@ experiment_set_data_gen(Experiment* experiment, DataGen* data) {
     return TRUE;
     error:
     return FALSE;
+}
+
+internal void
+experiment_set_epoch_count(Experiment* experiment, u32 n_epochs)
+{
+    check(experiment != NULL, "experiment is NULL");
+    check(n_epochs > 0, "n_epochs is 0");
+
+    experiment->n_epochs = n_epochs;
+
+    error:
+    return;
 }
