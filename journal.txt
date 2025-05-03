@@ -17,13 +17,6 @@
 
 - 5. I also change weight of the background population, should I?
 	- lets keep the population connectivity fixed -> its better, but still much more activity when both are one, as expected
-<<<<<<< Updated upstream
-=======
-<<<<<<< Updated upstream
-
-- 6. Lets add more randomness but setting connect chance to 80
-=======
->>>>>>> Stashed changes
 
 - 6. Lets add more randomness but setting connect chance to 80
 
@@ -47,3 +40,4 @@
 
 03.05.2025
 - 1. made a lot of changes need to submit them
+- 2. Added accuracy callback is DONE
