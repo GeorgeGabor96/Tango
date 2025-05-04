@@ -27,6 +27,7 @@
 #include "engine/callbacks/synaptic_rescale.c"
 #include "engine/callbacks/stdp_v1.c"
 #include "engine/callbacks/accuracy.c"
+#include "engine/callbacks/learning_history.c"
 #include "engine/experiment.c"
 
 #endif // __ENGINE_H__

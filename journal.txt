@@ -41,3 +41,7 @@
 03.05.2025
 - 1. made a lot of changes need to submit them
 - 2. Added accuracy callback is DONE
+
+04.05.2025
+- 1. Implement STDP as you saw on the stack overflow with pairs between all spikes of pre/post neuron
+	-> basic structure done
