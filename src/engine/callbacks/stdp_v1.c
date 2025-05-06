@@ -56,7 +56,6 @@ internal CALLBACK_UPDATE(callback_stdp_v1_update)
     }
 }
 
-b32 _get_reward(Network* network, DataSample* sample);
 f32 _r_stdp_potentiation_learning_rule(Synapse* synapse, LearningInfo* learning_info, b32 reward);
 f32 _r_stdp_depression_learning_rule(Synapse* synapse, LearningInfo* learning_info, b32 reward);
 
@@ -76,7 +75,7 @@ _callback_stdp_v1_synapse_update(Synapse* synapse, DataSample* sample, Inputs* i
     if (synapse_spike_time == INVALID_SPIKE_TIME) return FALSE;
     if (out_neuron_spike_time == INVALID_SPIKE_TIME) return FALSE;
 
-    b32 reward = _get_reward(network, sample);
+    b32 reward = _callback_utils_get_reward_first_spike(network, sample);
 
     // NOTE: synapse contribution is before the out neuron spiked -> Potentiation
     if (synapse_spike_time < out_neuron_spike_time)
@@ -153,46 +152,6 @@ _callback_stdp_v1_synapse_update(Synapse* synapse, DataSample* sample, Inputs* i
 internal CALLBACK_END_SAMPLE(callback_stdp_v1_end_sample)
 {
 
-}
-
-
-b32 _get_reward(Network* network, DataSample* sample)
-{
-    b32 reward = TRUE;
-    check(network->n_out_layers == 1, "Only one output layers for now");
-
-    u32 network_winner_neuron_i = 0;
-    b32 network_winner_is_valid = FALSE;
-
-    Layer* output_layer = network->out_layers.first->layer;
-    Neuron* output_neurons = output_layer->neurons;
-    for (u32 i = 0; i < output_layer->n_neurons; ++i)
-    {
-        Neuron* neuron = output_neurons + i;
-        // TODO: for now set the winner the first to spike
-        if (neuron->spike == TRUE)
-        {
-            network_winner_neuron_i = i;
-            network_winner_is_valid = TRUE;
-            break;
-        }
-    }
-
-    if (network_winner_is_valid == TRUE)
-    {
-        u32 actual_winner_neuron_i = sample->winner_neuron_i;
-        if (network_winner_neuron_i == actual_winner_neuron_i)
-        {
-            reward = TRUE;
-        }
-        else
-        {
-            reward = FALSE;
-        }
-    }
-
-    error:
-    return reward;
 }
 
 // NOTE: R-STDP helpers

@@ -76,6 +76,7 @@ _callback_learning_history_update_synapse(Synapse* synapse, Callback* callback, 
 {
     CALLBACK_LEARNING_HISTORY_COMPUTE_DW_FN* compute_dw_fn[SYNAPSE_LEARNING_COUNT] =
     {
+        _callback_learning_history_compute_dw_no_learning,
         _callback_learning_history_compute_dw_learning_exponential,
         _callback_learning_history_compute_dw_learning_step,
         _callback_learning_history_compute_dw_learning_reward_modulated,
@@ -160,9 +161,7 @@ internal CALLBACK_LEARNING_HISTORY_COMPUTE_DW(_callback_learning_history_compute
 {
     f32 dw = 0.0f;
     SynapseLearningRSTDPExpeonential* rule = &(synapse->cls->learning_info.r_stdp_exponential);
-
-    // TODO(GEORGE): compute reward
-    b8 reward = _callback_learning_history_compute_dw_learning_reward_modulated_get_reward(network, sample);
+    b8 reward = _callback_utils_get_reward_first_spike(network, sample);
 
     if (pre_spike_time < post_spike_time)
     {
@@ -187,44 +186,4 @@ internal CALLBACK_LEARNING_HISTORY_COMPUTE_DW(_callback_learning_history_compute
         }
     }
     return dw;
-}
-
-
-// TODO: this and the one from accuracy and probably stdp_v1 put in one place
-internal b8
-_callback_learning_history_compute_dw_learning_reward_modulated_get_reward(Network* network, DataSample* sample)
-{
-    check(network->n_out_layers == 1, "Only support one output layer for now");
-    Layer* out_layer = network->out_layers.first->layer;
-
-    u32 neuron_winner_i = 0;
-    u32 neuron_winner_first_spike_time = 0;
-    b8 found = FALSE;
-
-    for (int neuron_i = 0; neuron_i < out_layer->n_neurons; ++neuron_i)
-    {
-        Neuron* neuron = out_layer->neurons + neuron_i;
-
-        if (neuron->n_spikes > 0)
-        {
-            u32 neuron_first_spike = neuron->spike_times[0];
-            if (neuron_first_spike < neuron_winner_first_spike_time)
-            {
-                neuron_winner_first_spike_time = neuron_first_spike;
-                neuron_winner_i = neuron_i;
-            }
-            found = TRUE;
-        }
-    }
-
-    // compare it to what was expected and update the metrics
-    if (found == TRUE)
-    {
-        if (neuron_winner_i == sample->winner_neuron_i)
-        {
-            return TRUE;
-        }
-    }
-    error:
-    return FALSE;
 }
