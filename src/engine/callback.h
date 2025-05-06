@@ -149,7 +149,7 @@ internal CALLBACK_BEGIN_SAMPLE(callback_begin_sample);
 typedef CALLBACK_UPDATE(CALLBACK_UPDATE_FN);
 internal CALLBACK_UPDATE(callback_update);
 
-#define CALLBACK_END_SAMPLE(name) void name(Callback* callback, DataSample* sample, u32 epoch_i, Memory* memory)
+#define CALLBACK_END_SAMPLE(name) void name(Callback* callback, DataSample* sample, b32 reward, u32 epoch_i, Memory* memory)
 typedef CALLBACK_END_SAMPLE(CALLBACK_END_SAMPLE_FN);
 internal CALLBACK_END_SAMPLE(callback_end_sample);
 

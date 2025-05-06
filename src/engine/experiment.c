@@ -177,11 +177,12 @@ experiment_run(Experiment* experiment) {
                 }
             }
 
+            b32 reward = callback_utils_get_reward_first_spike(experiment->network, sample);
             for (callback_it = experiment->callbacks;
                 callback_it != NULL;
                 callback_it = callback_it->next)
             {
-                callback_end_sample(callback_it->callback, sample, epoch_idx, experiment->transient_memory);
+                callback_end_sample(callback_it->callback, sample, reward, epoch_idx, experiment->transient_memory);
             }
 
             sample_time = clock() - sample_time_start;

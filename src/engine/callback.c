@@ -92,7 +92,7 @@ internal CALLBACK_END_SAMPLE(callback_end_sample)
 
     check(callback_is_valid(callback) == TRUE, "callback is invalid");
     check(memory != NULL, "memory is NULL");
-    callbacks[callback->type](callback, sample, epoch_i, memory);
+    callbacks[callback->type](callback, sample, reward, epoch_i, memory);
 
     error:
     return;

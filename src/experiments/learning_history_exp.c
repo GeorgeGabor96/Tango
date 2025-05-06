@@ -17,20 +17,20 @@ int main() {
     SynapseCls* s_cls = synapse_cls_create(memory, string_create(memory, "s_cls"), SYNAPSE_CONDUCTANCE, 0.0f, 3, 7, 5);
     synapse_cls_add_learning_rule_exponential(s_cls, -1.0f, 1.0f, 1, 1, 20);
 
-    SynapseCls* s_cls_output_layer = synapse_cls_create(memory, string_create(memory, "s_cls_ouptut_layer"), SYNAPSE_CONDUCTANCE, 0.0f, 3, 7, 5);
-    syanpse_cls_add_learning_rule_rstdp_exponential(s_cls_output_layer, -1.0f, 1.0f, 1, 1, 1, 1);
+    SynapseCls* s_cls_rstdp = synapse_cls_create(memory, string_create(memory, "s_cls_ouptut_layer"), SYNAPSE_CONDUCTANCE, 0.0f, 3, 7, 5);
+    syanpse_cls_add_learning_rule_rstdp_exponential(s_cls_rstdp, -1.0f, 1.0f, 1, 1, 1, 1);
 
     SynapseCls* s_cls_background_population = synapse_cls_create(memory, string_create(memory, "s_cls_background"), SYNAPSE_CONDUCTANCE, 0.0f, 3, 7, 5);
 
     network_add_neuron_cls(net, n_cls, memory);
     network_add_synapse_cls(net, s_cls, memory);
     network_add_synapse_cls(net, s_cls_background_population, memory);
-    network_add_synapse_cls(net, s_cls_output_layer, memory);
+    network_add_synapse_cls(net, s_cls_rstdp, memory);
 
     LayerLinkSynapseInitMeta* synapse_connect_info = create_layer_init_synapse_init_meta(memory, -1.0, 1.0, 0.8, 0.8);
-    layer_link(hidden, in, s_cls, synapse_connect_info, memory);
+    layer_link(hidden, in, s_cls_rstdp, synapse_connect_info, memory);
     layer_link(hidden, background, s_cls_background_population, synapse_connect_info, memory);
-    layer_link(out, hidden, s_cls_output_layer, synapse_connect_info, memory);
+    layer_link(out, hidden, s_cls_rstdp, synapse_connect_info, memory);
 
     network_add_layer(net, in, TRUE, FALSE, memory);
     network_add_layer(net, background, TRUE, FALSE, memory);

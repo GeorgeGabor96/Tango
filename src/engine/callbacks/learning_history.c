@@ -1,6 +1,6 @@
-internal void _callback_learning_history_update_synapse(Synapse* synapse, Callback* callback, DataSample* sample);
+internal void _callback_learning_history_update_synapse(Synapse* synapse, Callback* callback, DataSample* sample, b32 reward);
 
-#define CALLBACK_LEARNING_HISTORY_COMPUTE_DW(name) f32 name(Synapse* synapse, u32 pre_spike_time, u32 post_spike_time, Network* network, DataSample* sample)
+#define CALLBACK_LEARNING_HISTORY_COMPUTE_DW(name) f32 name(Synapse* synapse, u32 pre_spike_time, u32 post_spike_time, Network* network, DataSample* sample, b32 reward)
 typedef CALLBACK_LEARNING_HISTORY_COMPUTE_DW(CALLBACK_LEARNING_HISTORY_COMPUTE_DW_FN);
 internal CALLBACK_LEARNING_HISTORY_COMPUTE_DW(_callback_learning_history_compute_dw_no_learning);
 internal CALLBACK_LEARNING_HISTORY_COMPUTE_DW(_callback_learning_history_compute_dw_learning_exponential);
@@ -19,7 +19,7 @@ callback_learning_history_create(Memory* memory, Network* network)
     Callback* callback = (Callback*)memory_push(memory, sizeof(*callback));
     check_memory(callback);
 
-    callback->type = CALLBACK_STDP_V1;
+    callback->type = CALLBACK_LEARNING_HISTORY;
     callback->network = network;
     callback->learning_history.data = NULL;
 
@@ -46,7 +46,7 @@ internal CALLBACK_END_SAMPLE(callback_learning_history_end_sample)
     for (u32 i = 0; i < network->n_synapses; ++i)
     {
         Synapse* synapse = network->synapses + i;
-        _callback_learning_history_update_synapse(synapse, callback, sample);
+        _callback_learning_history_update_synapse(synapse, callback, sample, reward);
     }
 }
 
@@ -72,7 +72,7 @@ internal CALLBACK_END_EXPERIMENT(callback_learning_history_end_experiment)
 
 
 internal void
-_callback_learning_history_update_synapse(Synapse* synapse, Callback* callback, DataSample* sample)
+_callback_learning_history_update_synapse(Synapse* synapse, Callback* callback, DataSample* sample, b32 reward)
 {
     CALLBACK_LEARNING_HISTORY_COMPUTE_DW_FN* compute_dw_fn[SYNAPSE_LEARNING_COUNT] =
     {
@@ -105,8 +105,7 @@ _callback_learning_history_update_synapse(Synapse* synapse, Callback* callback, 
             u32 pre_spike_time = in_neuron->spike_times[in_neuron_spike_i];
             u32 post_spike_time = out_neuron->spike_times[out_neuron_spike_i];
 
-            f32 partial_dw = compute_dw_fn[learning_info->type](synapse, pre_spike_time, post_spike_time, callback->network, sample);
-
+            f32 partial_dw = compute_dw_fn[learning_info->type](synapse, pre_spike_time, post_spike_time, callback->network, sample, reward);
             dw += partial_dw;
         }
     }
@@ -161,7 +160,6 @@ internal CALLBACK_LEARNING_HISTORY_COMPUTE_DW(_callback_learning_history_compute
 {
     f32 dw = 0.0f;
     SynapseLearningRSTDPExpeonential* rule = &(synapse->cls->learning_info.r_stdp_exponential);
-    b8 reward = _callback_utils_get_reward_first_spike(network, sample);
 
     if (pre_spike_time < post_spike_time)
     {

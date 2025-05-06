@@ -7,12 +7,8 @@ callback_stdp_v1_create(Memory* memory, Network* network, u8 cooldown_value)
     Callback* callback = (Callback*)memory_push(memory, sizeof(*callback));
     check_memory(callback);
 
-    b8* cooldown = (b8*)memory_push(memory, sizeof(b8) * network->n_synapses);
+    b8* cooldown = (b8*)memory_push_zero(memory, sizeof(b8) * network->n_synapses);
     check_memory(cooldown);
-    for (u32 i = 0; i < network->n_synapses; ++i)
-    {
-        cooldown[i] = 0;
-    }
 
     callback->type = CALLBACK_STDP_V1;
     callback->network = network;
@@ -75,7 +71,7 @@ _callback_stdp_v1_synapse_update(Synapse* synapse, DataSample* sample, Inputs* i
     if (synapse_spike_time == INVALID_SPIKE_TIME) return FALSE;
     if (out_neuron_spike_time == INVALID_SPIKE_TIME) return FALSE;
 
-    b32 reward = _callback_utils_get_reward_first_spike(network, sample);
+    b32 reward = callback_utils_get_reward_first_spike(network, sample);
 
     // NOTE: synapse contribution is before the out neuron spiked -> Potentiation
     if (synapse_spike_time < out_neuron_spike_time)

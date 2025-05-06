@@ -1,5 +1,5 @@
 internal b32
-_callback_utils_get_reward_first_spike(Network* network, DataSample* sample)
+callback_utils_get_reward_first_spike(Network* network, DataSample* sample)
 {
     b32 reward = FALSE;
     u32 neuron_winner_i = 0;
