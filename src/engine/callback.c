@@ -8,6 +8,7 @@ callback_type_get_c_str(CallbackType type) {
         "CALLBACK_SYNAPTIC_RESCALE",
         "CALLBACK_STDP_V1",
         "CALLBACK_ACCURACY",
+        "CALLBACK_LEARNING_HISTORY",
     };
 
     if (type >= CALLBACK_COUNT)
@@ -42,6 +43,7 @@ internal CALLBACK_BEGIN_SAMPLE(callback_begin_sample)
         callback_synaptic_rescale_begin_sample,
         callback_stdp_v1_begin_sample,
         callback_accuracy_begin_sample,
+        callback_learning_history_begin_sample,
     };
 
     check(callback_is_valid(callback) == TRUE, "callback is invalid");
@@ -63,6 +65,7 @@ internal CALLBACK_UPDATE(callback_update)
         callback_synaptic_rescale_update,
         callback_stdp_v1_update,
         callback_accuracy_update,
+        callback_learning_history_update,
     };
 
     check(callback_is_valid(callback) == TRUE, "callback is invalid");
@@ -84,11 +87,12 @@ internal CALLBACK_END_SAMPLE(callback_end_sample)
         callback_synaptic_rescale_end_sample,
         callback_stdp_v1_end_sample,
         callback_accuracy_end_sample,
+        callback_learning_history_end_sample,
     };
 
     check(callback_is_valid(callback) == TRUE, "callback is invalid");
     check(memory != NULL, "memory is NULL");
-    callbacks[callback->type](callback, sample, epoch_i, memory);
+    callbacks[callback->type](callback, sample, reward, epoch_i, memory);
 
     error:
     return;
@@ -105,6 +109,7 @@ internal CALLBACK_BEGIN_EPOCH(callback_begin_epoch)
         callback_synaptic_rescale_begin_epoch,
         callback_stdp_v1_begin_epoch,
         callback_accuracy_begin_epoch,
+        callback_learning_history_begin_epoch,
     };
 
     check(callback_is_valid(callback) == TRUE, "callback is invalid");
@@ -126,6 +131,7 @@ internal CALLBACK_END_EPOCH(callback_end_epoch)
         callback_synaptic_rescale_end_epoch,
         callback_stdp_v1_end_epoch,
         callback_accuracy_end_epoch,
+        callback_learning_history_end_epoch,
     };
 
     check(callback_is_valid(callback) == TRUE, "callback is invalid");
@@ -147,6 +153,7 @@ internal CALLBACK_BEGIN_EXPERIMENT(callback_begin_experiment)
         callback_synaptic_rescale_begin_experiment,
         callback_stdp_v1_begin_experiment,
         callback_accuracy_begin_experiment,
+        callback_learning_history_begin_experiment,
     };
 
     check(callback_is_valid(callback) == TRUE, "callback is invalid");
@@ -167,6 +174,7 @@ internal CALLBACK_END_EXPERIMENT(callback_end_experiment)
         callback_synaptic_rescale_end_experiment,
         callback_stdp_v1_end_experiment,
         callback_accuracy_end_experiment,
+        callback_learning_history_end_experiment,
     };
 
     check(callback_is_valid(callback) == TRUE, "callback is invalid");

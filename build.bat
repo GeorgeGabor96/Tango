@@ -30,7 +30,7 @@ set linker_flags=-luser32
 set defines=-D_CRT_SECURE_NO_WARNINGS
 
 pushd %output_dir%
-clang ../../src/experiments/rstdp.c %compiler_flags% -o debugging.exe %defines% %mode_flags% %include_flags% %linker_flags%
+clang ../../src/experiments/learning_history_exp.c %compiler_flags% -o debugging.exe %defines% %mode_flags% %include_flags% %linker_flags%
 
 debugging.exe
 

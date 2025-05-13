@@ -92,6 +92,15 @@ typedef struct Accuracy
     FILE* fp;
 } Accuracy;
 
+
+/****************************
+* Callback STDP V1
+****************************/
+typedef struct LearningHistory {
+    void* data;
+} LearningHistory;
+
+
 /**********************
 * Callback definitions
 **********************/
@@ -103,6 +112,7 @@ typedef enum {
     CALLBACK_SYNAPTIC_RESCALE = 4,
     CALLBACK_STDP_V1 = 5,
     CALLBACK_ACCURACY = 6,
+    CALLBACK_LEARNING_HISTORY = 7,
 
     CALLBACK_COUNT,
     CALLBACK_INVALID,
@@ -123,6 +133,7 @@ typedef struct Callback {
         SynapticRescale synaptic_rescale;
         STDPv1 stdp_v1;
         Accuracy accuracy;
+        LearningHistory learning_history;
     };
 } Callback, *CallbackP;
 
@@ -138,7 +149,7 @@ internal CALLBACK_BEGIN_SAMPLE(callback_begin_sample);
 typedef CALLBACK_UPDATE(CALLBACK_UPDATE_FN);
 internal CALLBACK_UPDATE(callback_update);
 
-#define CALLBACK_END_SAMPLE(name) void name(Callback* callback, DataSample* sample, u32 epoch_i, Memory* memory)
+#define CALLBACK_END_SAMPLE(name) void name(Callback* callback, DataSample* sample, b32 reward, u32 epoch_i, Memory* memory)
 typedef CALLBACK_END_SAMPLE(CALLBACK_END_SAMPLE_FN);
 internal CALLBACK_END_SAMPLE(callback_end_sample);
 
@@ -271,5 +282,22 @@ internal CALLBACK_BEGIN_EPOCH(callback_accuracy_begin_epoch);
 internal CALLBACK_END_EPOCH(callback_accuracy_end_epoch);
 internal CALLBACK_BEGIN_EXPERIMENT(callback_accuracy_begin_experiment);
 internal CALLBACK_END_EXPERIMENT(callback_accuracy_end_experiment);
+
+
+/*************************
+* Callback Learning History
+*************************/
+internal Callback* callback_learning_history_create(
+    Memory* memory,
+    Network* network);
+
+internal CALLBACK_BEGIN_SAMPLE(callback_learning_history_begin_sample);
+internal CALLBACK_UPDATE(callback_learning_history_update);
+internal CALLBACK_END_SAMPLE(callback_learning_history_end_sample);
+internal CALLBACK_BEGIN_EPOCH(callback_learning_history_begin_epoch);
+internal CALLBACK_END_EPOCH(callback_learning_history_end_epoch);
+internal CALLBACK_BEGIN_EXPERIMENT(callback_learning_history_begin_experiment);
+internal CALLBACK_END_EXPERIMENT(callback_learning_history_end_experiment);
+
 
 #endif // __ENGINE_CALLBACK_H__

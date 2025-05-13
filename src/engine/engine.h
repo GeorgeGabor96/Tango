@@ -11,6 +11,7 @@
 #include "engine/network.h"
 #include "engine/data_gen.h"
 #include "engine/callback.h"
+#include "engine/callbacks/utils.h"
 #include "engine/experiment.h"
 
 #include "engine/spike_train.c"
@@ -27,6 +28,8 @@
 #include "engine/callbacks/synaptic_rescale.c"
 #include "engine/callbacks/stdp_v1.c"
 #include "engine/callbacks/accuracy.c"
+#include "engine/callbacks/learning_history.c"
+#include "engine/callbacks/utils.c"
 #include "engine/experiment.c"
 
 #endif // __ENGINE_H__
