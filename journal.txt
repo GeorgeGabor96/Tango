@@ -48,3 +48,11 @@
 
 06.05.2025
 - 1. Added common code for computing if the network should get reward
+
+13.05.2025
+- 1. Tests the r stdp
+	- currently weights go to -min_weight, and
+
+14.05.2025
+- 1. Am valori mari la schimbarile de weights si sute, atunci ii clar de ce merg la -min_weight, vezi functia
+- 2. Took the values from the paper First-Spike-Based Visual Categorization Using Reward-Modulated STDP si am pus w intre -1, 1 => weight arata mai bine, multe se duc la 0

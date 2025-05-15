@@ -50,6 +50,10 @@ func main() {
 
 	var wg sync.WaitGroup
 	for sampleI := range meta.Samples {
+		if sampleI%51 != 0 {
+			continue
+		}
+
 		sample := meta.Samples[sampleI]
 
 		var sampleClone experiment.SampleData
