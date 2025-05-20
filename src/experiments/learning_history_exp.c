@@ -2,7 +2,7 @@
 
 
 int main() {
-    Experiment* exp = experiment_create(0, 723104, "D:\\repos\\Tango\\outputs\\154-rstdp-experiment\\2_stronger_synapses_voltage");
+    Experiment* exp = experiment_create(0, 723104, "D:\\repos\\Tango\\outputs\\154-rstdp-experiment\\2_stronger_synapses_voltage_rstdp_exponential_window_20");
     Memory* memory = exp->permanent_memory;
     DataGen* data_gen = data_gen_create_background_activity(memory, exp->random, 0.005f, 0.005f, 100, 1000);
 
@@ -16,11 +16,13 @@ int main() {
 
     SynapseCls* s_cls = synapse_cls_create(memory, string_create(memory, "s_cls"), SYNAPSE_VOLTAGE, 0.0f, 1, 7, 5);
     f32 max_w = 1.0f;
-    syanpse_cls_add_learning_rule_rstdp_exponential(s_cls, -max_w, max_w, 0.05f, 0.1f, -0.05f, -0.1f);
+    //syanpse_cls_add_learning_rule_rstdp_dw(s_cls, -max_w, max_w, 0.05f, 0.1f, -0.05f, -0.1f);
     //synapse_cls_add_learning_rule_exponential(s_cls, -1.0f, 1.0f, 1, 1, 20);
+    synapse_cls_add_learning_rule_rstdp_exponential(s_cls, -max_w, max_w, 1.0f, -1.0f, 20);
 
     SynapseCls* s_cls_rstdp = synapse_cls_create(memory, string_create(memory, "s_cls_ouptut_layer"), SYNAPSE_VOLTAGE, 0.0f, 1, 7, 5);
-    syanpse_cls_add_learning_rule_rstdp_exponential(s_cls_rstdp, -max_w, max_w, 0.05f, 0.1f, -0.05f, -0.1f);
+    //syanpse_cls_add_learning_rule_rstdp_dw(s_cls_rstdp, -max_w, max_w, 0.05f, 0.1f, -0.05f, -0.1f);
+    synapse_cls_add_learning_rule_rstdp_exponential(s_cls_rstdp, -max_w, max_w, 1.1f, -1.0f, 20);
 
     SynapseCls* s_cls_background_population = synapse_cls_create(memory, string_create(memory, "s_cls_background"), SYNAPSE_VOLTAGE, 0.0f, 1, 7, 5);
 
