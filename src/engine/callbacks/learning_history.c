@@ -5,7 +5,8 @@ typedef CALLBACK_LEARNING_HISTORY_COMPUTE_DW(CALLBACK_LEARNING_HISTORY_COMPUTE_D
 internal CALLBACK_LEARNING_HISTORY_COMPUTE_DW(_callback_learning_history_compute_dw_no_learning);
 internal CALLBACK_LEARNING_HISTORY_COMPUTE_DW(_callback_learning_history_compute_dw_learning_exponential);
 internal CALLBACK_LEARNING_HISTORY_COMPUTE_DW(_callback_learning_history_compute_dw_learning_step);
-internal CALLBACK_LEARNING_HISTORY_COMPUTE_DW(_callback_learning_history_compute_dw_learning_reward_modulated);
+internal CALLBACK_LEARNING_HISTORY_COMPUTE_DW(_callback_learning_history_compute_dw_learning_rstdp_dw);
+internal CALLBACK_LEARNING_HISTORY_COMPUTE_DW(_callback_learning_history_compute_dw_learning_rstdp_exponential);
 
 internal b8
 _callback_learning_history_compute_dw_learning_reward_modulated_get_reward(Network* network, DataSample* sample);
@@ -79,7 +80,8 @@ _callback_learning_history_update_synapse(Synapse* synapse, Callback* callback, 
         _callback_learning_history_compute_dw_no_learning,
         _callback_learning_history_compute_dw_learning_exponential,
         _callback_learning_history_compute_dw_learning_step,
-        _callback_learning_history_compute_dw_learning_reward_modulated,
+        _callback_learning_history_compute_dw_learning_rstdp_dw,
+        _callback_learning_history_compute_dw_learning_rstdp_exponential,
     };
 
     f32 dw = 0.0f;
@@ -156,10 +158,10 @@ internal CALLBACK_LEARNING_HISTORY_COMPUTE_DW(_callback_learning_history_compute
     return dw;
 }
 
-internal CALLBACK_LEARNING_HISTORY_COMPUTE_DW(_callback_learning_history_compute_dw_learning_reward_modulated)
+internal CALLBACK_LEARNING_HISTORY_COMPUTE_DW(_callback_learning_history_compute_dw_learning_rstdp_dw)
 {
     f32 dw = 0.0f;
-    SynapseLearningRSTDPExpeonential* rule = &(synapse->cls->learning_info.r_stdp_exponential);
+    SynapseLearningRSTDPdw* rule = &(synapse->cls->learning_info.r_stdp_dw);
 
     if (pre_spike_time < post_spike_time)
     {
@@ -185,3 +187,43 @@ internal CALLBACK_LEARNING_HISTORY_COMPUTE_DW(_callback_learning_history_compute
     }
     return dw;
 }
+
+internal CALLBACK_LEARNING_HISTORY_COMPUTE_DW(_callback_learning_history_compute_dw_learning_rstdp_exponential)
+{
+    f32 dw = 0.0f;
+    SynapseLearningExponential* rule = &(synapse->cls->learning_info.stdp_exponential);
+    if (pre_spike_time < post_spike_time)
+    {
+        u32 dt = post_spike_time - pre_spike_time;
+        if (dt <= 20)
+        {
+            if (reward == TRUE)
+            {
+                dw = rule->A * math_exp_f32(-(f32)dt / rule->tau);
+            }
+            else
+            {
+                dw = rule->B * math_exp_f32(-(f32)dt / rule->tau);
+            }
+        }
+
+    }
+    else
+    {
+        u32 dt = pre_spike_time - post_spike_time;
+        if (dt <= 20)
+        {
+            if (reward == TRUE)
+            {
+                dw = rule->B * math_exp_f32(-(f32)dt / rule->tau);
+            }
+            else
+            {
+                dw = rule->A * math_exp_f32(-(f32)dt / rule->tau);
+            }
+        }
+
+    }
+    return dw;
+}
+

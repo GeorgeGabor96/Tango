@@ -2,9 +2,9 @@
 
 
 int main() {
-    Experiment* exp = experiment_create(0, 723104, "D:\\repos\\Tango\\outputs\\152-implement-stdp-with-neuron-spikes-history\\first");
+    Experiment* exp = experiment_create(0, 723104, "D:\\repos\\Tango\\outputs\\154-rstdp-experiment\\2_stronger_synapses_voltage_rstdp_exponential_window_20");
     Memory* memory = exp->permanent_memory;
-    DataGen* data_gen = data_gen_create_background_activity(memory, exp->random, 0.005f, 0.005f, 10, 1000);
+    DataGen* data_gen = data_gen_create_background_activity(memory, exp->random, 0.005f, 0.005f, 100, 1000);
 
     Network* net = network_create(memory);
     NeuronCls* n_cls = neuron_cls_create_lif_refract(memory, string_create(memory, "if"), 5);
@@ -14,20 +14,24 @@ int main() {
     Layer* hidden = layer_create(memory, string_create(memory, "hidden"), LAYER_DENSE, 10, n_cls);
     Layer* out = layer_create(memory, string_create(memory, "out"), LAYER_DENSE, 2, n_cls);
 
-    SynapseCls* s_cls = synapse_cls_create(memory, string_create(memory, "s_cls"), SYNAPSE_CONDUCTANCE, 0.0f, 3, 7, 5);
-    synapse_cls_add_learning_rule_exponential(s_cls, -1.0f, 1.0f, 1, 1, 20);
+    SynapseCls* s_cls = synapse_cls_create(memory, string_create(memory, "s_cls"), SYNAPSE_VOLTAGE, 0.0f, 1, 7, 5);
+    f32 max_w = 1.0f;
+    //syanpse_cls_add_learning_rule_rstdp_dw(s_cls, -max_w, max_w, 0.05f, 0.1f, -0.05f, -0.1f);
+    //synapse_cls_add_learning_rule_exponential(s_cls, -1.0f, 1.0f, 1, 1, 20);
+    synapse_cls_add_learning_rule_rstdp_exponential(s_cls, -max_w, max_w, 1.0f, -1.0f, 20);
 
-    SynapseCls* s_cls_rstdp = synapse_cls_create(memory, string_create(memory, "s_cls_ouptut_layer"), SYNAPSE_CONDUCTANCE, 0.0f, 3, 7, 5);
-    syanpse_cls_add_learning_rule_rstdp_exponential(s_cls_rstdp, -1.0f, 1.0f, 1, 1, 1, 1);
+    SynapseCls* s_cls_rstdp = synapse_cls_create(memory, string_create(memory, "s_cls_ouptut_layer"), SYNAPSE_VOLTAGE, 0.0f, 1, 7, 5);
+    //syanpse_cls_add_learning_rule_rstdp_dw(s_cls_rstdp, -max_w, max_w, 0.05f, 0.1f, -0.05f, -0.1f);
+    synapse_cls_add_learning_rule_rstdp_exponential(s_cls_rstdp, -max_w, max_w, 1.1f, -1.0f, 20);
 
-    SynapseCls* s_cls_background_population = synapse_cls_create(memory, string_create(memory, "s_cls_background"), SYNAPSE_CONDUCTANCE, 0.0f, 3, 7, 5);
+    SynapseCls* s_cls_background_population = synapse_cls_create(memory, string_create(memory, "s_cls_background"), SYNAPSE_VOLTAGE, 0.0f, 1, 7, 5);
 
     network_add_neuron_cls(net, n_cls, memory);
     network_add_synapse_cls(net, s_cls, memory);
     network_add_synapse_cls(net, s_cls_background_population, memory);
     network_add_synapse_cls(net, s_cls_rstdp, memory);
 
-    LayerLinkSynapseInitMeta* synapse_connect_info = create_layer_init_synapse_init_meta(memory, -1.0, 1.0, 0.8, 0.8);
+    LayerLinkSynapseInitMeta* synapse_connect_info = create_layer_init_synapse_init_meta(memory, -max_w, max_w, 0.8, 0.8);
     layer_link(hidden, in, s_cls_rstdp, synapse_connect_info, memory);
     layer_link(hidden, background, s_cls_background_population, synapse_connect_info, memory);
     layer_link(out, hidden, s_cls_rstdp, synapse_connect_info, memory);
@@ -48,7 +52,7 @@ int main() {
 
     experiment_set_network(exp, net);
     experiment_set_data_gen(exp, data_gen);
-    experiment_set_epoch_count(exp, 3);
+    experiment_set_epoch_count(exp, 10);
 
     experiment_add_callback(exp, cb_meta);
     experiment_add_callback(exp, cb_spikes);

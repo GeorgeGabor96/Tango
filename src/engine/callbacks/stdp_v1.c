@@ -52,8 +52,11 @@ internal CALLBACK_UPDATE(callback_stdp_v1_update)
     }
 }
 
-f32 _r_stdp_potentiation_learning_rule(Synapse* synapse, LearningInfo* learning_info, b32 reward);
-f32 _r_stdp_depression_learning_rule(Synapse* synapse, LearningInfo* learning_info, b32 reward);
+f32 _r_stdp_dw_potentiation_learning_rule(Synapse* synapse, LearningInfo* learning_info, b32 reward);
+f32 _r_stdp_dw_depression_learning_rule(Synapse* synapse, LearningInfo* learning_info, b32 reward);
+
+f32 _r_stdp_exponential_potentiation_learning_rule(Synapse* synapse, LearningInfo* learning_info, b32 reward, u32 dt);
+f32 _r_stdp_exponential_depression_learning_rule(Synapse* synapse, LearningInfo* learning_info, b32 reward, u32 dt);
 
 static b8
 _callback_stdp_v1_synapse_update(Synapse* synapse, DataSample* sample, Inputs* inputs, Network* network)
@@ -92,9 +95,13 @@ _callback_stdp_v1_synapse_update(Synapse* synapse, DataSample* sample, Inputs* i
             SynapseLearningStep* rule = &(learning_info->stdp_step);
             if (dt <= rule->max_time_p) dw = rule->amp_p;
         }
+        else if (learning_info->type == SYNAPSE_LEARNING_RSTDP_DW)
+        {
+            dw = _r_stdp_dw_potentiation_learning_rule(synapse, learning_info, reward);
+        }
         else if (learning_info->type == SYNAPSE_LEARNING_RSTDP_EXPONENTIAL)
         {
-            dw = _r_stdp_potentiation_learning_rule(synapse, learning_info, reward);
+            dw = _r_stdp_exponential_potentiation_learning_rule(synapse, learning_info, reward, dt);
         }
         else
         {
@@ -123,9 +130,13 @@ _callback_stdp_v1_synapse_update(Synapse* synapse, DataSample* sample, Inputs* i
             SynapseLearningStep* rule = &(learning_info->stdp_step);
             if (dt <= rule->max_time_d) dw = rule->amp_d;
         }
+        else if (learning_info->type == SYNAPSE_LEARNING_RSTDP_DW)
+        {
+            dw = _r_stdp_dw_depression_learning_rule(synapse, learning_info, reward);
+        }
         else if (learning_info->type == SYNAPSE_LEARNING_RSTDP_EXPONENTIAL)
         {
-            dw = _r_stdp_depression_learning_rule(synapse, learning_info, reward);
+            dw = _r_stdp_exponential_depression_learning_rule(synapse, learning_info, reward, dt);
         }
         else
         {
@@ -151,10 +162,10 @@ internal CALLBACK_END_SAMPLE(callback_stdp_v1_end_sample)
 }
 
 // NOTE: R-STDP helpers
-f32 _r_stdp_potentiation_learning_rule(Synapse* synapse, LearningInfo* learning_info, b32 reward)
+f32 _r_stdp_dw_potentiation_learning_rule(Synapse* synapse, LearningInfo* learning_info, b32 reward)
 {
     f32 dw = 0;
-    SynapseLearningRSTDPExpeonential* rule = &(learning_info->r_stdp_exponential);
+    SynapseLearningRSTDPdw* rule = &(learning_info->r_stdp_dw);
     if (reward)
     {
         dw = rule->reward_potentiation_factor * synapse->weight * (1 - synapse->weight);
@@ -166,10 +177,10 @@ f32 _r_stdp_potentiation_learning_rule(Synapse* synapse, LearningInfo* learning_
     return dw;
 }
 
-f32 _r_stdp_depression_learning_rule(Synapse* synapse, LearningInfo* learning_info, b32 reward)
+f32 _r_stdp_dw_depression_learning_rule(Synapse* synapse, LearningInfo* learning_info, b32 reward)
 {
     f32 dw = 0;
-    SynapseLearningRSTDPExpeonential* rule = &(learning_info->r_stdp_exponential);
+    SynapseLearningRSTDPdw* rule = &(learning_info->r_stdp_dw);
     if (reward)
     {
         dw = rule->reward_depression_factor * synapse->weight * (1 - synapse->weight);
@@ -177,6 +188,36 @@ f32 _r_stdp_depression_learning_rule(Synapse* synapse, LearningInfo* learning_in
     else
     {
         dw = rule->punishment_depression_factor * synapse->weight * (1 - synapse->weight);
+    }
+    return dw;
+}
+
+f32 _r_stdp_exponential_potentiation_learning_rule(Synapse* synapse, LearningInfo* learning_info, b32 reward, u32 dt)
+{
+    f32 dw = 0;
+    SynapseLearningRSTDPexponential* rule = &(learning_info->r_stdp_exponential);
+    if (reward)
+    {
+        dw = rule->A * math_exp_f32(-(f32)dt / rule->tau);
+    }
+    else
+    {
+        dw = rule->B * math_exp_f32(-(f32)dt / rule->tau);
+    }
+    return dw;
+}
+
+f32 _r_stdp_exponential_depression_learning_rule(Synapse* synapse, LearningInfo* learning_info, b32 reward, u32 dt)
+{
+    f32 dw = 0;
+    SynapseLearningRSTDPexponential* rule = &(learning_info->r_stdp_exponential);
+    if (reward)
+    {
+        dw = rule->B * math_exp_f32(-(f32)dt / rule->tau);
+    }
+    else
+    {
+        dw = rule->A * math_exp_f32(-(f32)dt / rule->tau);
     }
     return dw;
 }
