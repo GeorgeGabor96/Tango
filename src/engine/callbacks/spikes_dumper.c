@@ -40,7 +40,7 @@ internal CALLBACK_BEGIN_SAMPLE(callback_spikes_dumper_begin_sample)
     DumperSpikes* spikes = &callback->dumper_spikes;
 
     char file_name[100];
-    sprintf(file_name, "spikes_%s_e%u.bin", string_get_c_str(sample->name), epoch_i);
+    sprintf(file_name, "spikes_e%u_%s.bin", epoch_i, string_get_c_str(sample->name));
     String* file_path = string_path_join_c_str(
         memory, spikes->output_folder, file_name);
     check_memory(file_path);

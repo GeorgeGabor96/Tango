@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"fmt"
+	"math/rand"
 	"os"
 	"strings"
 	"sync"
@@ -50,7 +51,8 @@ func main() {
 
 	var wg sync.WaitGroup
 	for sampleI := range meta.Samples {
-		if sampleI%51 != 0 {
+		var chance float64 = rand.Float64()
+		if chance > 0.05 {
 			continue
 		}
 

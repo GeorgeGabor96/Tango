@@ -125,7 +125,7 @@ func BuildMeta(folder string) (*Meta, error) {
 
 func BuildData(meta *Meta, sample SampleData) (*Data, error) {
 	duration := sample.Duration
-	fileName := fmt.Sprintf("data_%v_e%v.bin", sample.Name, sample.Epoch)
+	fileName := fmt.Sprintf("data_e%v_%v.bin", sample.Epoch, sample.Name)
 
 	filePath := utils.Join(meta.Folder, fileName)
 
@@ -198,7 +198,7 @@ type SpikesData struct {
 }
 
 func BuildSpikes(meta *Meta, sample SampleData) (*SpikesData, error) {
-	spikesFile := fmt.Sprintf("spikes_%v_e%v.bin", sample.Name, sample.Epoch)
+	spikesFile := fmt.Sprintf("spikes_e%v_%v.bin", sample.Epoch, sample.Name)
 	filePath := utils.Join(meta.Folder, "spikes")
 	filePath = utils.Join(filePath, spikesFile)
 
