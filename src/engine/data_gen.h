@@ -153,6 +153,7 @@ typedef struct DataSampleBackgroundActivity
 
 typedef struct DataSample2Inputs {
     f32 spike_chance;
+    u32 winner_i;
 } DataSample2Inputs;
 
 typedef struct DataSample {

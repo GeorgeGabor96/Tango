@@ -2,7 +2,7 @@
 
 
 int main() {
-    Experiment* exp = experiment_create(0, 273407, "D:\\repos\\Tango\\outputs\\158_two_layer_net\\custom_learning");
+    Experiment* exp = experiment_create(0, 273407, "D:\\repos\\Tango\\outputs\\158_two_layer_net\\custom_learning_2_in");
 
     Memory* memory = exp->permanent_memory;
 
@@ -33,7 +33,7 @@ int main() {
     Callback* cb_meta = callback_meta_dumper_create(memory, exp->output_folder, net);
     Callback* cb_spikes = callback_spikes_dumper_create(memory, exp->output_folder, net);
     Callback* cb_weights = callback_weights_dumper_create(memory, 1, 10000, exp->output_folder, net);
-    //Callback* cb_data = callback_network_data_dumper_create(memory, exp->output_folder, net);
+    Callback* cb_data = callback_network_data_dumper_create(memory, exp->output_folder, net);
     Callback* cb_stdp_learning_history = callback_learning_history_create(memory, net);
     Callback* cb_accuracy = callback_accuracy_create(memory, exp->output_folder, net);
     Callback* cb_learning_custom = callback_learning_custom_create(memory, net);
@@ -46,8 +46,9 @@ int main() {
     experiment_add_callback(exp, cb_weights);
     experiment_add_callback(exp, cb_learning_custom);
     experiment_add_callback(exp, cb_accuracy);
+    //experiment_add_callback(exp, cb_data);
 
-    experiment_set_epoch_count(exp, 3);
+    experiment_set_epoch_count(exp, 5);
     experiment_set_learning(exp, TRUE);
 
     experiment_run(exp);

@@ -317,6 +317,14 @@ data_gen_sample_create(Memory* memory, DataGen* data, u32 idx) {
         sample->type = DATA_SAMPLE_2_INPUTS;
         sprintf(sample_name, "two_inputs_%06d", sample->sample_i);
         sample->two_inputs.spike_chance = data->two_inputs.spike_chance;
+        if (sample->sample_i < 5)
+        {
+            sample->winner_neuron_i = 0;
+        }
+        else
+        {
+            sample->winner_neuron_i = 1;
+        }
     }
     else
     {
@@ -485,7 +493,7 @@ data_network_inputs_create(Memory* memory, DataSample* sample, Network* network,
             f32 spike_chance = sample->basic_exp.spike_chance;
             u32 first_group_limit = layer->n_neurons / 2;
 
-            if (sample->sample_i > 1000)
+            if (sample->winner_neuron_i == 0)
             {
                 for (u32 neuron_i = 0; neuron_i < first_group_limit; ++neuron_i)
                 {

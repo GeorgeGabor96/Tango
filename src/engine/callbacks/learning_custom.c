@@ -54,6 +54,7 @@ internal CALLBACK_END_SAMPLE(callback_learning_custom_end_sample)
             {
                 synapse = it->synapses[synapse_i];
                 synapse->weight -= 0.05;
+                synapse->weight = math_clip_f32(synapse->weight, synapse->cls->learning_info.min_w, synapse->cls->learning_info.max_w);
             }
         }
     }
@@ -61,7 +62,7 @@ internal CALLBACK_END_SAMPLE(callback_learning_custom_end_sample)
     u32 should_be_winner_i = sample->winner_neuron_i;
     if (should_be_winner_i != -1)
     {
-        Neuron* neuron = callback->network->out_layers.first->layer->neurons + winner_i;
+        Neuron* neuron = callback->network->out_layers.first->layer->neurons + should_be_winner_i;
 
         u32 synapse_i = 0;
         Synapse* synapse = NULL;
@@ -72,6 +73,7 @@ internal CALLBACK_END_SAMPLE(callback_learning_custom_end_sample)
             {
                 synapse = it->synapses[synapse_i];
                 synapse->weight += 0.05;
+                synapse->weight = math_clip_f32(synapse->weight, synapse->cls->learning_info.min_w, synapse->cls->learning_info.max_w);
             }
         }
     }

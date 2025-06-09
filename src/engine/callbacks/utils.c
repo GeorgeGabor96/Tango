@@ -2,8 +2,8 @@ internal b32
 callback_utils_get_reward_first_spike(Network* network, DataSample* sample)
 {
     b32 reward = FALSE;
-    u32 neuron_winner_i = 0;
-    u32 neuron_winner_first_spike_time = 0;
+    u32 neuron_winner_i = -1;
+    u32 neuron_winner_first_spike_time = -1;
     b8 found = FALSE;
 
     check(network->n_out_layers == 1, "Only support one output layer for now");
@@ -43,7 +43,7 @@ internal u32
 callback_utils_get_winner_neuron(Network* net, DataSample* sample)
 {
     u32 neuron_winner_i = -1;
-    u32 neuron_winner_first_spike_time = 0;
+    u32 neuron_winner_first_spike_time = -1;
     b8 found = FALSE;
 
     check(net->n_out_layers == 1, "Only support one output layer for now");
