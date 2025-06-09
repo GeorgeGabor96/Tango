@@ -20,7 +20,7 @@ type WeightsData struct {
 }
 
 func BuildWeights(meta *experiment.Meta, sample experiment.SampleData) (*WeightsData, error) {
-	fileName := fmt.Sprintf("weights_%v_e%v", sample.Name, sample.Epoch)
+	fileName := fmt.Sprintf("weights_e%v_%v", sample.Epoch, sample.Name)
 
 	filePath := utils.Join(meta.Folder, "weights")
 	filePath = utils.Join(filePath, fileName+".bin")

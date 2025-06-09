@@ -58,7 +58,7 @@ internal CALLBACK_BEGIN_SAMPLE(callback_weights_dumper_begin_sample)
     data->next_time_to_dump_i = 0;
 
     char file_name[100];
-    sprintf(file_name, "weights_%s_e%u.bin", string_get_c_str(sample->name), epoch_i);
+    sprintf(file_name, "weights_e%u_%s.bin", epoch_i, string_get_c_str(sample->name));
     String* file_name_s = string_create(memory, file_name);
     check_memory(file_name_s);
 

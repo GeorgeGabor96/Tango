@@ -61,3 +61,6 @@
 - 1. Am pus rstdp exponential in loc la cel din paper cu w ( 1 - w)
 - 2. Tot aia patesc fie too much activity fie not at all
 - 3. TODO: pune lateral inhibition, macar validez ca asa se face
+
+25.05.2025
+- 1. Am ramas ca pun inhibitii -> nimic reteaua moare
