@@ -29,6 +29,7 @@
 #include "engine/callbacks/stdp_v1.c"
 #include "engine/callbacks/accuracy.c"
 #include "engine/callbacks/learning_history.c"
+#include "engine/callbacks/learning_custom.c"
 #include "engine/callbacks/utils.c"
 #include "engine/experiment.c"
 

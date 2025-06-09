@@ -100,6 +100,13 @@ typedef struct LearningHistory {
     void* data;
 } LearningHistory;
 
+/****************************
+* Callback Learning Custom
+****************************/
+typedef struct LearningCustom
+{
+    void* data;
+} LearningCustom;
 
 /**********************
 * Callback definitions
@@ -113,6 +120,7 @@ typedef enum {
     CALLBACK_STDP_V1 = 5,
     CALLBACK_ACCURACY = 6,
     CALLBACK_LEARNING_HISTORY = 7,
+    CALLBACK_LEARNING_CUSTOM = 8,
 
     CALLBACK_COUNT,
     CALLBACK_INVALID,
@@ -134,6 +142,7 @@ typedef struct Callback {
         STDPv1 stdp_v1;
         Accuracy accuracy;
         LearningHistory learning_history;
+        LearningCustom learning_custom;
     };
 } Callback, *CallbackP;
 
@@ -299,5 +308,19 @@ internal CALLBACK_END_EPOCH(callback_learning_history_end_epoch);
 internal CALLBACK_BEGIN_EXPERIMENT(callback_learning_history_begin_experiment);
 internal CALLBACK_END_EXPERIMENT(callback_learning_history_end_experiment);
 
+/*************************
+* Callback Learning Custom
+*************************/
+internal Callback* callback_learning_custom_create(
+    Memory* memory,
+    Network* network);
+
+internal CALLBACK_BEGIN_SAMPLE(callback_learning_custom_begin_sample);
+internal CALLBACK_UPDATE(callback_learning_custom_update);
+internal CALLBACK_END_SAMPLE(callback_learning_custom_end_sample);
+internal CALLBACK_BEGIN_EPOCH(callback_learning_custom_begin_epoch);
+internal CALLBACK_END_EPOCH(callback_learning_custom_end_epoch);
+internal CALLBACK_BEGIN_EXPERIMENT(callback_learning_custom_begin_experiment);
+internal CALLBACK_END_EXPERIMENT(callback_learning_custom_end_experiment);
 
 #endif // __ENGINE_CALLBACK_H__
