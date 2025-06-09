@@ -3,7 +3,6 @@ package main
 import (
 	"errors"
 	"fmt"
-	"math/rand"
 	"os"
 	"strings"
 	"sync"
@@ -51,10 +50,12 @@ func main() {
 
 	var wg sync.WaitGroup
 	for sampleI := range meta.Samples {
-		var chance float64 = rand.Float64()
-		if chance > 0.05 {
-			continue
-		}
+		/*
+			var chance float64 = rand.Float64()
+			if chance > 0.1 {
+				continue
+			}
+		*/
 
 		sample := meta.Samples[sampleI]
 
@@ -84,7 +85,7 @@ func CreatePlots(meta *experiment.Meta, sample experiment.SampleData) {
 		plotting.SynapseWeightPlot(meta, data, 200)
 		plotting.SynapsesHistPlot(meta, data, 200)
 
-		plotting.NeuronVoltagePlot(meta, data, 200)
+		plotting.NeuronVoltagePlot(meta, data, 11)
 		plotting.NeuronSpikesPlot(meta, data, 200)
 		plotting.NeuronPscPlot(meta, data, 200)
 		plotting.NeuronEpscPlot(meta, data, 200)

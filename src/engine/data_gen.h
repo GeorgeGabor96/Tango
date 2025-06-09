@@ -10,6 +10,7 @@ typedef enum {
     DATA_GEN_SPIKE_TRAIN,
     DATA_GEN_BASIC_EXPERIMENT,
     DATA_GEN_BACKGROUND_ACTIVITY,
+    DATA_GEN_2_INPUTS,
 } DataGenType;
 
 
@@ -50,6 +51,11 @@ typedef struct DataGenBackgroundActivity
     f32 change_background;
 } DataGenBackgroundActivity;
 
+typedef struct DataGen2Inputs {
+    Random* random;
+    f32 spike_chance;
+} DataGen2Inputs;
+
 typedef struct DataGen {
     DataGenType type;
     u32 n_samples;
@@ -63,6 +69,7 @@ typedef struct DataGen {
         DataGenSpikeTrain spike_train;
         DataGenBasicExperiment basic_exp;
         DataGenBackgroundActivity background_activity;
+        DataGen2Inputs two_inputs;
     };
 } DataGen;
 
@@ -107,6 +114,11 @@ internal DataGen* data_gen_create_background_activity(Memory* memory,
                                                       u32 n_samples,
                                                       u32 sample_duration);
 
+internal DataGen* data_gen_create_2_inputs(Memory* memory,
+                                           Random* random,
+                                           f32 spike_chance,
+                                           u32 n_samples);
+
 typedef enum {
     DATA_SAMPLE_INVALID,
     DATA_SAMPLE_RANDOM_SPIKES,
@@ -115,6 +127,7 @@ typedef enum {
     DATA_SAMPLE_SPIKE_TRAIN,
     DATA_SAMPLE_BASIC_EXPERIMENT,
     DATA_SAMPLE_BACKGROUND_ACTIVITY,
+    DATA_SAMPLE_2_INPUTS,
 } DataSampleType;
 
 
@@ -138,6 +151,11 @@ typedef struct DataSampleBackgroundActivity
     f32 spike_chance_background;
 } DataSampleBackgroundActivity;
 
+typedef struct DataSample2Inputs {
+    f32 spike_chance;
+    u32 winner_i;
+} DataSample2Inputs;
+
 typedef struct DataSample {
     DataSampleType type;
     u32 duration;
@@ -153,6 +171,7 @@ typedef struct DataSample {
         DataSampleSpikeTrain spike_train;
         DataSampleBasicExperiment basic_exp;
         DataSampleBackgroundActivity background_activity;
+        DataSample2Inputs two_inputs;
     };
 } DataSample;
 
